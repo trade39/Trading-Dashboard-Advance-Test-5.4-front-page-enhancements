@@ -17,6 +17,7 @@
     
     --border-color: #3A3C4E; 
     --input-border-color: #4A4C5E; 
+    --slider-track-color: #4A4C5E; /* For inactive part of slider track */
     
     --accent-color: #FF8C00; 
     
@@ -72,6 +73,8 @@
 
     --border-color: #DEE2E6; 
     --input-border-color: #CED4DA;
+    --slider-track-color: #DEE2E6; /* For inactive part of slider track */
+
 
     --accent-color: #FF6B00; 
 
@@ -257,10 +260,12 @@ div[data-testid="stSidebar"] .stButton button {
 
 
 /* --- General Button Styling for Streamlit --- */
-div[data-testid="stButton"] > button {
-    background-color: var(--primary-color);
+/* This rule applies to st.button, st.download_button, st.form_submit_button */
+div[data-testid="stButton"] > button,
+button[data-testid="baseButton-secondary"] /* For st.download_button */ {
+    background-color: var(--primary-color) !important; /* Ensure primary color is used */
     color: #FFFFFF !important; 
-    border: 1px solid var(--primary-color);
+    border: 1px solid var(--primary-color) !important;
     padding: 0.6rem 1.25rem;
     border-radius: var(--border-radius-md);
     font-weight: 500; 
@@ -273,27 +278,30 @@ div[data-testid="stButton"] > button {
     cursor: pointer;
 }
 
-div[data-testid="stButton"] > button:hover {
-    background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%);
-    border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%);
+div[data-testid="stButton"] > button:hover,
+button[data-testid="baseButton-secondary"]:hover {
+    background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
+    border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
     transform: translateY(-2px);
     box-shadow: var(--box-shadow-md);
 }
 
-div[data-testid="stButton"] > button:active {
+div[data-testid="stButton"] > button:active,
+button[data-testid="baseButton-secondary"]:active {
     transform: translateY(0px);
     box-shadow: var(--box-shadow-sm);
-    background-color: color-mix(in srgb, var(--primary-color) 70%, black 30%);
-    border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%);
+    background-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
+    border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
 }
 
+/* If you want a secondary button style with accent color, you'd need to apply a class */
 div[data-testid="stButton"] > button.secondary-button { 
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
 }
 div[data-testid="stButton"] > button.secondary-button:hover {
-    background-color: color-mix(in srgb, var(--accent-color) 85%, black 15%);
-    border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%);
+    background-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
+    border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
 }
 
 
@@ -391,6 +399,47 @@ div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li:h
     color: #FFFFFF !important;
 }
 
+/* --- Slider Styling (st.slider) --- */
+div[data-testid="stSlider"] {
+    padding: 0.5rem 0.25rem; /* Add some padding around the slider component */
+}
+
+/* Slider Track */
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(1) { /* This usually targets the track background */
+    background-color: var(--slider-track-color) !important;
+    height: 6px !important; /* Make track a bit thicker */
+    border-radius: var(--border-radius-sm);
+}
+
+/* Slider Filled/Active Track */
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(2) > div { /* This targets the filled part */
+    background-color: var(--primary-color) !important;
+    height: 6px !important; /* Match track thickness */
+    border-radius: var(--border-radius-sm);
+}
+
+/* Slider Thumb (Handle) */
+div[data-testid="stSlider"] div[role="slider"] {
+    background-color: var(--primary-color) !important;
+    border: 2px solid var(--card-background-color) !important; /* Contrasting border for thumb */
+    box-shadow: var(--box-shadow-md) !important;
+    width: 18px !important; /* Thumb size */
+    height: 18px !important; /* Thumb size */
+    border-radius: 50% !important; /* Circular thumb */
+    cursor: pointer;
+    transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+div[data-testid="stSlider"] div[role="slider"]:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 20%, transparent) !important; /* Subtle hover ring */
+}
+
+div[data-testid="stSlider"] div[role="slider"]:focus-visible { /* Focus state for accessibility */
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+    outline: none;
+}
+
 
 /* --- Expander Styling --- */
 div[data-testid="stExpander"] summary {
@@ -479,29 +528,27 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 .hero-section { 
     padding-top: 0; 
 }
-
-/* MODIFIED: Styles for the new welcome title and subtitle */
-.welcome-title { /* Specific class for the main welcome title */
-    font-size: 2.5rem; /* Slightly smaller than previous h1 */
+.welcome-title { 
+    font-size: 2.5rem; 
     font-weight: 700;
-    margin-top: 0.75rem; /* Adjusted top margin */
-    margin-bottom: 0.25rem; /* Reduced space before subtitle */
+    margin-top: 0.75rem; 
+    margin-bottom: 0.25rem; 
     color: var(--primary-color);
     text-align: center;
-    border-bottom: none; /* No border for this specific title */
+    border-bottom: none; 
 }
 
-.welcome-subtitle { /* Class for "Powered by..." */
-    font-size: 0.9rem; /* Smaller font size */
+.welcome-subtitle { 
+    font-size: 0.9rem; 
     font-weight: 400;
     color: var(--text-muted-color);
     text-align: center;
-    margin-top: 0; /* Close to the main title */
-    margin-bottom: 1.5rem; /* Space before the tagline */
+    margin-top: 0; 
+    margin-bottom: 1.5rem; 
 }
 
-.hero-section .tagline { /* Existing tagline, ensure it's styled correctly */
-    font-size: 1.25rem; /* Adjusted from 1.3rem */
+.hero-section .tagline { 
+    font-size: 1.25rem; 
     font-weight: 300;
     margin-bottom: 2rem;
     color: var(--text-muted-color);
@@ -510,7 +557,6 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-left: auto;
     margin-right: auto;
 }
-/* END MODIFIED */
 
 .feature-item { 
     padding: 1rem 0.5rem; 
@@ -561,8 +607,8 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     h2.section-header { font-size: 1.6rem; }
     .page-subtitle { font-size: 1rem; }
     .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } 
-    .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } /* Adjusted welcome title */
-    .welcome-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; } /* Adjusted welcome subtitle */
+    .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } 
+    .welcome-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; } 
     .hero-section .tagline { font-size: 1.15rem; }
 }
 
@@ -578,8 +624,8 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem; }
 
     .welcome-container { padding: 0.5rem 1rem 1rem 1rem; margin: 0 auto; } 
-    .welcome-title { font-size: 2rem; margin-top: 0.25rem; } /* Adjusted welcome title */
-    .welcome-subtitle { font-size: 0.8rem; margin-bottom: 1rem; } /* Adjusted welcome subtitle */
+    .welcome-title { font-size: 2rem; margin-top: 0.25rem; } 
+    .welcome-subtitle { font-size: 0.8rem; margin-bottom: 1rem; } 
     .hero-section .tagline { font-size: 1.05rem; }
     .feature-item {
         margin-bottom: 1.5rem; 
