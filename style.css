@@ -114,7 +114,7 @@ body {
 
 /* --- Main Layout Container --- */
 .main .block-container {
-    padding: 1rem 2rem; /* Reduced top padding for general pages */
+    padding: 1rem 2rem; 
 }
 
 /* --- Headings --- */
@@ -468,29 +468,40 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 
 /* --- Welcome Page Styles --- */
 .welcome-container {
-    /* MODIFIED: Remove box-like appearance and minimize vertical space */
-    background-color: transparent; /* Make it invisible */
+    background-color: transparent; 
     border: none;
     box-shadow: none;
-    max-width: 100%; /* Allow it to span full width if needed */
-    padding: 0.5rem 2rem 2rem 2rem; /* Minimal top padding, keep side/bottom for content */
-    margin: 0 auto; /* Remove top/bottom auto margin, center horizontally */
+    max-width: 100%; 
+    padding: 0.5rem 2rem 2rem 2rem; 
+    margin: 0 auto; 
 }
 
 .hero-section { 
     padding-top: 0; 
 }
-.hero-section h1 { 
-    font-size: 2.75rem; 
+
+/* MODIFIED: Styles for the new welcome title and subtitle */
+.welcome-title { /* Specific class for the main welcome title */
+    font-size: 2.5rem; /* Slightly smaller than previous h1 */
     font-weight: 700;
-    margin-top: 0.5rem; /* Small top margin to push it slightly from toolbar */
-    margin-bottom: 0.75rem;
+    margin-top: 0.75rem; /* Adjusted top margin */
+    margin-bottom: 0.25rem; /* Reduced space before subtitle */
     color: var(--primary-color);
-    border-bottom: none; 
     text-align: center;
+    border-bottom: none; /* No border for this specific title */
 }
-.hero-section .tagline {
-    font-size: 1.3rem; 
+
+.welcome-subtitle { /* Class for "Powered by..." */
+    font-size: 0.9rem; /* Smaller font size */
+    font-weight: 400;
+    color: var(--text-muted-color);
+    text-align: center;
+    margin-top: 0; /* Close to the main title */
+    margin-bottom: 1.5rem; /* Space before the tagline */
+}
+
+.hero-section .tagline { /* Existing tagline, ensure it's styled correctly */
+    font-size: 1.25rem; /* Adjusted from 1.3rem */
     font-weight: 300;
     margin-bottom: 2rem;
     color: var(--text-muted-color);
@@ -499,6 +510,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-left: auto;
     margin-right: auto;
 }
+/* END MODIFIED */
 
 .feature-item { 
     padding: 1rem 0.5rem; 
@@ -544,17 +556,18 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 
 /* --- Responsive Design Adjustments --- */
 @media (max-width: 992px) { /* Tablet */
-    .main .block-container { padding: 1rem 1.5rem; } /* Adjusted general padding */
+    .main .block-container { padding: 1rem 1.5rem; } 
     h1 { font-size: 2rem; }
     h2.section-header { font-size: 1.6rem; }
     .page-subtitle { font-size: 1rem; }
-    .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } /* Adjusted welcome padding */
-    .hero-section h1 { font-size: 2.25rem; margin-top: 0.25rem; }
+    .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } 
+    .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } /* Adjusted welcome title */
+    .welcome-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; } /* Adjusted welcome subtitle */
     .hero-section .tagline { font-size: 1.15rem; }
 }
 
 @media (max-width: 767px) { /* Mobile */
-    .main .block-container { padding: 0.5rem 1rem; } /* Adjusted general padding */
+    .main .block-container { padding: 0.5rem 1rem; } 
     h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
     h2.section-header { font-size: 1.4rem; margin-bottom: 1rem; }
     h3.section-subheader { font-size: 1.2rem; }
@@ -564,8 +577,9 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.75rem 1rem;}
     .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem; }
 
-    .welcome-container { padding: 0.5rem 1rem 1rem 1rem; margin: 0 auto; } /* Further adjusted welcome padding */
-    .hero-section h1 { font-size: 2rem; margin-top: 0.25rem; }
+    .welcome-container { padding: 0.5rem 1rem 1rem 1rem; margin: 0 auto; } 
+    .welcome-title { font-size: 2rem; margin-top: 0.25rem; } /* Adjusted welcome title */
+    .welcome-subtitle { font-size: 0.8rem; margin-bottom: 1rem; } /* Adjusted welcome subtitle */
     .hero-section .tagline { font-size: 1.05rem; }
     .feature-item {
         margin-bottom: 1.5rem; 
