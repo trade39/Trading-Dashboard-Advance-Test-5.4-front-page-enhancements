@@ -86,7 +86,7 @@
 
     --sidebar-link-hover-bg: var(--primary-color);
     --sidebar-link-active-bg: var(--primary-color);
-    --sidebar-link-text-color: var(--text-muted-color);
+    --sidebar-link-text-color: var(--text-muted-color); 
     --sidebar-link-hover-text-color: #FFFFFF;
     --sidebar-link-active-text-color: #FFFFFF;
     --sidebar-icon-color: var(--text-muted-color);
@@ -191,45 +191,41 @@ div[data-testid="stToolbar"] svg:hover {
 div[data-testid="stSidebar"] {
     background-color: var(--section-background-color); 
     border-right: 1px solid var(--border-color);
-    padding: 1rem; /* Overall padding for the sidebar */
+    padding: 1rem; 
     box-shadow: var(--box-shadow-md);
 }
 
-/* Styling for the navigation link container */
 div[data-testid="stSidebarNav"] > ul {
     padding: 0;
     margin: 0;
     list-style: none;
 }
 
-/* Styling for each navigation link item (anchor tag) */
 div[data-testid="stSidebarNav"] li > a {
-    display: flex; /* Use flexbox for icon and text alignment */
-    align-items: center; /* Vertically align icon and text */
-    padding: 0.75rem 1rem; /* Consistent padding */
-    margin: 0.25rem 0; /* Small margin between links */
+    display: flex; 
+    align-items: center; 
+    padding: 0.75rem 1rem; 
+    margin: 0.25rem 0; 
     border-radius: var(--border-radius-md);
     text-decoration: none;
     color: var(--sidebar-link-text-color);
-    font-weight: 500; /* Slightly bolder for nav links */
+    font-weight: 500; 
     font-size: 0.95rem;
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 color var(--transition-speed) var(--transition-timing),
                 box-shadow var(--transition-speed) var(--transition-timing);
 }
 
-/* Icon styling within nav links (if Streamlit renders them as spans or svgs) */
-div[data-testid="stSidebarNav"] li > a > span:first-child, /* Often icons are in a span */
-div[data-testid="stSidebarNav"] li > a > svg { /* Or direct SVGs */
-    margin-right: 0.75rem; /* Space between icon and text */
-    font-size: 1.1em; /* Adjust icon size if needed */
-    color: var(--sidebar-icon-color); /* Use specific icon color variable */
+div[data-testid="stSidebarNav"] li > a > span:first-child, 
+div[data-testid="stSidebarNav"] li > a > svg { 
+    margin-right: 0.75rem; 
+    font-size: 1.1em; 
+    color: var(--sidebar-icon-color); 
     fill: var(--sidebar-icon-color);
     transition: color var(--transition-speed) var(--transition-timing), 
                 fill var(--transition-speed) var(--transition-timing);
 }
 
-/* Hover state for navigation links */
 div[data-testid="stSidebarNav"] li > a:hover {
     background-color: var(--sidebar-link-hover-bg);
     color: var(--sidebar-link-hover-text-color) !important;
@@ -241,12 +237,11 @@ div[data-testid="stSidebarNav"] li > a:hover > svg {
     fill: var(--sidebar-icon-hover-color);
 }
 
-/* Active state for navigation links (using aria-current attribute) */
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] {
     background-color: var(--sidebar-link-active-bg);
     color: var(--sidebar-link-active-text-color) !important;
-    font-weight: 600; /* Make active link slightly bolder */
-    box-shadow: var(--box-shadow-md); /* More prominent shadow for active */
+    font-weight: 600; 
+    box-shadow: var(--box-shadow-md); 
 }
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] > span:first-child,
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] > svg {
@@ -499,36 +494,46 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-left: auto;
     margin-right: auto;
 }
-.feature-card { 
-    background-color: var(--section-background-color); 
-    padding: 1.75rem;
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--box-shadow-sm);
-    transition: transform var(--transition-speed) var(--transition-timing), 
-                box-shadow var(--transition-speed) var(--transition-timing);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
+
+/* MODIFIED: Cleaner Feature "Cards" - No explicit boxes */
+.feature-item { /* Renamed from .feature-card for clarity */
+    padding: 1rem 0.5rem; /* Adjust padding as needed */
+    text-align: center; /* Center align content */
+    /* No background, border, or shadow by default for a cleaner look */
 }
-.feature-card:hover {
-    transform: translateY(-5px) scale(1.02); 
-    box-shadow: var(--box-shadow-md);
-}
-.feature-card h4 {
+
+.feature-item h4 {
     color: var(--primary-color);
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1.25rem; 
+    margin-bottom: 0.75rem; /* Space between heading and paragraph */
+    font-size: 1.2rem; /* Slightly smaller if no box */
     font-weight: 600;
 }
-.feature-card p {
+
+.feature-item p {
     font-size: 0.95rem;
-    line-height: 1.7; 
+    line-height: 1.6;
     color: var(--text-color);
-    flex-grow: 1;
+    /* flex-grow: 1; Removed as it's less relevant without a fixed card height */
+    max-width: 30ch; /* Limit width of paragraph for better readability */
+    margin-left: auto;
+    margin-right: auto;
 }
+
+/* Optional: Add a subtle separator between feature items if needed when columns stack on mobile */
+@media (max-width: 767px) {
+    .feature-item {
+        margin-bottom: 1.5rem; /* Space when items stack */
+        /* border-bottom: 1px solid var(--border-color); /* Uncomment for a very subtle separator */
+        /* padding-bottom: 1.5rem; /* Add padding if border is used */
+    }
+    .feature-item:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+}
+
 
 /* --- Custom Scrollbar --- */
 ::-webkit-scrollbar {
@@ -574,8 +579,8 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .welcome-container { padding: 1.5rem; margin: 1.5rem auto; }
     .hero-section h1 { font-size: 2rem; }
     .hero-section .tagline { font-size: 1.05rem; }
-    .feature-card { margin-bottom: 1.5rem; padding: 1.25rem; }
-    .feature-card h4 { font-size: 1.15rem; }
+    /* .feature-card styling handled by .feature-item above for mobile */
+    .feature-item h4 { font-size: 1.15rem; }
 }
 
 .kpi-card {
