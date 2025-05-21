@@ -11,36 +11,47 @@ body {
     --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    /* Light Theme Defaults (can be overridden by Streamlit's config.toml or data-theme specific rules) */
+    /* Light Theme Defaults */
     --primary-color: #007bff;
     --secondary-color: #0056b3;
     --background-color: #ffffff;
-    --secondary-background-color: #f8f9fa; /* For elements like cards or slightly off-main bg */
+    --secondary-background-color: #f8f9fa;
     --text-color: #212529;
-    --text-color-light: #495057; /* Lighter text for secondary info */
+    --text-color-light: #495057;
     --border-color: #dee2e6;
-    --card-background: #ffffff; /* Welcome page card background */
+    --card-background: #ffffff;
     --button-text-color: #ffffff;
     --box-shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
     --box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
     --box-shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
-    --border-radius: 0.375rem; /* Standard border radius */
+    --border-radius: 0.375rem;
+    --header-toolbar-background: #ffffff; /* Default for light theme */
+    --header-toolbar-text-color: #495057; /* Default for light theme */
+    --header-toolbar-hover-text-color: #212529; /* Default for light theme */
+
 }
 
 /* Dark Theme Overrides */
 [data-theme="dark"] {
-    --primary-color: #17a2b8;       /* Teal/cyan for dark mode */
-    --secondary-color: #138496;     /* Darker teal/cyan */
-    --background-color: #0a192f;    /* Deep, professional dark blue */
-    --secondary-background-color: #132f4c; /* Slightly lighter than main dark bg */
-    --text-color: #e6f1ff;          /* Light text for dark background */
-    --text-color-light: #adb5bd;    /* Lighter grey for secondary dark text */
-    --border-color: #3a506b;        /* Muted border for dark mode */
-    --card-background: #132f4c;     /* Welcome page card background for dark */
-    --button-text-color: #ffffff;   /* Text color for buttons can often remain white */
+    --primary-color: #17a2b8;
+    --secondary-color: #138496;
+    --background-color: #0a192f;
+    --secondary-background-color: #132f4c;
+    --text-color: #e6f1ff;
+    --text-color-light: #adb5bd;
+    --border-color: #3a506b;
+    --card-background: #132f4c;
+    --button-text-color: #ffffff;
+    --header-toolbar-background: #0a192f; /* Dark theme header bg */
+    --header-toolbar-text-color: #adb5bd;  /* Dark theme header text */
+    --header-toolbar-hover-text-color: #e6f1ff; /* Dark theme header text hover */
 }
 
 /* Apply general background and text color based on theme */
+html { /* Ensure HTML element gets the background for full coverage */
+    background-color: var(--background-color);
+}
+
 body {
     background-color: var(--background-color);
     color: var(--text-color);
@@ -52,28 +63,28 @@ body {
     padding: 2rem;
     max-width: 900px;
     margin: 2rem auto;
-    background-color: var(--secondary-background-color); /* Use secondary for slight distinction */
+    background-color: var(--secondary-background-color);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     border: 1px solid var(--border-color);
 }
 
 .hero-section h1 {
-    font-size: 2.5em; /* Slightly adjusted */
+    font-size: 2.5em;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: var(--primary-color); /* Dynamically set by theme */
+    color: var(--primary-color);
 }
 
 .hero-section .tagline {
-    font-size: 1.25em; /* Slightly adjusted */
+    font-size: 1.25em;
     font-weight: 300;
     margin-bottom: 1.5rem;
-    color: var(--text-color-light); /* Use the lighter text variant */
+    color: var(--text-color-light);
 }
 
 .feature-card {
-    background-color: var(--background-color); /* Main background for cards to stand out on secondary */
+    background-color: var(--background-color);
     padding: 1.5rem;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
@@ -100,15 +111,15 @@ body {
     font-size: 0.95em;
     line-height: 1.6;
     color: var(--text-color);
-    flex-grow: 1; /* Allows paragraph to take available space */
+    flex-grow: 1;
 }
 
-/* General Button Styling (Streamlit's default buttons are targeted by data-testid) */
+/* General Button Styling */
 div[data-testid="stButton"] > button {
     background-color: var(--primary-color);
-    color: var(--button-text-color) !important; /* Important to override Streamlit's default text color for buttons */
-    border: 1px solid var(--primary-color); /* Border same as background for solid look */
-    padding: 0.65rem 1.3rem; /* Slightly adjusted padding */
+    color: var(--button-text-color) !important;
+    border: 1px solid var(--primary-color);
+    padding: 0.65rem 1.3rem;
     border-radius: var(--border-radius);
     font-weight: 600;
     font-size: 1em;
@@ -129,12 +140,6 @@ div[data-testid="stButton"] > button:active {
     box-shadow: var(--box-shadow-sm);
 }
 
-/* Sidebar button for theme toggle */
-/* You might need to inspect the exact class if this doesn't work, or use a more general approach */
-/* For the st.sidebar.button, it might inherit the above stButton styles if it uses the same data-testid */
-/* If it's different, you'd add specific styling for it. */
-
-
 /* General utility for separators */
 hr {
     border: none;
@@ -144,27 +149,51 @@ hr {
 }
 
 /* Streamlit Overrides & Enhancements */
-/* Sidebar styling */
-div[data-testid="stSidebarNav"] { /* Target the navigation links in sidebar */
-  /* Example: add some padding or modify link appearance */
-}
-
 div[data-testid="stSidebar"] {
     border-right: 1px solid var(--border-color);
-    background-color: var(--secondary-background-color); /* Slightly different bg for sidebar */
+    background-color: var(--secondary-background-color);
 }
 
-/* Ensure main content area has some padding if not using st.container extensively */
-.main .block-container {
-    padding-top: 2rem;
+.main .block-container { /* Main content area */
+    padding-top: 1rem; /* Reduce top padding if header is less obtrusive */
     padding-bottom: 2rem;
-    padding-left: 1rem; /* Adjust as needed */
-    padding-right: 1rem; /* Adjust as needed */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: var(--background-color); /* Ensure it matches main bg */
+}
+
+/* Streamlit Header/Toolbar Styling */
+/* Targets the main toolbar at the top of the app */
+div[data-testid="stToolbar"] {
+    background-color: var(--header-toolbar-background) !important;
+    border-bottom: 1px solid var(--border-color) !important; /* Optional: adds a subtle separator */
+}
+
+div[data-testid="stToolbar"] button,
+div[data-testid="stToolbar"] a,
+div[data-testid="stToolbar"] label, /* For any labels that might appear */
+div[data-testid="stToolbar"] svg { /* Targets icons */
+    color: var(--header-toolbar-text-color) !important;
+    fill: var(--header-toolbar-text-color) !important; /* For SVG icons */
+}
+
+div[data-testid="stToolbar"] button:hover,
+div[data-testid="stToolbar"] a:hover,
+div[data-testid="stToolbar"] label:hover,
+div[data-testid="stToolbar"] svg:hover {
+    color: var(--header-toolbar-hover-text-color) !important;
+    fill: var(--header-toolbar-hover-text-color) !important;
+    background-color: transparent !important; /* Prevent unwanted hover backgrounds on buttons */
+}
+
+/* Specifically for the "Share" button if it needs different styling */
+div[data-testid="stToolbar"] button[title="Share app"] {
+    /* Add specific styles if needed, otherwise it inherits above */
 }
 
 
 /* Responsive adjustments */
-@media (max-width: 992px) { /* Adjust breakpoint for tablets */
+@media (max-width: 992px) {
     .hero-section h1 {
         font-size: 2.2em;
     }
@@ -173,9 +202,9 @@ div[data-testid="stSidebar"] {
     }
 }
 
-@media (max-width: 768px) { /* Adjust breakpoint for mobile */
+@media (max-width: 768px) {
     .welcome-container {
-        padding: 1.5rem; /* More padding for smaller screens */
+        padding: 1.5rem;
         margin: 1rem;
     }
     .hero-section h1 {
@@ -187,24 +216,71 @@ div[data-testid="stSidebar"] {
     .feature-card {
         margin-bottom: 1rem;
     }
-    /* Stack columns on mobile if st.columns doesn't do it by default effectively */
+    .main .block-container {
+        padding-top: 0.5rem; /* Further reduce top padding on mobile */
+    }
 }
 
-/* Custom scrollbar for a more modern look (optional) */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px; /* Slightly wider for better grab */
+    height: 10px;
 }
 ::-webkit-scrollbar-track {
     background: var(--secondary-background-color);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
 }
 ::-webkit-scrollbar-thumb {
     background-color: var(--primary-color);
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     border: 2px solid var(--secondary-background-color); /* Creates padding around thumb */
 }
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--secondary-color);
 }
+```
 
+**Key Changes Made:**
+
+1.  **`html` Background:**
+    ```css
+    html {
+        background-color: var(--background-color);
+    }
+    ```
+    This ensures the very base of the page (which the main scrollbar is attached to) also uses your theme's background color. This should help the scrollbar track blend in seamlessly.
+
+2.  **Streamlit Header/Toolbar Styling (`div[data-testid="stToolbar"]`):**
+    * New CSS variables `--header-toolbar-background`, `--header-toolbar-text-color`, and `--header-toolbar-hover-text-color` were added to `:root` and `[data-theme="dark"]` for better control.
+    * The background of the toolbar is set to `var(--header-toolbar-background)`.
+    * The color and fill (for SVG icons) of buttons, links, and SVGs within the toolbar are set to `var(--header-toolbar-text-color)`.
+    * Hover states are also themed using `var(--header-toolbar-hover-text-color)`.
+    * `!important` is used cautiously here because Streamlit's internal styles can be quite specific. This helps ensure your theme overrides take precedence for this particular component.
+
+3.  **Main Content Padding:**
+    ```css
+    .main .block-container {
+        padding-top: 1rem; /* Reduce top padding if header is less obtrusive */
+        /* ... other paddings ... */
+        background-color: var(--background-color); /* Ensure it matches main bg */
+    }
+    ```
+    I've slightly reduced the `padding-top` for the main content area (`.block-container`) as the header bar will now be less visually dominant. You can adjust this as needed. Also ensured its background color matches the main theme.
+
+**How to Use:**
+
+* Replace the entire content of your `style.css` file with the code provided above.
+* Ensure your `app.py` is correctly loading this `style.css` file (using `load_css("style.css")`).
+* The theme switching mechanism you have (JavaScript setting `data-theme` on `document.documentElement`) will work with these CSS rules.
+
+This should make the top Streamlit toolbar integrate smoothly with your dark theme, and the main page scrollbar should also be consistently styled. If the `div[data-testid="stToolbar"]` selector doesn't capture the header correctly in your Streamlit version, you might need to inspect the element in your browser's developer tools to find the precise selector and adjust the CSS accordingly.
+
+I've updated the `style.css` in the document with these changes.
+
+**Suggestions for Next Steps:**
+
+1.  **Test Toolbar Selectors:** Verify that `div[data-testid="stToolbar"]` correctly targets the header bar. If not, inspect the page elements to find the correct selector (it might be something like `.stApp > header` or another `data-testid`).
+2.  **Fine-tune Colors:** Adjust the new `--header-toolbar-...` CSS variables if the default choices aren't perfectly to your liking.
+3.  **Check `st.logo` Interaction:** See how `st.logo()` behaves with this styled header. The logo should ideally replace only a part of the header, and the rest should adopt the new styling.
+4.  **Responsiveness of Header:** While the welcome page content has responsive styles, check how the Streamlit header itself behaves on smaller screens. Streamlit usually handles this well, but ensure your styles don't interfere negatively.
+5.  **Consider Removing `!important`:** If possible, try to achieve the overrides without `!important` by increasing CSS specificity. However, for overriding deeply nested or inline styles from a library like Streamlit, `!important` is sometimes a pragmatic choi
