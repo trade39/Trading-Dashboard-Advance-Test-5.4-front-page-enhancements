@@ -9,6 +9,7 @@ Updates:
 - "Trade Size/Quantity" is auto-mapped to the "Size" CSV column.
 - Sleek, professional dark-themed UI inspired by provided screenshot.
 - Streamlit duplicate key bug fixed: form_submit_button now has unique keys.
+- Removed unsupported 'type' parameter from st.form_submit_button.
 """
 
 import streamlit as st
@@ -288,8 +289,7 @@ class ColumnMapperUI:
                 submit_button_top = st.form_submit_button(
                     "Apply & Validate", 
                     key=f"submit_btn_top_{self.uploaded_file_name.replace('.', '_')}", 
-                    use_container_width=True, 
-                    type="primary"
+                    use_container_width=True
                 )
 
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
@@ -321,8 +321,7 @@ class ColumnMapperUI:
                 submit_button_bottom = st.form_submit_button(
                     "Apply & Validate", 
                     key=f"submit_btn_bottom_{self.uploaded_file_name.replace('.', '_')}", 
-                    use_container_width=True, 
-                    type="primary"
+                    use_container_width=True
                 )
 
         st.session_state[SESSION_MAPPINGS_KEY] = self.mapping.copy()
