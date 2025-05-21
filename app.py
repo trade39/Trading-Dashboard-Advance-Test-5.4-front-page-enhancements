@@ -19,8 +19,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://github.com/trade39/Trading-Dashboard-Advance-Test-5.4', # Updated
-        'Report a bug': "https://github.com/trade39/Trading-Dashboard-Advance-Test-5.4/issues", # Updated
+        'Get Help': 'https://github.com/trade39/Trading-Dashboard-Advance-Test-5.4',
+        'Report a bug': "https://github.com/trade39/Trading-Dashboard-Advance-Test-5.4/issues",
         'About': f"## {PAGE_CONFIG_APP_TITLE}\n\nA comprehensive dashboard for trading performance analysis."
     }
 )
@@ -29,8 +29,9 @@ st.set_page_config(
 # --- Utility Modules ---
 try:
     from utils.logger import setup_logger
-    # Assuming load_css is now load_custom_css and display_custom_message is still used
-    from utils.common_utils import load_custom_css, display_custom_message, log_execution_time
+    # --- MODIFICATION START: Reverted to load_css ---
+    from utils.common_utils import load_css, display_custom_message, log_execution_time
+    # --- MODIFICATION END ---
 except ImportError as e:
     st.error(f"Fatal Error: Could not import utility modules. App cannot start. Details: {e}")
     logging.basicConfig(level=logging.ERROR)
@@ -65,12 +66,12 @@ try:
         RISK_FREE_RATE, LOG_FILE, LOG_LEVEL, LOG_FORMAT,
         DEFAULT_BENCHMARK_TICKER, AVAILABLE_BENCHMARKS, EXPECTED_COLUMNS
     )
-    from kpi_definitions import KPI_CONFIG # KPI_CONFIG is used by services/components
+    from kpi_definitions import KPI_CONFIG
 except ImportError as e:
     st.error(f"Fatal Error: Could not import configuration (config.py or kpi_definitions.py). App cannot start. Details: {e}")
     APP_TITLE = "TradingAppError"; LOG_FILE = "logs/error_app.log"; LOG_LEVEL = "ERROR"; LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     RISK_FREE_RATE = 0.02; CONCEPTUAL_COLUMNS = {"date": "Date", "pnl": "PnL"}; CRITICAL_CONCEPTUAL_COLUMNS = ["date", "pnl"]
-    CONCEPTUAL_COLUMN_TYPES = {}; CONCEPTUAL_COLUMN_SYNONYMS = {}; KPI_CONFIG = {}; CONCEPTUAL_COLUMN_CATEGORIES = {} # Fallback
+    CONCEPTUAL_COLUMN_TYPES = {}; CONCEPTUAL_COLUMN_SYNONYMS = {}; KPI_CONFIG = {}; CONCEPTUAL_COLUMN_CATEGORIES = {}
     EXPECTED_COLUMNS = {"date": "date", "pnl": "pnl"}; DEFAULT_BENCHMARK_TICKER = "SPY"; AVAILABLE_BENCHMARKS = {}
     st.stop()
 
@@ -81,8 +82,7 @@ logger.info(f"Application '{APP_TITLE}' starting. Logger initialized.")
 
 # Theme management
 if 'current_theme' not in st.session_state:
-    st.session_state.current_theme = "dark" # Default to dark theme
-# This script ensures the data-theme attribute is set on the HTML element
+    st.session_state.current_theme = "dark"
 theme_js = f"""
 <script>
     const currentTheme = '{st.session_state.current_theme}';
@@ -102,7 +102,9 @@ st.components.v1.html(theme_js, height=0)
 # Load CSS
 try:
     css_file_path = "style.css"
-    if os.path.exists(css_file_path): load_custom_css(css_file_path) # Use your load_custom_css
+    # --- MODIFICATION START: Reverted to load_css ---
+    if os.path.exists(css_file_path): load_css(css_file_path)
+    # --- MODIFICATION END ---
     else: logger.error(f"style.css not found at '{css_file_path}'.")
 except Exception as e: logger.error(f"Failed to load style.css: {e}", exc_info=True)
 
@@ -129,7 +131,7 @@ data_service = DataService()
 analysis_service_instance = AnalysisService()
 
 # Logo
-LOGO_PATH_SIDEBAR = "assets/Trading_Mastery_Hub_600x600.png" # Ensure this path is correct
+LOGO_PATH_SIDEBAR = "assets/Trading_Mastery_Hub_600x600.png"
 logo_to_display_path = LOGO_PATH_SIDEBAR
 logo_base64 = None
 
@@ -140,7 +142,7 @@ if os.path.exists(LOGO_PATH_SIDEBAR):
         logo_to_display_for_st_logo = f"data:image/png;base64,{logo_base64}"
     except Exception as e:
         logger.error(f"Error encoding logo: {e}", exc_info=True)
-        logo_to_display_for_st_logo = LOGO_PATH_SIDEBAR # Fallback to path if encoding fails
+        logo_to_display_for_st_logo = LOGO_PATH_SIDEBAR
 else:
     logger.error(f"Logo file NOT FOUND at {LOGO_PATH_SIDEBAR}")
     logo_to_display_for_st_logo = None
@@ -151,7 +153,6 @@ if logo_to_display_for_st_logo:
         st.logo(logo_to_display_for_st_logo, icon_image=logo_to_display_for_st_logo)
     except Exception as e:
         logger.error(f"Error setting st.logo: {e}", exc_info=True)
-        # Fallback if st.logo fails (e.g., older Streamlit version or other issues)
         if logo_base64:
              st.sidebar.image(f"data:image/png;base64,{logo_base64}", use_column_width='auto')
         elif os.path.exists(LOGO_PATH_SIDEBAR):
@@ -160,9 +161,8 @@ if logo_to_display_for_st_logo:
 
 st.sidebar.header(APP_TITLE)
 st.sidebar.markdown("---")
-theme_toggle_value = st.session_state.current_theme == "light" # True if light, False if dark
+theme_toggle_value = st.session_state.current_theme == "light"
 
-# The label changes based on the current theme to reflect the action
 toggle_label = "Switch to Dark Mode" if st.session_state.current_theme == "light" else "Switch to Light Mode"
 
 if st.sidebar.button(toggle_label, key="theme_toggle_button_main_app"):
@@ -201,23 +201,22 @@ if uploaded_file is not None:
     if st.session_state.last_uploaded_file_for_mapping_id != current_file_id_for_mapping:
         logger.info(f"New file '{uploaded_file.name}' for mapping. Resetting state.")
         for key_to_reset in ['column_mapping_confirmed', 'user_column_mapping', 'processed_data', 'filtered_data', 'kpi_results', 'kpi_confidence_intervals', 'benchmark_daily_returns', 'max_drawdown_period_details']:
-            st.session_state[key_to_reset] = None # Reset to None or initial default
+            st.session_state[key_to_reset] = None
         st.session_state.uploaded_file_name = uploaded_file.name
         st.session_state.last_uploaded_file_for_mapping_id = current_file_id_for_mapping
         try:
             st.session_state.uploaded_file_bytes_for_mapper = BytesIO(uploaded_file.getvalue())
-            st.session_state.uploaded_file_bytes_for_mapper.seek(0) # Ensure pointer is at the beginning
-            # Peek into the CSV to get headers without consuming the main BytesIO object for the mapper
+            st.session_state.uploaded_file_bytes_for_mapper.seek(0)
             df_peek = pd.read_csv(BytesIO(st.session_state.uploaded_file_bytes_for_mapper.getvalue()), nrows=5)
             st.session_state.csv_headers_for_mapping = df_peek.columns.tolist()
-            st.session_state.uploaded_file_bytes_for_mapper.seek(0) # Reset again for the mapper
+            st.session_state.uploaded_file_bytes_for_mapper.seek(0)
         except Exception as e_header:
             logger.error(f"Could not read CSV headers/preview: {e_header}", exc_info=True)
             display_custom_message(f"Error reading from '{uploaded_file.name}': {e_header}. Ensure valid CSV.", "error")
             st.session_state.csv_headers_for_mapping = None; st.session_state.uploaded_file_bytes_for_mapper = None; st.stop()
 
     if st.session_state.csv_headers_for_mapping and not st.session_state.column_mapping_confirmed:
-        st.session_state.processed_data = None; st.session_state.filtered_data = None # Clear data if re-mapping
+        st.session_state.processed_data = None; st.session_state.filtered_data = None
         column_mapper = ColumnMapperUI(
             uploaded_file_name=st.session_state.uploaded_file_name,
             uploaded_file_bytes=st.session_state.uploaded_file_bytes_for_mapper,
@@ -229,27 +228,26 @@ if uploaded_file is not None:
             conceptual_column_categories=CONCEPTUAL_COLUMN_CATEGORIES
         )
         user_mapping_result = column_mapper.render()
-        if user_mapping_result is not None: # Mapping confirmed by user
+        if user_mapping_result is not None:
             st.session_state.user_column_mapping = user_mapping_result
             st.session_state.column_mapping_confirmed = True
-            st.rerun() # Rerun to proceed to data processing
-        else: # Mapping UI is active, waiting for user confirmation
-            # display_custom_message("Please map your CSV columns to the application fields and confirm.", "info") # Mapper UI should handle this
-            st.stop() # Stop further execution until mapping is done
+            st.rerun()
+        else:
+            st.stop()
 
     if st.session_state.column_mapping_confirmed and st.session_state.user_column_mapping:
-        current_file_id_proc = f"{st.session_state.uploaded_file_name}-{uploaded_file.size}-{uploaded_file.type}-processing" # Use st.session_state.uploaded_file_name
+        current_file_id_proc = f"{st.session_state.uploaded_file_name}-{uploaded_file.size}-{uploaded_file.type}-processing"
         if st.session_state.last_processed_file_id != current_file_id_proc or st.session_state.processed_data is None:
             with st.spinner(f"Processing '{st.session_state.uploaded_file_name}'..."):
                 file_obj_for_service = st.session_state.uploaded_file_bytes_for_mapper
                 if file_obj_for_service:
-                    file_obj_for_service.seek(0) # Ensure it's at the start before processing
+                    file_obj_for_service.seek(0)
                     st.session_state.processed_data = get_and_process_data_with_profiling(
                         file_obj_for_service, st.session_state.user_column_mapping, st.session_state.uploaded_file_name
                     )
                 else:
                     logger.warning("uploaded_file_bytes_for_mapper was None, attempting to re-read from uploaded_file.")
-                    temp_bytes = BytesIO(uploaded_file.getvalue()) # Re-read from original uploaded_file
+                    temp_bytes = BytesIO(uploaded_file.getvalue())
                     st.session_state.processed_data = get_and_process_data_with_profiling(
                         temp_bytes, st.session_state.user_column_mapping, st.session_state.uploaded_file_name
                     )
@@ -265,23 +263,22 @@ if uploaded_file is not None:
                 display_custom_message(f"Failed to process '{st.session_state.uploaded_file_name}'. Check logs and column mapping.", "error")
                 st.session_state.column_mapping_confirmed = False
                 st.session_state.user_column_mapping = None
-elif st.session_state.get('uploaded_file_name') and uploaded_file is None: # File was uploaded, but now uploader is empty
+elif st.session_state.get('uploaded_file_name') and uploaded_file is None:
     if st.session_state.processed_data is not None:
         logger.info("File uploader is empty. Resetting all data-dependent session states.")
-        # More targeted reset: only reset data-related parts, keep theme etc.
         keys_to_reset_on_file_removal = [
             'processed_data', 'filtered_data', 'kpi_results', 'kpi_confidence_intervals',
             'uploaded_file_name', 'uploaded_file_bytes_for_mapper', 'last_processed_file_id',
             'user_column_mapping', 'column_mapping_confirmed', 'csv_headers_for_mapping',
-            'last_uploaded_file_for_mapping_id', 'last_applied_filters', 'sidebar_filters', # sidebar_filters might need re-evaluation
+            'last_uploaded_file_for_mapping_id', 'last_applied_filters', 'sidebar_filters',
             'benchmark_daily_returns', 'last_fetched_benchmark_ticker',
             'last_benchmark_data_filter_shape', 'last_kpi_calc_state_id',
             'max_drawdown_period_details'
         ]
         for key_to_reset in keys_to_reset_on_file_removal:
-            if key_to_reset in default_session_state: # Reset to its specific default
+            if key_to_reset in default_session_state:
                  st.session_state[key_to_reset] = default_session_state[key_to_reset]
-            else: # Or to None if not in defaults
+            else:
                  st.session_state[key_to_reset] = None
         st.rerun()
 
@@ -312,7 +309,7 @@ if st.session_state.processed_data is not None and st.session_state.sidebar_filt
 # --- Benchmark Data Fetching Logic ---
 if st.session_state.filtered_data is not None and not st.session_state.filtered_data.empty:
     selected_ticker = st.session_state.get('selected_benchmark_ticker')
-    if selected_ticker and selected_ticker != "" and selected_ticker.upper() != "NONE": # Ensure a ticker is selected and not "None"
+    if selected_ticker and selected_ticker != "" and selected_ticker.upper() != "NONE":
         refetch_benchmark = False
         if st.session_state.benchmark_daily_returns is None: refetch_benchmark = True
         elif st.session_state.last_fetched_benchmark_ticker != selected_ticker: refetch_benchmark = True
@@ -339,10 +336,10 @@ if st.session_state.filtered_data is not None and not st.session_state.filtered_
             else:
                 logger.warning(f"Cannot fetch benchmark for {selected_ticker} due to invalid/missing date range in filtered data.")
                 st.session_state.benchmark_daily_returns = None
-            st.session_state.kpi_results = None # Force KPI recalc after benchmark data change
-    elif st.session_state.benchmark_daily_returns is not None: # No ticker selected (or "None"), clear benchmark data
+            st.session_state.kpi_results = None
+    elif st.session_state.benchmark_daily_returns is not None:
         st.session_state.benchmark_daily_returns = None
-        st.session_state.kpi_results = None # Force KPI recalc
+        st.session_state.kpi_results = None
 
 # --- KPI Calculation Logic ---
 if st.session_state.filtered_data is not None and not st.session_state.filtered_data.empty:
@@ -415,48 +412,30 @@ def main_page_layout():
     Defines and displays the layout for the welcome page.
     """
     st.markdown("<div class='welcome-container'>", unsafe_allow_html=True)
-
-    # Hero Section
     st.markdown("<div class='hero-section'>", unsafe_allow_html=True)
-    # Optional: Display logo within the welcome page content
-    # if logo_base64:
-    #     st.markdown(f"<div style='text-align: center;'><img src='data:image/png;base64,{logo_base64}' alt='{APP_TITLE} Logo' style='width: 150px; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
-    # elif os.path.exists(LOGO_PATH_SIDEBAR):
-    # st.image(LOGO_PATH_SIDEBAR, width=150) # Simpler way if not base64
-
-    st.markdown(f"<h1 style='text-align: center; color: var(--primary-color);'>{PAGE_CONFIG_APP_TITLE}</h1>", unsafe_allow_html=True) # Use PAGE_CONFIG_APP_TITLE
+    st.markdown(f"<h1 style='text-align: center; color: var(--primary-color);'>{PAGE_CONFIG_APP_TITLE}</h1>", unsafe_allow_html=True)
     st.markdown("<p class='tagline' style='text-align: center; font-size: 1.2em; color: var(--text-color-light);'>Unlock insights from your trading data with powerful analytics and visualizations.</p>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown("---")
-
     st.markdown("<h2 style='text-align: center; color: var(--secondary-color);'>Get Started</h2>", unsafe_allow_html=True)
-
     col1, col2, col3 = st.columns([1,1,1], gap="large")
-
     with col1:
         st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
         st.markdown("<h4>📄 Upload Data</h4>", unsafe_allow_html=True)
         st.markdown("<p>Begin by uploading your trade journal (CSV) via the sidebar. Our intelligent mapping assistant will guide you through aligning your columns.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-
     with col2:
         st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
         st.markdown("<h4>📊 Analyze Performance</h4>", unsafe_allow_html=True)
         st.markdown("<p>Dive deep into comprehensive performance metrics, equity curves, and statistical breakdowns once your data is loaded and processed.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-
     with col3:
         st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
         st.markdown("<h4>💡 Discover Insights</h4>", unsafe_allow_html=True)
         st.markdown("<p>Leverage advanced tools like categorical analysis, strategy comparisons, and AI-driven suggestions available in the dashboard pages.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown("<br>", unsafe_allow_html=True)
-
     st.markdown("<div style='text-align: center; margin-top: 30px;'>", unsafe_allow_html=True)
-    # Check if the page exists before trying to switch.
-    # This assumes your multipage app structure places pages in a 'pages' directory.
     user_guide_page_path = "pages/0_❓_User_Guide.py"
     if os.path.exists(user_guide_page_path):
         if st.button("📘 Read the User Guide", key="welcome_user_guide_button", help="Navigate to the User Guide page"):
@@ -464,42 +443,22 @@ def main_page_layout():
     else:
         st.markdown("<p style='text-align: center; font-style: italic;'>User guide page not found.</p>", unsafe_allow_html=True)
         logger.warning(f"User Guide page not found at expected path: {user_guide_page_path}")
-
     st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True) # End welcome-container
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Page Navigation and Display ---
-# Condition to show the new welcome page: No file uploaded AND no data processed yet.
 if not uploaded_file and st.session_state.processed_data is None:
-    main_page_layout() # Display the new, enhanced welcome page
-    st.stop() # Important: Stop execution if welcome page is shown
+    main_page_layout()
+    st.stop()
 elif uploaded_file and st.session_state.processed_data is None and not st.session_state.column_mapping_confirmed:
-    # This state is when a file is uploaded, but mapping is not yet confirmed.
-    # The column_mapper.render() handles its own messages if it's active.
-    # A general message might be redundant if mapper is already showing instructions.
     if st.session_state.csv_headers_for_mapping is None and uploaded_file:
-        # This implies an error during header reading, which should be caught earlier.
         display_custom_message("Error reading the uploaded file. Please ensure it's a valid CSV and try again.", "error")
         st.stop()
-    # If column_mapper.render() returned None (meaning it's active and waiting), it displays its own message.
-    # The st.stop() is already called within the column mapper logic if it's waiting.
 elif st.session_state.processed_data is not None and (st.session_state.filtered_data is None or st.session_state.filtered_data.empty) and not (st.session_state.kpi_results and 'error' not in st.session_state.kpi_results):
-    # This case is if data was processed, but current filters yield no results.
-    # Avoid showing this if KPI calculation itself had an error (handled above).
-    if st.session_state.sidebar_filters and uploaded_file: # Ensure filters are active and a file was processed
+    if st.session_state.sidebar_filters and uploaded_file:
         display_custom_message("No data matches the current filter criteria. Please adjust your filters in the sidebar.", "info")
-        # Even if no data matches filters, the rest of the app (pages) might still want to render their structure.
-        # So, no st.stop() here unless specifically desired. The pages themselves will handle empty data.
 elif st.session_state.processed_data is None and st.session_state.get('uploaded_file_name') and not st.session_state.get('column_mapping_confirmed'):
-    # This is a specific case: a file was uploaded (name exists), but something went wrong before mapping could confirm,
-    # or the user is stuck in the mapping phase without confirming.
-    # The column mapper should be handling its display. If it's not, it implies an issue.
-    # The main column mapping logic above should handle the `st.stop()` if the mapper is active.
-    # This condition might be redundant if the mapper logic is robust.
-    pass # Let the column mapper logic above or other conditions handle the display.
-
-# If data is loaded and processed, Streamlit's multipage feature will handle rendering the selected page.
-# No explicit st.write or st.title here for "main content after load" is needed in app.py.
+    pass
 
 scroll_buttons_component = ScrollButtons()
 scroll_buttons_component.render()
