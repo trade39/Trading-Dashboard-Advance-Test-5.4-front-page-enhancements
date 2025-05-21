@@ -7,7 +7,8 @@ and confirm buttons at top and bottom.
 
 Updates:
 - "Trade Size/Quantity" is auto-mapped to the "Size" CSV column.
-- Sleek, professional dark-themed UI inspired by provided screenshot (see ![image1](image1)).
+- Sleek, professional dark-themed UI inspired by provided screenshot.
+- Streamlit duplicate key bug fixed: form_submit_button now has unique keys.
 """
 
 import streamlit as st
@@ -209,7 +210,7 @@ class ColumnMapperUI:
         return "text"
 
     def render(self) -> Optional[Dict[str, Optional[str]]]:
-        # --- Sleek dark style inspired by screenshot ![image1](image1) ---
+        # --- Sleek dark style inspired by screenshot ---
         st.markdown(
             """
             <style>
@@ -284,7 +285,12 @@ class ColumnMapperUI:
         with st.form(key=f"column_mapping_form_{self.uploaded_file_name.replace('.', '_')}"):
             cols_top_button = st.columns([0.75, 0.25])
             with cols_top_button[1]:
-                submit_button_top = st.form_submit_button("Apply & Validate", use_container_width=True, type="primary")
+                submit_button_top = st.form_submit_button(
+                    "Apply & Validate", 
+                    key=f"submit_btn_top_{self.uploaded_file_name.replace('.', '_')}", 
+                    use_container_width=True, 
+                    type="primary"
+                )
 
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
 
@@ -312,7 +318,12 @@ class ColumnMapperUI:
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
             _, col_btn_mid, _ = st.columns([0.3, 0.4, 0.3])
             with col_btn_mid:
-                submit_button_bottom = st.form_submit_button("Apply & Validate", use_container_width=True, type="primary")
+                submit_button_bottom = st.form_submit_button(
+                    "Apply & Validate", 
+                    key=f"submit_btn_bottom_{self.uploaded_file_name.replace('.', '_')}", 
+                    use_container_width=True, 
+                    type="primary"
+                )
 
         st.session_state[SESSION_MAPPINGS_KEY] = self.mapping.copy()
 
