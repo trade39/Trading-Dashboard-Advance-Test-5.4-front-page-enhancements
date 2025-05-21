@@ -1,0 +1,546 @@
+﻿Trade ID,Date,Entry,Exit,Size,Stop Loss,Take Profit,PnL,Trade Result,R:R,Duration (mins),Exit Type,Direction,Risk %,RoR,Stop Distance,Event Type,Candle Count,Session,Symbol 1,Month,Day,Initial Balance,Account,Cumulative Equity,Entry Time,Absolute Daily PnL,Error,Profit Value,Loss Value,Duration (hrs),Peak Value,Multiplier,"Trade Model ",Trade Plan,"Market Conditions ",Psychological Factors	,Drawdown,Time Frame,Current Balance,Tag,Trade Plan Screenshot,Bias,Planned Entry,Planned SL,Planned TP,Planned RRR,Pre-Market Notes,Pre-Market Emotions,HTF Key Level Focus,Market Sentiment,Compliance Check,Events,Event Release Time,Market Reaction on News Release,Loss Indicator,Win Indicator,Ref: Events,Ref: Events Release Time,Trade Result Screenshot,Lesson Learned,Actionable Steps,Trade Performance Summary
+Trade #1,09/03/2024,2503.341,2489.618,0.3,2507.496,2489.618,411.69,WIN,3.3,120,Target Hit,SELL,0.17,54.818740235549,4.155,Business Survey (https://www.notion.so/Business-Survey-199b632af1108190a995dfd43e2a060e?pvs=21),8,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),100411.69,9:30 am,411.69,,411.69,0,2,100411.69,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),1 (https://www.notion.so/1-199b632af110810f9db6c8467fbe3494?pvs=21),Bullish,,0,15m,100000.37,Prop Firms,,,,,,0,,,,,Did Not Follow Plan,ISM Manufacturing PMI,10:00 am,,0,1,ISM Manufacturing PMI,10:00 am,,,"• Review and adjust your trading plan to ensure alignment with your strategies.
+• Analyze emotional triggers to enhance decision-making discipline.
+• Identify potential entry and exit points for future trades to improve execution.","📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2503.34
+Exit Price: $2489.62
+P/L: $411.69
+Trade Model: @Gap Guardian (Live)
+Date: 09/03/2024"
+Trade #2,09/04/2024,2478.75,2499.22,0.3,2471.93,2499.22,614.1,WIN,3,270,,BUY,0.28,82.581946545638,6.82,,18,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101025.79,9:45am,614.1,,614.1,0,4.5,101025.79,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),2 (https://www.notion.so/2-199b632af1108177a7b4d80245a2748b?pvs=21),Bullish,,0,15m,100000.37,Prop Firms,,,,,,0,,,,,Did Not Follow Plan,JOLTS Job Openings,10:00 am,,0,1,JOLTS Job Openings,10:00 am,,,"• Review and refine your trading plan to enhance adherence during trades.
+• Analyze emotional triggers to improve decision-making under stress.
+• Identify better entry and exit points for future trades.","📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2478.75
+Exit Price: $2499.22
+P/L: $614.1
+Trade Model: @Gap Guardian (Live)
+Date: 09/04/2024"
+Trade #3,09/05/2024,2517.4,2524.4,0.3,2524.4,2496.43,-210,LOSS,3,105,,SELL,0.28,-27.806466989751,7,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),100815.79,10:30 am,210,Early Exit (https://www.notion.so/Early-Exit-1a1b632af11080faa612c1c1eae166e1?pvs=21),0,-210,1.75,101025.79,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),3 (https://www.notion.so/3-199b632af1108168ab6fe0f7ac8783e8?pvs=21),Bearish,,-0.002078677138,15m,100000.37,Prop Firms,,,,,,0,,,,,Did Not Follow Plan,"ADP Non-Farm Employment Change,ISM Services PMI,Unemployment Claims","10:00 am,8:15 am,8:30 am",,1,0,"ADP Non-Farm Employment Change,Unemployment Claims,ISM Services PMI","8:15 am,8:30 am,10:00 am",,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2517.4
+Exit Price: $2524.4
+P/L: $-210
+Trade Model: @Gap Guardian (Live)
+Date: 09/05/2024"
+Trade #4,09/10/2024,2503.21,2512.98,0.3,2500.04,2512.98,293.1,WIN,3.08,180,,BUY,0.13,39.029885626855,3.17,,12,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101108.89,9:45 am,293.1,,293.1,0,3,101108.89,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,Consolidation,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,"• Review and adjust your trading plan based on recent trade outcomes.
+• Practice disciplined decision-making to manage emotions better.
+• Identify patterns in trades to refine your strategy.","📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2503.21
+Exit Price: $2512.98
+P/L: $293.1
+Trade Model: @Gap Guardian (Live)
+Date: 09/10/2024"
+Trade #5,09/11/2024,2521.54,2504.67,0.3,2527.15,2504.67,506.1,WIN,3.01,120,,SELL,0.22,66.903558936206,5.61,,8,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101614.99,10:30 am,506.1,,506.1,0,2,101614.99,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2521.54
+Exit Price: $2504.67
+P/L: $506.1
+Trade Model: @Gap Guardian (Live)
+Date: 09/11/2024"
+Trade #6,09/12/2024,2514.53,2524.87,0.3,2511.08,2524.87,310.2,WIN,3,105,,BUY,0.14,41.121004720564,3.45,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101925.19,10:30 am,310.2,,310.2,0,1.75,101925.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2514.53
+Exit Price: $2524.87
+P/L: $310.2
+Trade Model: @Gap Guardian (Live)
+Date: 09/12/2024"
+Trade #7,09/17/2024,2574.29,2563.86,0.3,2563.86,2605.65,-312.9,LOSS,3.01,345,,BUY,0.41,-40.516025777981,10.43,,23,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101612.29,9:45 am,312.9,Late Entry (https://www.notion.so/Late-Entry-1a1b632af11080fcae34e4a94aac29ca?pvs=21),0,-312.9,5.75,101925.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.003069898619,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2574.29
+Exit Price: $2563.86
+P/L: $-312.9
+Trade Model: @Gap Guardian (Live)
+Date: 09/17/2024"
+Trade #8,09/18/2024,2571.11,2579.37,0.3,2568.36,2579.37,247.8,WIN,3,90,,BUY,0.11,32.12620230173,2.75,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),101860.09,10:00 am,247.8,,247.8,0,1.5,101925.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.000638703739,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2571.11
+Exit Price: $2579.37
+P/L: $247.8
+Trade Model: @Gap Guardian (Live)
+Date: 09/18/2024"
+Trade #9,09/19/2024,2592.78,2571.25,0.3,2599.78,2571.25,645.9,WIN,3.08,255,,SELL,0.27,83.038283232669,7,,17,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),102505.99,9:30 am,645.9,,645.9,0,4.25,102505.99,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2592.78
+Exit Price: $2571.25
+P/L: $645.9
+Trade Model: @Gap Guardian (Live)
+Date: 09/19/2024"
+Trade #10,09/24/2024,2636,2624.23,0.3,2639.9,2624.23,353.1,WIN,3.02,75,Target Hit,SELL,0.15,44.650986342944,3.9,,5,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),102859.09,10:30 am,353.1,,353.1,0,1.25,102859.09,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2636
+Exit Price: $2624.23
+P/L: $353.1
+Trade Model: @Gap Guardian (Live)
+Date: 09/24/2024"
+Trade #11,09/25/2024,2655.08,2662.73,0.3,2652.53,2662.73,229.5,WIN,3,135,,BUY,0.1,28.812691143016,2.55,,9,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),103088.59,10:30 am,229.5,,229.5,0,2.25,103088.59,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2655.08
+Exit Price: $2662.73
+P/L: $229.5
+Trade Model: @Gap Guardian (Live)
+Date: 09/25/2024"
+Trade #12,09/26/2024,2667.21,2695.1,0.3,2657.95,2695.1,836.7,WIN,3.01,255,,BUY,0.35,104.566194637843,9.26,,17,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),September,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),103925.29,9:30 am,836.7,,836.7,0,4.25,103925.29,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2667.21
+Exit Price: $2695.1
+P/L: $836.7
+Trade Model: @Gap Guardian (Live)
+Date: 09/26/2024"
+Trade #13,10/01/2024,2661.45,2701.863,0.3,2648.041,2701.863,1212.39,WIN,3.01,1470,,BUY,0.5,151.845798343009,13.409,,98,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),105137.68,10:15 am,1212.39,,1212.39,0,24.5,105137.68,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2661.45
+Exit Price: $2701.86
+P/L: $1212.39
+Trade Model: @Gap Guardian (Live)
+Date: 10/01/2024"
+Trade #14,10/02/2024,2644.599,2633.937,0.3,2633.937,2676.756,-319.86,LOSS,3.02,1335,,BUY,0.4,-40.31613110343,10.662,,89,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),104817.82,10:30 am,319.86,Early Exit (https://www.notion.so/Early-Exit-1a1b632af11080faa612c1c1eae166e1?pvs=21),0,-319.86,22.25,105137.68,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.003042296539,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2644.6
+Exit Price: $2633.94
+P/L: $-319.86
+Trade Model: @Gap Guardian (Live)
+Date: 10/02/2024"
+Trade #15,10/03/2024,2641.099,2661.338,0.3,2634.378,2661.338,607.17,WIN,3.01,1305,,BUY,0.25,76.630978240498,6.721,,87,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),105424.99,10:00 am,607.17,,607.17,0,21.75,105424.99,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2641.1
+Exit Price: $2661.34
+P/L: $607.17
+Trade Model: @Gap Guardian (Live)
+Date: 10/03/2024"
+Trade #16,10/08/2024,2641.721,2607.909,0.3,2652.992,2607.909,1014.36,WIN,3,105,,SELL,0.43,127.992320157958,11.271,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),106439.35,9:45 am,1014.36,,1014.36,0,1.75,106439.35,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2641.72
+Exit Price: $2607.91
+P/L: $1014.36
+Trade Model: @Gap Guardian (Live)
+Date: 10/08/2024"
+Trade #17,10/09/2024,2609.226,2604.673,0.3,2604.673,2622.9,-136.59,LOSS,3,1260,,BUY,0.17,-17.449619159092,4.553,,84,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),106302.76,10:30 am,136.59,Missed (https://www.notion.so/Missed-1a1b632af11080fca742d5878c9c4b07?pvs=21),0,-136.59,21,106439.35,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.00128326601,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2609.23
+Exit Price: $2604.67
+P/L: $-136.59
+Trade Model: @Gap Guardian (Live)
+Date: 10/09/2024"
+Trade #18,10/10/2024,2616.552,2653.152,0.3,2604.348,2653.152,1098,WIN,3,1395,,BUY,0.47,139.878741183053,12.204,,93,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),107400.76,9:30 am,1098,,1098,0,23.25,107400.76,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2616.55
+Exit Price: $2653.15
+P/L: $1098
+Trade Model: @Gap Guardian (Live)
+Date: 10/10/2024"
+Trade #19,10/15/2024,2654.106,2679.347,0.3,2645.685,2679.347,757.23,WIN,3,1035,,BUY,0.32,95.101702795593,8.421,,69,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),108157.99,10:30 am,757.23,,757.23,0,17.25,108157.99,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2654.11
+Exit Price: $2679.35
+P/L: $757.23
+Trade Model: @Gap Guardian (Live)
+Date: 10/15/2024"
+Trade #20,10/16/2024,2680.396,2685.606,0.3,2685.606,2657.542,-156.3,LOSS,4.39,630,,SELL,0.19,-19.437426410127,5.21,,42,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),108001.69,10:15 am,156.3,Early Exit (https://www.notion.so/Early-Exit-1a1b632af11080faa612c1c1eae166e1?pvs=21),0,-156.3,10.5,108157.99,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.001445108216,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2680.4
+Exit Price: $2685.61
+P/L: $-156.3
+Trade Model: @Gap Guardian (Live)
+Date: 10/16/2024"
+Trade #21,10/17/2024,2686.247,2725.41,0.3,2673.214,2725.41,1174.89,WIN,3,1980,,BUY,0.49,145.790763098107,13.033,,132,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),109176.58,10:00 am,1174.89,,1174.89,0,33,109176.58,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2686.25
+Exit Price: $2725.41
+P/L: $1174.89
+Trade Model: @Gap Guardian (Live)
+Date: 10/17/2024"
+Trade #22,10/22/2024,2734.93,2751.956,0.3,2729.255,2751.956,510.78,WIN,3,870,,BUY,0.21,62.253878527056,5.675,,58,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),109687.36,10:00 am,510.78,,510.78,0,14.5,109687.36,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2734.93
+Exit Price: $2751.96
+P/L: $510.78
+Trade Model: @Gap Guardian (Live)
+Date: 10/22/2024"
+Trade #23,10/23/2024,2740.663,2728.58,0.3,2744.69,2728.58,362.49,WIN,3,30,,SELL,0.15,44.087872168158,4.027,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),110049.85,9:30 am,362.49,,362.49,0,0.5,110049.85,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2740.66
+Exit Price: $2728.58
+P/L: $362.49
+Trade Model: @Gap Guardian (Live)
+Date: 10/23/2024"
+Trade #24,10/24/2024,2734.661,2721.237,0.3,2739.135,2721.237,402.72,WIN,3,1050,,SELL,0.16,49.088351353239,4.474,,70,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),110452.57,10:00 am,402.72,,402.72,0,17.5,110452.57,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2734.66
+Exit Price: $2721.24
+P/L: $402.72
+Trade Model: @Gap Guardian (Live)
+Date: 10/24/2024"
+Trade #25,10/29/2024,2753.808,2776.358,0.3,2746.29,2776.358,676.5,WIN,3,570,,BUY,0.27,81.886609378722,7.518,,38,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),111129.07,9:30 am,676.5,,676.5,0,9.5,111129.07,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2753.81
+Exit Price: $2776.36
+P/L: $676.5
+Trade Model: @Gap Guardian (Live)
+Date: 10/29/2024"
+Trade #26,10/30/2024,2773.599,2760.93,0.3,2760.93,2811.626,-380.07,LOSS,3,1350,,BUY,0.46,-45.677114824457,12.669,,90,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),110749,9:30 am,380.07,Missed (https://www.notion.so/Missed-1a1b632af11080fca742d5878c9c4b07?pvs=21),0,-380.07,22.5,111129.07,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.003420077213,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2773.6
+Exit Price: $2760.93
+P/L: $-380.07
+Trade Model: @Gap Guardian (Live)
+Date: 10/30/2024"
+Trade #27,10/31/2024,2762.247,2735.954,0.3,2771.011,2735.954,788.79,WIN,3,60,,SELL,0.32,95.186998121457,8.764,,4,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),October,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),111537.79,9:45 am,788.79,,788.79,0,1,111537.79,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2762.25
+Exit Price: $2735.95
+P/L: $788.79
+Trade Model: @Gap Guardian (Live)
+Date: 10/31/2024"
+Trade #28,11/05/2024,2748.504,2740.714,0.3,2751.103,2740.714,233.7,WIN,3,210,,SELL,0.09,28.342691151259,2.599,,14,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),111771.49,9:45 am,233.7,,233.7,0,3.5,111771.49,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2748.5
+Exit Price: $2740.71
+P/L: $233.7
+Trade Model: @Gap Guardian (Live)
+Date: 11/05/2024"
+Trade #29,11/06/2024,2670.796,2683.942,0.3,2683.942,2633.33,-394.38,LOSS,2.85,1230,,SELL,0.49,-49.221280846609,13.146,,82,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),111377.11,11:00 am,394.38,Early Entry (https://www.notion.so/Early-Entry-1a1b632af110805499f7c17992bbf066?pvs=21),0,-394.38,20.5,111771.49,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.003528448981,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2670.8
+Exit Price: $2683.94
+P/L: $-394.38
+Trade Model: @Gap Guardian (Live)
+Date: 11/06/2024"
+Trade #30,11/07/2024,2690.275,2710.296,0.3,2683.602,2710.296,600.63,WIN,3,345,,BUY,0.25,74.419901311204,6.673,,23,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),111977.74,9:30 am,600.63,,600.63,0,5.75,111977.74,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2690.28
+Exit Price: $2710.3
+P/L: $600.63
+Trade Model: @Gap Guardian (Live)
+Date: 11/07/2024"
+Trade #31,11/12/2024,2616.412,2594.012,0.3,2623.873,2594.012,672,WIN,3,150,,SELL,0.29,85.613427854635,7.461,,10,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),112649.74,9:30 am,672,,672,0,2.5,112649.74,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2616.41
+Exit Price: $2594.01
+P/L: $672
+Trade Model: @Gap Guardian (Live)
+Date: 11/12/2024"
+Trade #32,11/13/2024,2601.525,2555.583,0.3,2616.828,2555.583,1378.26,WIN,3,600,,SELL,0.59,176.596419407847,15.303,,40,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),114028,10:45 am,1378.26,,1378.26,0,10,114028,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2601.53
+Exit Price: $2555.58
+P/L: $1378.26
+Trade Model: @Gap Guardian (Live)
+Date: 11/13/2024"
+Trade #33,11/14/2024,2560.506,2554.21,0.3,2554.21,2594.02,-188.88,LOSS,5.32,870,,BUY,0.25,-24.58888985224,6.296,,58,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),113839.12,10:00 am,188.88,Late Exit (https://www.notion.so/Late-Exit-1a1b632af110809d9b61ece119aca9c1?pvs=21),0,-188.88,14.5,114028,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.001656435262,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2560.51
+Exit Price: $2554.21
+P/L: $-188.88
+Trade Model: @Gap Guardian (Live)
+Date: 11/14/2024"
+Trade #34,11/19/2024,2622.143,2635.117,0.3,2617.819,2635.117,389.22,WIN,3,435,,BUY,0.16,49.478613485229,4.324,,29,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),114228.34,10:30 am,389.22,,389.22,0,7.25,114228.34,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2622.14
+Exit Price: $2635.12
+P/L: $389.22
+Trade Model: @Gap Guardian (Live)
+Date: 11/19/2024"
+Trade #35,11/20/2024,2641.855,2667.262,0.3,2633.386,2667.262,762.21,WIN,3,1065,,BUY,0.32,96.171061621474,8.469,,71,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),114990.55,9:45 am,762.21,,762.21,0,17.75,114990.55,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2641.86
+Exit Price: $2667.26
+P/L: $762.21
+Trade Model: @Gap Guardian (Live)
+Date: 11/20/2024"
+Trade #36,11/21/2024,2662.26,2667.995,0.3,2660.354,2667.995,172.05,WIN,3.01,30,,BUY,0.07,21.541847903661,1.906,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),115162.6,9:30 am,172.05,,172.05,0,0.5,115162.6,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2662.26
+Exit Price: $2668
+P/L: $172.05
+Trade Model: @Gap Guardian (Live)
+Date: 11/21/2024"
+Trade #37,11/26/2024,2620.557,2649.635,0.3,2610.909,2649.635,872.34,WIN,3.01,1035,,BUY,0.37,110.961142993646,9.648,,69,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),116034.94,9:45 am,872.34,,872.34,0,17.25,116034.94,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2620.56
+Exit Price: $2649.64
+P/L: $872.34
+Trade Model: @Gap Guardian (Live)
+Date: 11/26/2024"
+Trade #38,11/27/2024,2643.19,2627.231,0.3,2648.515,2627.231,478.77,WIN,3,600,,SELL,0.2,60.377801066136,5.325,,40,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),116513.71,10:45 am,478.77,,478.77,0,10,116513.71,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2643.19
+Exit Price: $2627.23
+P/L: $478.77
+Trade Model: @Gap Guardian (Live)
+Date: 11/27/2024"
+Trade #39,11/28/2024,2644.818,2635.316,0.3,2647.97,2635.316,285.06,WIN,3.01,615,,SELL,0.12,35.926857727072,3.152,,41,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),November,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),116798.77,9:45 am,285.06,,285.06,0,10.25,116798.77,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2644.82
+Exit Price: $2635.32
+P/L: $285.06
+Trade Model: @Gap Guardian (Live)
+Date: 11/28/2024"
+Trade #40,12/03/2024,2652.161,2621.947,0.3,2661.926,2621.947,906.42,WIN,3.09,10065,,SELL,0.37,113.922194014617,9.765,,671,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),117705.19,9:30 am,906.42,,906.42,0,167.75,117705.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2652.16
+Exit Price: $2621.95
+P/L: $906.42
+Trade Model: @Gap Guardian (Live)
+Date: 12/03/2024"
+Trade #41,12/04/2024,2655.798,2646.798,0.3,2658.798,2646.798,270,WIN,3,555,,SELL,0.11,33.888119503065,3,,37,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),117975.19,10:30 am,270,,270,0,9.25,117975.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2655.8
+Exit Price: $2646.8
+P/L: $270
+Trade Model: @Gap Guardian (Live)
+Date: 12/04/2024"
+Trade #42,12/05/2024,2640.851,2629.647,0.3,2644.586,2629.647,336.12,WIN,3,570,,SELL,0.14,42.425718073454,3.735,,38,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),118311.31,10:30 am,336.12,,336.12,0,9.5,118311.31,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2640.85
+Exit Price: $2629.65
+P/L: $336.12
+Trade Model: @Gap Guardian (Live)
+Date: 12/05/2024"
+Trade #43,12/10/2024,2685.183,2697.372,0.3,2681.14,2697.372,365.67,WIN,3.01,435,,BUY,0.15,45.393554182341,4.043,,29,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),118676.98,10:30 am,365.67,,365.67,0,7.25,118676.98,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2685.18
+Exit Price: $2697.37
+P/L: $365.67
+Trade Model: @Gap Guardian (Live)
+Date: 12/10/2024"
+Trade #44,12/11/2024,2699.01,2723.28,0.3,2690.919,2726.295,728.1,WIN,3.37,630,,BUY,0.3,89.921860237643,8.091,,42,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),119405.08,9:45 am,728.1,,728.1,0,10.5,119405.08,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2699.01
+Exit Price: $2723.28
+P/L: $728.1
+Trade Model: @Gap Guardian (Live)
+Date: 12/11/2024"
+Trade #45,12/12/2024,2686.84,2675.727,0.3,2690.537,2675.727,333.39,WIN,3.01,60,,SELL,0.14,41.360855130934,3.697,,4,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),119738.47,9:45 am,333.39,,333.39,0,1,119738.47,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2686.84
+Exit Price: $2675.73
+P/L: $333.39
+Trade Model: @Gap Guardian (Live)
+Date: 12/12/2024"
+Trade #46,12/17/2024,2637.13,2649.08,0.3,2633.141,2649.08,358.5,WIN,3,240,,BUY,0.15,45.314413775582,3.989,,16,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120096.97,9:45 am,358.5,,358.5,0,4,120096.97,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2637.13
+Exit Price: $2649.08
+P/L: $358.5
+Trade Model: @Gap Guardian (Live)
+Date: 12/17/2024"
+Trade #47,12/18/2024,2638.856,2629.552,0.3,2641.941,2629.552,279.12,WIN,3.02,255,,SELL,0.12,35.257702580209,3.085,,17,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120376.09,9:30 am,279.12,,279.12,0,4.25,120376.09,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2638.86
+Exit Price: $2629.55
+P/L: $279.12
+Trade Model: @Gap Guardian (Live)
+Date: 12/18/2024"
+Trade #48,12/19/2024,2597.178,2604.413,0.3,2604.413,2575.458,-217.05,LOSS,3,240,,SELL,0.28,-27.857158808522,7.235,,16,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120159.04,9:30 am,217.05,Late Exit (https://www.notion.so/Late-Exit-1a1b632af110809d9b61ece119aca9c1?pvs=21),0,-217.05,4,120376.09,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.001803098938,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2597.18
+Exit Price: $2604.41
+P/L: $-217.05
+Trade Model: @Gap Guardian (Live)
+Date: 12/19/2024"
+Trade #49,12/24/2024,2611.292,2617.843,0.3,2609.109,2617.843,196.53,WIN,3,150,,BUY,0.08,25.087198214524,2.183,,10,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120355.57,9:45 am,196.53,,196.53,0,2.5,120376.09,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.000170465746,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2611.29
+Exit Price: $2617.84
+P/L: $196.53
+Trade Model: @Gap Guardian (Live)
+Date: 12/24/2024"
+Trade #50,12/25/2024,2630.046,2637.61,0.3,2627.525,2637.61,226.92,WIN,3,45,,BUY,0.1,28.759953247966,2.521,,3,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120582.49,10:00 am,226.92,,226.92,0,0.75,120582.49,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2630.05
+Exit Price: $2637.61
+P/L: $226.92
+Trade Model: @Gap Guardian (Live)
+Date: 12/25/2024"
+Trade #51,12/26/2024,2612.233,2617.04,0.3,2610.643,2617.04,144.21,WIN,3.02,30,,BUY,0.06,18.401880689816,1.59,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120726.7,9:30 am,144.21,,144.21,0,0.5,120726.7,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2612.23
+Exit Price: $2617.04
+P/L: $144.21
+Trade Model: @Gap Guardian (Live)
+Date: 12/26/2024"
+Trade #52,12/31/2024,2617.966,2626.448,0.3,2615.138,2626.448,254.46,WIN,3,45,,BUY,0.11,32.399198461707,2.828,,3,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),December,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),120981.16,10:15 am,254.46,,254.46,0,0.75,120981.16,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2617.97
+Exit Price: $2626.45
+P/L: $254.46
+Trade Model: @Gap Guardian (Live)
+Date: 12/31/2024"
+Trade #53,01/02/2025,2646.467,2657.266,0.3,2642.869,2657.266,323.97,WIN,3,90,,BUY,0.14,40.805345390666,3.598,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),121305.13,10:00 am,323.97,,323.97,0,1.5,121305.13,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2646.47
+Exit Price: $2657.27
+P/L: $323.97
+Trade Model: @Gap Guardian (Live)
+Date: 01/02/2025"
+Trade #54,01/07/2025,2660.807,2649.967,0.3,2664.39,2649.967,325.2,WIN,3.03,30,,SELL,0.13,40.739520002766,3.583,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),121630.33,9:35 am,325.2,,325.2,0,0.5,121630.33,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2660.81
+Exit Price: $2649.97
+P/L: $325.2
+Trade Model: @Gap Guardian (Live)
+Date: 01/07/2025"
+Trade #55,01/08/2025,2659.608,2669.317,0.3,2656.47,2669.317,291.27,WIN,3.09,105,,BUY,0.12,36.505379740172,3.138,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),121921.6,10:00 am,291.27,,291.27,0,1.75,121921.6,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2659.61
+Exit Price: $2669.32
+P/L: $291.27
+Trade Model: @Gap Guardian (Live)
+Date: 01/08/2025"
+Trade #56,01/09/2025,2672.09,2678.389,0.3,2678.389,2653.154,-188.97,LOSS,3.01,990,,SELL,0.24,-23.573307785292,6.299,,66,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),121732.63,10:00 am,188.97,Did Not Plan (https://www.notion.so/Did-Not-Plan-1a1b632af110804db647db8c4986825a?pvs=21),0,-188.97,16.5,121921.6,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.001549930447,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2672.09
+Exit Price: $2678.39
+P/L: $-188.97
+Trade Model: @Gap Guardian (Live)
+Date: 01/09/2025"
+Trade #57,01/14/2025,2665.993,2674.789,0.3,2663.061,2674.789,263.88,WIN,3,270,,BUY,0.11,32.99333494124,2.932,,18,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),121996.51,10:00 am,263.88,,263.88,0,4.5,121996.51,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2665.99
+Exit Price: $2674.79
+P/L: $263.88
+Trade Model: @Gap Guardian (Live)
+Date: 01/14/2025"
+Trade #58,01/15/2025,2677.924,2689.091,0.3,2674.21,2689.091,335.01,WIN,3.01,105,,BUY,0.14,41.700212552709,3.714,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),122331.52,10:00 am,335.01,,335.01,0,1.75,122331.52,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2677.92
+Exit Price: $2689.09
+P/L: $335.01
+Trade Model: @Gap Guardian (Live)
+Date: 01/15/2025"
+Trade #59,01/16/2025,2713.649,2719.2,0.3,2711.799,2719.2,166.53,WIN,3,30,,BUY,0.07,20.455851143608,1.85,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),122498.05,9:30 am,166.53,,166.53,0,0.5,122498.05,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2713.65
+Exit Price: $2719.2
+P/L: $166.53
+Trade Model: @Gap Guardian (Live)
+Date: 01/16/2025"
+Trade #60,01/21/2025,2729.426,2735.496,0.3,2727.406,2735.496,182.1,WIN,3,30,,BUY,0.07,22.239108149479,2.02,,2,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),122680.15,9:30 am,182.1,,182.1,0,0.5,122680.15,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2729.43
+Exit Price: $2735.5
+P/L: $182.1
+Trade Model: @Gap Guardian (Live)
+Date: 01/21/2025"
+Trade #61,01/22/2025,2751.137,2758.532,0.3,2748.67,2758.532,221.85,WIN,3,90,,BUY,0.09,26.879795517272,2.467,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),122902,9:30 am,221.85,,221.85,0,1.5,122902,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2751.14
+Exit Price: $2758.53
+P/L: $221.85
+Trade Model: @Gap Guardian (Live)
+Date: 01/22/2025"
+Trade #62,01/23/2025,2741.116,2750.241,0.3,2738.074,2750.241,273.75,WIN,3,90,,BUY,0.11,33.289360975603,3.042,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),123175.75,9:45 am,273.75,,273.75,0,1.5,123175.75,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2741.12
+Exit Price: $2750.24
+P/L: $273.75
+Trade Model: @Gap Guardian (Live)
+Date: 01/23/2025"
+Trade #63,01/28/2025,2753.177,2761.898,0.3,2750.27,2761.898,261.63,WIN,3,210,,BUY,0.11,31.676132700513,2.907,,14,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),123437.38,10:00 am,261.63,,261.63,0,3.5,123437.38,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2753.18
+Exit Price: $2761.9
+P/L: $261.63
+Trade Model: @Gap Guardian (Live)
+Date: 01/28/2025"
+Trade #64,01/29/2025,2761.137,2750.878,0.3,2764.542,2750.878,307.77,WIN,3.01,45,,SELL,0.12,37.154983617256,3.405,,3,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),123745.15,9:45 am,307.77,,307.77,0,0.75,123745.15,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2761.14
+Exit Price: $2750.88
+P/L: $307.77
+Trade Model: @Gap Guardian (Live)
+Date: 01/29/2025"
+Trade #65,01/30/2025,2782.365,2792.633,0.3,2778.939,2792.633,308.04,WIN,3,90,,BUY,0.12,36.903856970599,3.426,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),January,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),124053.19,9:30 am,308.04,,308.04,0,1.5,124053.19,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2782.37
+Exit Price: $2792.63
+P/L: $308.04
+Trade Model: @Gap Guardian (Live)
+Date: 01/30/2025"
+Trade #67,02/04/2025,2835.329,2846.523,0.3,2831.606,2846.523,335.82,WIN,3.01,480,,BUY,0.13,39.480427139143,3.723,,32,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),124389.01,10:30 am,335.82,,335.82,0,8,124389.01,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2835.33
+Exit Price: $2846.52
+P/L: $335.82
+Trade Model: @Gap Guardian (Live)
+Date: 02/04/2025"
+Trade #68,02/05/2025,2866.006,2877.883,0.3,2862.047,2877.883,356.31,WIN,3,60,,BUY,0.14,41.440946041285,3.959,,4,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),124745.32,9:45 am,356.31,,356.31,0,1,124745.32,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2866.01
+Exit Price: $2877.88
+P/L: $356.31
+Trade Model: @Gap Guardian (Live)
+Date: 02/05/2025"
+Trade #69,02/06/2025,2857.86,2836.181,0.3,2865.087,2836.181,650.37,WIN,3,60,,SELL,0.25,75.857459777596,7.227,,4,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),125395.69,9:30 am,650.37,,650.37,0,1,125395.69,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2857.86
+Exit Price: $2836.18
+P/L: $650.37
+Trade Model: @Gap Guardian (Live)
+Date: 02/06/2025"
+Trade #70,02/11/2025,2902.032,2907.439,0.3,2907.439,2885.813,-162.21,LOSS,3,105,,SELL,0.19,-18.631772495961,5.407,,7,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),125233.48,9:30 am,162.21,Did Not Plan (https://www.notion.so/Did-Not-Plan-1a1b632af110804db647db8c4986825a?pvs=21),0,-162.21,1.75,125395.69,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,-0.00129358513,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,1,0,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2902.03
+Exit Price: $2907.44
+P/L: $-162.21
+Trade Model: @Gap Guardian (Live)
+Date: 02/11/2025"
+Trade #71,02/12/2025,2890.293,2914.614,0.3,2882.214,2914.614,729.63,WIN,3.01,690,,BUY,0.28,84.147178158062,8.079,,46,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),125963.11,9:45 am,729.63,,729.63,0,11.5,125963.11,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2890.29
+Exit Price: $2914.61
+P/L: $729.63
+Trade Model: @Gap Guardian (Live)
+Date: 02/12/2025"
+Trade #72,02/13/2025,2913.767,2927.164,0.3,2909.298,2927.164,401.91,WIN,3,285,,BUY,0.15,45.978281722595,4.469,,19,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),126365.02,9:45 am,401.91,,401.91,0,4.75,126365.02,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2913.77
+Exit Price: $2927.16
+P/L: $401.91
+Trade Model: @Gap Guardian (Live)
+Date: 02/13/2025"
+Trade #73,02/18/2025,2922.479,2929.845,0.3,2920.022,2929.845,220.98,WIN,3,135,Target Hit,BUY,0.08,25.204629357474,2.457,,9,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),126586,9:30 am,220.98,,220.98,0,2.25,126586,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2922.48
+Exit Price: $2929.85
+P/L: $220.98
+Trade Model: @Gap Guardian (Live)
+Date: 02/18/2025"
+Trade #74,02/19/2025,2939.726,2933.688,0.3,2941.739,2933.688,181.14,WIN,3,45,Target Hit,SELL,0.07,20.539329175576,2.013,,3,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),126767.14,9:45 am,181.14,,181.14,0,0.75,126767.14,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2939.73
+Exit Price: $2933.69
+P/L: $181.14
+Trade Model: @Gap Guardian (Live)
+Date: 02/19/2025"
+Trade #75,02/20/2025,2932.75,2942.987,0.3,2929.337,2942.987,307.11,WIN,3,90,Target Hit,BUY,0.12,34.905805131702,3.413,,6,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),127074.25,10:00 am,307.11,,307.11,0,1.5,127074.25,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2932.75
+Exit Price: $2942.99
+P/L: $307.11
+Trade Model: @Gap Guardian (Live)
+Date: 02/20/2025"
+Trade #76,02/25/2025,2943.05,2929.193,0.3,2947.645,2929.193,415.71,WIN,3.02,45,Target Hit,SELL,0.16,47.08380761455,4.595,,3,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Tuesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),127489.96,9:30 am,415.71,,415.71,0,0.75,127489.96,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2943.05
+Exit Price: $2929.19
+P/L: $415.71
+Trade Model: @Gap Guardian (Live)
+Date: 02/25/2025"
+Trade #77,02/26/2025,2901.284,2919.869,0.3,2895.144,2919.869,557.55,WIN,3.03,450,Target Hit,BUY,0.21,64.057844733573,6.14,,30,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Wednesday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),128047.51,9:30 am,557.55,,557.55,0,7.5,128047.51,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2901.28
+Exit Price: $2919.87
+P/L: $557.55
+Trade Model: @Gap Guardian (Live)
+Date: 02/26/2025"
+Trade #78,02/27/2025,2877.044,2851.582,0.3,2885.511,2851.582,763.86,WIN,3.01,675,Target Hit,SELL,0.29,88.500558211831,8.467,,45,NY am,XAUUSD (https://www.notion.so/XAUUSD-199b632af110810a99e4fc7d09193617?pvs=21),February,Thursday,100000,Prop Firms (https://www.notion.so/Prop-Firms-199b632af110810282c0fd949b38d647?pvs=21),128811.37,10:10 am,763.86,,763.86,0,11.25,128811.37,100,Gap Guardian (Live) (https://www.notion.so/Gap-Guardian-Live-199b632af11081df960fc988a6c3ac8d?pvs=21),,,,0,15m,100000.37,Prop Firms,,,,,,,,,,,Did Not Plan,,,,0,1,,,,,,"📊 Trade Performance Summary
+Symbol: @XAUUSD
+Entry Price: $2877.04
+Exit Price: $2851.58
+P/L: $763.86
+Trade Model: @Gap Guardian (Live)
+Date: 02/27/2025"

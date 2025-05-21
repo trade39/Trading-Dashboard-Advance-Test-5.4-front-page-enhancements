@@ -1,0 +1,193 @@
+/* style.css */
+
+/* --- Root Variables (Dark Theme - Default) --- */
+:root {
+    --primary-color: #4169E1; /* Royal Blue - Accent */
+    --secondary-color: #6A5ACD; /* Slate Blue - Secondary Accent */
+    
+    --background-color: #1E1E1E; 
+    --card-background-color: #2C2C2C; 
+    --section-background-color: #252525; 
+    --expander-header-bg: #3a3a3a; 
+    --expander-content-bg: var(--card-background-color);
+    
+    --text-color: #E0E0E0; 
+    --text-muted-color: #A0A0A0; 
+    --border-color: #4A4A4A; 
+    --accent-color: #FFA500;
+    
+    --success-color: #28a745; 
+    --warning-color: #ffc107; 
+    --error-color: #dc3545; 
+    --info-color: #17a2b8; 
+
+    --font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+    --border-radius-sm: 0.2rem;
+    --border-radius-md: 0.375rem;
+    --border-radius-lg: 0.5rem;
+
+    --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.25); 
+    --box_shadow-md: 0 4px 8px rgba(0,0,0,0.3);
+    --box-shadow-lg: 0 6px 12px rgba(0,0,0,0.4);
+
+    /* ... other root variables ... */
+}
+
+/* --- Light Theme Variables --- */
+[data-theme="light"] {
+    --primary-color: #007bff; 
+    --secondary-color: #6c757d; 
+    --background-color: #FFFFFF; 
+    --card-background-color: #F8F9FA;
+    --section-background-color: #FFFFFF; 
+    --expander-header-bg: #e9ecef; 
+    --expander-content-bg: var(--card-background-color);
+    --text-color: #212529; 
+    --text-muted-color: #6c757d; 
+    --border-color: #DEE2E6; 
+    --accent-color: #fd7e14; 
+    /* ... other light theme variables ... */
+}
+
+
+/* --- General Body and Streamlit Base Styles --- */
+body { /* ... */ }
+.main .block-container { /* ... */ }
+h1, h2, h3, h4, h5, h6 { /* ... */ }
+h1 { font-size: 2.0rem; margin-bottom: 0.25rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;}
+h2.section-header { 
+    font-size: 1.6rem; /* Slightly larger for main section headers */
+    color: var(--primary-color);
+    margin-top: 0; 
+    margin-bottom: 1.5rem; /* More space after section header */
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+h3.section-subheader { /* For sub-headers like 'Forecast Results' */
+    font-size: 1.3rem;
+    color: var(--text-color);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+.page-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted-color);
+    margin-top: 0.5rem; /* Space below H1 */
+    margin-bottom: 2.5rem; /* More space before the first task container */
+    font-weight: 300;
+    max-width: 80ch; /* Limit width for readability */
+}
+
+
+/* --- General Button Styling for Streamlit --- */
+/* ... existing button styles ... */
+
+
+/* --- Column Mapper Specific Styles (Existing) --- */
+/* ... */
+
+/* --- Expander Styling for Column Mapper (Existing) --- */
+/* ... */
+
+
+/* --- Data View Page Specific Styles (Existing) --- */
+.page-content-container { 
+    margin-top: 1rem;
+}
+.config-section-container,
+.table-section-container { /* ... */ }
+.data-count-info { /* ... */ }
+/* ... other data view styles ... */
+
+/* --- Trade Notes Page Specific Styles (Existing) --- */
+/* ... */
+
+
+/* --- AI & ML Page Specific Styles --- */
+.ai-ml-task-container {
+    background-color: var(--card-background-color);
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--box_shadow-md);
+    margin-bottom: 2.5rem; /* Space between task containers */
+}
+.ai-ml-task-container.placeholder-section { /* For "Coming Soon" sections */
+    border-left: 5px solid var(--secondary-color);
+}
+
+/* Styling for Streamlit expander headers within AI/ML tasks */
+.ai-ml-task-container div[data-testid="stExpander"] summary {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    background-color: var(--expander-header-bg); /* Use defined expander bg */
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+}
+.ai-ml-task-container div[data-testid="stExpander"] summary:hover {
+    background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 10%);
+}
+.ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: 1.5rem 1rem 1rem 1rem; /* More padding inside expander */
+    background-color: var(--expander-content-bg);
+}
+
+/* Styling for captions used for model descriptions */
+.ai-ml-task-container div[data-testid="stForm"] .stCaption {
+    font-size: 0.85rem;
+    color: var(--text-muted-color);
+    margin-top: -0.5rem; /* Pull up slightly under the selectbox */
+    margin-bottom: 0.75rem;
+    padding-left: 0.2rem;
+}
+
+/* Styling for ARIMA manual order input groups */
+.ai-ml-task-container div[data-testid="stForm"] h6 { /* For "Specify ARIMA Order" */
+    font-size: 0.95rem;
+    color: var(--text-color);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Styling for st.code used for model summary */
+.ai-ml-task-container div[data-testid="stCodeBlock"] {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--background-color); /* Match main background for code */
+}
+.ai-ml-task-container div[data-testid="stCodeBlock"] pre {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+}
+
+
+/* Styling for st.multiselect selected items (pills/tags) - Ensure this is still effective */
+/* ... existing multiselect styles ... */
+
+/* --- KPI Card Styling (existing) --- */
+/* ... */
+/* --- Custom Message Box Styling (existing) --- */
+/* ... */
+/* --- Scroll Button Styles (existing) --- */
+/* ... */
+/* --- Tooltip Styles (existing) --- */
+/* ... */
+
+/* --- Responsive Design Adjustments (existing) --- */
+@media (max-width: 767px) { 
+    h1 { font-size: 1.6rem; margin-bottom: 1rem; }
+    h2.section-header { font-size: 1.4rem; }
+    h3.section-subheader { font-size: 1.15rem; }
+    .page-subtitle { font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .ai-ml-task-container { padding: 1rem; }
+    .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.6rem 0.8rem;}
+    .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem 0.8rem; }
+
+    /* ... other responsive styles ... */ 
+}
+/* ... other media queries ... */
