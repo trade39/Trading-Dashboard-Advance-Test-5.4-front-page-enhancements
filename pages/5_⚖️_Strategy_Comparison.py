@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 import plotly.graph_objects as go
 
-# --- Custom CSS for card-like containers and improved DataFrame style ---
+# --- Custom CSS for card containers and DataFrame ---
 st.markdown("""
 <style>
 .card-section {
@@ -13,18 +13,15 @@ st.markdown("""
     margin-bottom: 2rem;
     box-shadow: 0 2px 12px rgba(0,0,0,0.09);
 }
-.card-section-light {
-    background: #f8f9fa;
-}
 .card-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: .5rem;
 }
 .card-subtitle {
-    font-size: 1.05rem;
+    font-size: 1.07rem;
     color: #868e96;
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
 }
 .styled-table td, .styled-table th {
     border: none !important;
@@ -33,7 +30,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Imports for app configuration and utilities ---
+# --- Imports for app config and utilities ---
 try:
     from config import APP_TITLE, EXPECTED_COLUMNS, DEFAULT_KPI_DISPLAY_ORDER, COLORS
     from utils.common_utils import display_custom_message, format_currency, format_percentage
@@ -44,7 +41,6 @@ except ImportError as e:
     APP_TITLE = "TradingDashboard_Error"
     logger = logging.getLogger(APP_TITLE)
     logger.error(f"CRITICAL IMPORT ERROR in Strategy Comparison Page: {e}", exc_info=True)
-    # Fallbacks
     EXPECTED_COLUMNS = {"strategy": "strategy_fallback"}
     DEFAULT_KPI_DISPLAY_ORDER = []
     COLORS = {}
@@ -53,9 +49,20 @@ except ImportError as e:
 logger = logging.getLogger(APP_TITLE)
 analysis_service = AnalysisService()
 
+def get_st_theme():
+    """Detect Streamlit theme dynamically (works for Streamlit >=1.24)"""
+    # Try to get the theme from built-in Streamlit options
+    try:
+        theme_base = st.get_option("theme.base")
+    except Exception:
+        # Fallback: if you have a custom theme system, check st.session_state or default to dark
+        theme_base = st.session_state.get("current_theme", "dark")
+    return theme_base if theme_base in {"dark", "light"} else "dark"
+
 def show_strategy_comparison_page():
     st.title("⚖️ Strategy Performance Comparison")
     st.markdown('<div class="card-subtitle">Easily compare performance, risk, and equity curves between your strategies side-by-side.</div>', unsafe_allow_html=True)
+    theme = get_st_theme()
 
     # --- Data Check Section ---
     with st.container():
@@ -65,7 +72,6 @@ def show_strategy_comparison_page():
             return
 
         filtered_df = st.session_state.filtered_data
-        plot_theme = st.session_state.get('current_theme', 'dark')
         risk_free_rate = st.session_state.get('risk_free_rate', 0.02)
         strategy_col_from_config = EXPECTED_COLUMNS.get('strategy')
 
@@ -142,19 +148,19 @@ def show_strategy_comparison_page():
                 if not kpis_to_show_in_table and comp_df.columns.any():
                     kpis_to_show_in_table = comp_df.columns.tolist()
 
-                if kpis_to_show_in_table:
-                    # Theme-adaptive color settings
-                    if plot_theme == "dark":
-                        max_color = "#3BA55D"
-                        min_color = "#FF776B"
-                        cell_bg = "#22232a"
-                        text_color = "#f6f6f6"
-                    else:
-                        max_color = "#B2F2BB"
-                        min_color = "#FFD6D6"
-                        cell_bg = "#fff"
-                        text_color = "#222"
+                # Dynamic theme-adaptive colors
+                if theme == "dark":
+                    max_color = "#3BA55D"   # green
+                    min_color = "#FF776B"   # red
+                    cell_bg = "#22232a"
+                    text_color = "#f6f6f6"
+                else:
+                    max_color = "#B2F2BB"
+                    min_color = "#FFD6D6"
+                    cell_bg = "#fff"
+                    text_color = "#24292f"
 
+                if kpis_to_show_in_table:
                     styled = (
                         comp_df[kpis_to_show_in_table]
                         .style
@@ -168,7 +174,6 @@ def show_strategy_comparison_page():
                         .highlight_max(axis=0, color=max_color, props=f"color:{text_color}; font-weight:bold;")
                         .highlight_min(axis=0, color=min_color, props=f"color:{text_color}; font-weight:bold;")
                     )
-
                     st.dataframe(styled, use_container_width=True, height=int(60 + 30 * len(comp_df)))
                 else:
                     display_custom_message("No common KPIs found to display for selected strategies.", "warning")
@@ -220,7 +225,7 @@ def show_strategy_comparison_page():
                         yaxis_title="Cumulative PnL",
                         hovermode="x unified"
                     )
-                    st.plotly_chart(_apply_custom_theme(equity_comp_fig, plot_theme), use_container_width=True)
+                    st.plotly_chart(_apply_custom_theme(equity_comp_fig, theme), use_container_width=True)
                 elif selected_strategies:
                     display_custom_message("Not enough data to plot comparative equity curves for selected strategies.", "info")
 
