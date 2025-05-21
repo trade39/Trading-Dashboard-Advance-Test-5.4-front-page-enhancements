@@ -102,13 +102,13 @@ body {
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-heading-color);
     font-weight: 600;
-    margin-top: 1.5em; /* Consistent top margin */
-    margin-bottom: 0.75em; /* Consistent bottom margin */
+    margin-top: 1.5em; 
+    margin-bottom: 0.75em; 
     line-height: 1.3;
 }
 
 h1 { 
-    font-size: 2.25rem; /* 36px */
+    font-size: 2.25rem; 
     margin-bottom: 0.5rem; 
     border-bottom: 2px solid var(--primary-color); 
     padding-bottom: 0.5rem;
@@ -116,7 +116,7 @@ h1 {
 }
 
 h2.section-header { 
-    font-size: 1.75rem; /* 28px */
+    font-size: 1.75rem; 
     color: var(--primary-color);
     margin-top: 2.5rem; 
     margin-bottom: 1.5rem;
@@ -126,7 +126,7 @@ h2.section-header {
 }
 
 h3.section-subheader {
-    font-size: 1.375rem; /* 22px */
+    font-size: 1.375rem; 
     color: var(--text-heading-color);
     margin-top: 2rem;
     margin-bottom: 1rem;
@@ -134,11 +134,11 @@ h3.section-subheader {
 }
 
 .page-subtitle {
-    font-size: 1.1rem; /* 18px */
+    font-size: 1.1rem; 
     color: var(--text-muted-color);
-    margin-top: -0.25rem; /* Pull closer to H1 */
+    margin-top: -0.25rem; 
     margin-bottom: 2.5rem; 
-    font-weight: 300; /* Lighter weight for subtitle */
+    font-weight: 300; 
     max-width: 75ch; 
 }
 
@@ -147,7 +147,7 @@ div[data-testid="stToolbar"] {
     background-color: var(--header-toolbar-background) !important;
     border-bottom: 1px solid var(--border-color) !important;
     box-shadow: var(--box-shadow-sm);
-    z-index: 999; /* Ensure it's above other content */
+    z-index: 999; 
 }
 
 div[data-testid="stToolbar"] button,
@@ -170,7 +170,7 @@ div[data-testid="stToolbar"] svg:hover {
 
 /* --- Sidebar Styling --- */
 div[data-testid="stSidebar"] {
-    background-color: var(--section-background-color); /* Slightly different from main bg */
+    background-color: var(--section-background-color); 
     border-right: 1px solid var(--border-color);
     padding: 1rem;
     box-shadow: var(--box-shadow-md);
@@ -188,11 +188,11 @@ div[data-testid="stSidebarNav"] a {
     color: var(--text-muted-color);
 }
 div[data-testid="stSidebarNav"] a:hover,
-div[data-testid="stSidebarNav"] a.active { /* Assuming Streamlit adds an 'active' class or similar */
+div[data-testid="stSidebarNav"] a.active { 
     background-color: var(--primary-color);
-    color: #FFFFFF !important; /* Ensure text is white on primary bg */
+    color: #FFFFFF !important; 
 }
-div[data-testid="stSidebar"] .stButton button { /* Buttons in sidebar */
+div[data-testid="stSidebar"] .stButton button { 
     width: 100%;
     margin-top: 0.5rem;
 }
@@ -205,7 +205,7 @@ div[data-testid="stButton"] > button {
     border: 1px solid var(--primary-color);
     padding: 0.6rem 1.25rem;
     border-radius: var(--border-radius-md);
-    font-weight: 500; /* Slightly less bold for general buttons */
+    font-weight: 500; 
     font-size: 0.95rem;
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 border-color var(--transition-speed) var(--transition-timing),
@@ -229,8 +229,7 @@ div[data-testid="stButton"] > button:active {
     border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%);
 }
 
-/* Secondary/Accent Button Style (example, apply with a class if needed or target specific buttons) */
-div[data-testid="stButton"] > button.secondary-button { /* You'd need to add this class via markdown or st.button(..., class="secondary-button") if possible */
+div[data-testid="stButton"] > button.secondary-button { 
     background-color: var(--accent-color);
     border-color: var(--accent-color);
 }
@@ -242,39 +241,108 @@ div[data-testid="stButton"] > button.secondary-button:hover {
 
 /* --- Input Fields (Select, Text Input, etc.) --- */
 div[data-testid="stTextInput"] input,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div, /* Targets the visible part of selectbox */
 div[data-testid="stNumberInput"] input,
-div[data-testid="stTextArea"] textarea {
+div[data-testid="stTextArea"] textarea,
+div[data-testid="stDateInput"] input,
+div[data-testid="stTimeInput"] input {
     background-color: var(--card-background-color) !important;
     color: var(--text-color) !important;
     border: 1px solid var(--input-border-color) !important;
     border-radius: var(--border-radius-md) !important;
     box-shadow: var(--box-shadow-inset) !important;
-    padding: 0.5rem 0.75rem !important; /* Consistent padding */
+    padding: 0.5rem 0.75rem !important;
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
+
+/* Specific styling for stSelectbox main control */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child {
+    background-color: var(--card-background-color) !important;
+    border: 1px solid var(--input-border-color) !important;
+    border-radius: var(--border-radius-md) !important;
+    box-shadow: var(--box-shadow-inset) !important;
+    padding: 0.5rem 0.75rem !important; /* Match other inputs */
+    transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+/* Text content (selected value or placeholder) within stSelectbox */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { /* If selectbox uses an input for search/display */
+    color: var(--text-color) !important;
+    background-color: transparent !important; /* Ensure no conflicting background */
+    opacity: 1 !important; /* Ensure text is not transparent */
+    padding: 0 !important; /* Remove padding from inner text element if container has it */
+    margin: 0 !important; /* Remove margin from inner text element */
+    line-height: inherit !important; /* Inherit line height for proper vertical alignment */
+}
+
+/* Selectbox dropdown arrow icon */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] svg {
+    fill: var(--text-muted-color) !important; /* Use muted color for arrow */
+    transition: fill var(--transition-speed) var(--transition-timing);
+}
+div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover svg {
+    fill: var(--text-color) !important; /* Darken arrow on hover of selectbox */
+}
+
+
+/* Focus styling for all input types */
 div[data-testid="stTextInput"] input:focus,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within, /* For selectbox focus */
 div[data-testid="stNumberInput"] input:focus,
-div[data-testid="stTextArea"] textarea:focus {
+div[data-testid="stTextArea"] textarea:focus,
+div[data-testid="stDateInput"] input:focus,
+div[data-testid="stTimeInput"] input:focus,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child:focus-within { /* For selectbox focus */
     border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 25%, transparent 75%) !important; /* Focus ring */
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 25%, transparent 75%), var(--box-shadow-inset) !important;
 }
+
 /* Placeholder text color */
-::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-  color: var(--text-muted-color);
-  opacity: 1; /* Firefox */
+::placeholder { color: var(--text-muted-color); opacity: 1; }
+:-ms-input-placeholder { color: var(--text-muted-color); }
+::-ms-input-placeholder { color: var(--text-muted-color); }
+
+/* Dropdown Menu Styling for stSelectbox */
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] {
+    background-color: var(--card-background-color) !important;
+    border-radius: var(--border-radius-md) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--box-shadow-lg) !important; /* More prominent shadow for dropdown */
+    margin-top: 4px !important;
+    padding: 0.25rem 0 !important; /* Add padding to the menu itself */
 }
-:-ms-input-placeholder { /* Internet Explorer 10-11 */
-  color: var(--text-muted-color);
+
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] ul {
+    padding: 0 !important; 
 }
-::-ms-input-placeholder { /* Microsoft Edge */
-  color: var(--text-muted-color);
+
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"],
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li {
+    background-color: transparent !important;
+    color: var(--text-color) !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.9rem;
+    border-radius: var(--border-radius-sm); /* Add slight rounding to items */
+    margin: 0.125rem 0.25rem; /* Small margin around items */
+    transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
 }
+
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"][aria-selected="true"],
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li[aria-selected="true"] {
+    background-color: color-mix(in srgb, var(--primary-color) 20%, transparent 80%) !important;
+    color: var(--primary-color) !important;
+    font-weight: 500;
+}
+
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"]:hover,
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li:hover {
+    background-color: var(--primary-color) !important;
+    color: #FFFFFF !important;
+}
+
 
 /* --- Expander Styling --- */
 div[data-testid="stExpander"] summary {
-    font-size: 1.05rem; /* Slightly larger for clarity */
+    font-size: 1.05rem; 
     font-weight: 500;
     color: var(--text-heading-color);
     background-color: var(--expander-header-bg);
@@ -282,7 +350,7 @@ div[data-testid="stExpander"] summary {
     border-radius: var(--border-radius-md);
     padding: 0.8rem 1.25rem;
     transition: background-color var(--transition-speed) var(--transition-timing);
-    margin-bottom: -1px; /* Overlap border with content */
+    margin-bottom: -1px; 
 }
 div[data-testid="stExpander"] summary:hover {
     background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
@@ -291,12 +359,12 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     padding: 1.5rem;
     background-color: var(--expander-content-bg);
     border: 1px solid var(--border-color);
-    border-top: none; /* Header has bottom border */
-    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); /* Round bottom corners */
+    border-top: none; 
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); 
 }
 
 /* --- Card Styling (Generic) --- */
-.custom-card { /* Apply this class via st.container() with a class parameter or markdown */
+.custom-card { 
     background-color: var(--card-background-color);
     padding: 1.5rem;
     border-radius: var(--border-radius-lg);
@@ -306,27 +374,27 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 }
 
 /* --- AI & ML Page Specific Styles --- */
-.ai-ml-task-container { /* This is your existing class, let's refine it */
+.ai-ml-task-container { 
     background-color: var(--card-background-color);
-    padding: 2rem; /* More generous padding */
+    padding: 2rem; 
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color);
     box-shadow: var(--box-shadow-md);
     margin-bottom: 2.5rem;
 }
 .ai-ml-task-container.placeholder-section {
-    border-left: 4px solid var(--secondary-color); /* Thicker accent border */
-    background-color: color-mix(in srgb, var(--card-background-color) 95%, var(--secondary-color) 5%); /* Slight tint */
+    border-left: 4px solid var(--secondary-color); 
+    background-color: color-mix(in srgb, var(--card-background-color) 95%, var(--secondary-color) 5%); 
 }
-.ai-ml-task-container div[data-testid="stExpander"] summary { /* Overrides generic expander for this context if needed */
-    font-size: 1.15rem; /* Slightly larger for task headers */
+.ai-ml-task-container div[data-testid="stExpander"] summary { 
+    font-size: 1.15rem; 
     padding: 1rem 1.5rem;
 }
 .ai-ml-task-container div[data-testid="stForm"] .stCaption {
     font-size: 0.9rem;
     color: var(--text-muted-color);
     margin-top: -0.25rem; 
-    margin-bottom: 1rem; /* More space after caption */
+    margin-bottom: 1rem; 
 }
 .ai-ml-task-container div[data-testid="stForm"] h6 {
     font-size: 1rem;
@@ -343,25 +411,25 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 }
 .ai-ml-task-container div[data-testid="stCodeBlock"] pre {
     padding: 1rem;
-    font-size: 0.875rem; /* Slightly larger code font */
+    font-size: 0.875rem; 
 }
 
 /* --- Welcome Page Styles --- */
 .welcome-container {
-    padding: 2.5rem 3rem; /* Generous padding */
+    padding: 2.5rem 3rem; 
     max-width: 960px;
     margin: 3rem auto;
     background-color: var(--card-background-color); 
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--box-shadow-lg); /* More prominent shadow for welcome */
+    box-shadow: var(--box-shadow-lg); 
     border: 1px solid var(--border-color);
 }
-.hero-section h1 { /* Welcome page H1 */
+.hero-section h1 { 
     font-size: 2.75rem; 
     font-weight: 700;
     margin-bottom: 0.75rem;
     color: var(--primary-color);
-    border-bottom: none; /* No border for welcome H1 */
+    border-bottom: none; 
     text-align: center;
 }
 .hero-section .tagline {
@@ -374,8 +442,8 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-left: auto;
     margin-right: auto;
 }
-.feature-card { /* Welcome page feature cards */
-    background-color: var(--section-background-color); /* Slightly different from welcome container */
+.feature-card { 
+    background-color: var(--section-background-color); 
     padding: 1.75rem;
     border-radius: var(--border-radius-md);
     border: 1px solid var(--border-color);
@@ -388,19 +456,19 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     text-align: center;
 }
 .feature-card:hover {
-    transform: translateY(-5px) scale(1.02); /* Slight lift and scale */
+    transform: translateY(-5px) scale(1.02); 
     box-shadow: var(--box-shadow-md);
 }
 .feature-card h4 {
     color: var(--primary-color);
     margin-top: 0;
     margin-bottom: 1rem;
-    font-size: 1.25rem; /* 20px */
+    font-size: 1.25rem; 
     font-weight: 600;
 }
 .feature-card p {
     font-size: 0.95rem;
-    line-height: 1.7; /* Increased line height for readability */
+    line-height: 1.7; 
     color: var(--text-color);
     flex-grow: 1;
 }
@@ -411,13 +479,13 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     height: 12px;
 }
 ::-webkit-scrollbar-track {
-    background: var(--background-color); /* Match main background */
+    background: var(--background-color); 
     border-radius: var(--border-radius-sm);
 }
 ::-webkit-scrollbar-thumb {
     background-color: var(--primary-color);
     border-radius: var(--border-radius-md);
-    border: 3px solid var(--background-color); /* Creates padding effect */
+    border: 3px solid var(--background-color); 
 }
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--secondary-color);
@@ -453,10 +521,6 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .feature-card h4 { font-size: 1.15rem; }
 }
 
-/* Add other specific styles for Data View, Trade Notes, KPI Cards, Messages, Tooltips, etc. below,
-   ensuring they use the theme variables for consistency. */
-
-/* Example for KPI Cards (if you have a class like .kpi-card) */
 .kpi-card {
     background-color: var(--card-background-color);
     padding: 1.25rem;
@@ -478,8 +542,6 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 .kpi-card .kpi-delta.positive { color: var(--success-color); }
 .kpi-card .kpi-delta.negative { color: var(--error-color); }
 
-
-/* Custom Message Box Styling (refinement) */
 .custom-message-box {
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
@@ -493,8 +555,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 }
 .custom-message-box-icon { margin-right: 0.75rem; font-size: 1.25rem; }
 .custom-message-box.success { background-color: color-mix(in srgb, var(--success-color) 15%, transparent); border-color: var(--success-color); color: var(--success-color); }
-.custom-message-box.warning { background-color: color-mix(in srgb, var(--warning-color) 15%, transparent); border-color: var(--warning-color); color: color-mix(in srgb, var(--warning-color) 80%, black); } /* Darken text for warning */
+.custom-message-box.warning { background-color: color-mix(in srgb, var(--warning-color) 15%, transparent); border-color: var(--warning-color); color: color-mix(in srgb, var(--warning-color) 80%, black); }
 [data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); }
 .custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
 .custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
-
