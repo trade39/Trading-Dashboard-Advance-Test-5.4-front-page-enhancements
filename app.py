@@ -10,11 +10,11 @@ import base64
 from io import BytesIO
 
 # --- MODIFICATION START: st.set_page_config() moved to the top ---
-from config import APP_TITLE as PAGE_CONFIG_APP_TITLE
+from config import APP_TITLE as PAGE_CONFIG_APP_TITLE # This is "Trading Mastery Hub"
 LOGO_PATH_FOR_BROWSER_TAB = "assets/Trading_Mastery_Hub_600x600.png"
 
 st.set_page_config(
-    page_title=PAGE_CONFIG_APP_TITLE,
+    page_title=PAGE_CONFIG_APP_TITLE, # Browser tab title remains "Trading Mastery Hub"
     page_icon=LOGO_PATH_FOR_BROWSER_TAB,
     layout="wide",
     initial_sidebar_state="expanded",
@@ -29,9 +29,7 @@ st.set_page_config(
 # --- Utility Modules ---
 try:
     from utils.logger import setup_logger
-    # --- MODIFICATION START: Reverted to load_css ---
     from utils.common_utils import load_css, display_custom_message, log_execution_time
-    # --- MODIFICATION END ---
 except ImportError as e:
     st.error(f"Fatal Error: Could not import utility modules. App cannot start. Details: {e}")
     logging.basicConfig(level=logging.ERROR)
@@ -102,9 +100,7 @@ st.components.v1.html(theme_js, height=0)
 # Load CSS
 try:
     css_file_path = "style.css"
-    # --- MODIFICATION START: Reverted to load_css ---
     if os.path.exists(css_file_path): load_css(css_file_path)
-    # --- MODIFICATION END ---
     else: logger.error(f"style.css not found at '{css_file_path}'.")
 except Exception as e: logger.error(f"Failed to load style.css: {e}", exc_info=True)
 
@@ -159,7 +155,7 @@ if logo_to_display_for_st_logo:
              st.sidebar.image(LOGO_PATH_SIDEBAR, use_column_width='auto')
 
 
-st.sidebar.header(APP_TITLE)
+st.sidebar.header(APP_TITLE) # Sidebar header remains "Trading Mastery Hub"
 st.sidebar.markdown("---")
 theme_toggle_value = st.session_state.current_theme == "light"
 
@@ -406,35 +402,48 @@ elif st.session_state.filtered_data is not None and st.session_state.filtered_da
     st.session_state.kpi_results = None; st.session_state.kpi_confidence_intervals = {}; st.session_state.max_drawdown_period_details = None
 
 
-# --- NEW WELCOME PAGE LAYOUT FUNCTION ---
+# --- WELCOME PAGE LAYOUT FUNCTION ---
 def main_page_layout():
     """
     Defines and displays the layout for the welcome page.
     """
     st.markdown("<div class='welcome-container'>", unsafe_allow_html=True)
     st.markdown("<div class='hero-section'>", unsafe_allow_html=True)
-    st.markdown(f"<h1 style='text-align: center; color: var(--primary-color);'>{PAGE_CONFIG_APP_TITLE}</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='tagline' style='text-align: center; font-size: 1.2em; color: var(--text-color-light);'>Unlock insights from your trading data with powerful analytics and visualizations.</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("---")
-    st.markdown("<h2 style='text-align: center; color: var(--secondary-color);'>Get Started</h2>", unsafe_allow_html=True)
+    
+    # --- MODIFICATION START: Updated Title and Added Subtitle ---
+    st.markdown("<h1 class='welcome-title'>Trading Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p class='welcome-subtitle'>Powered by {PAGE_CONFIG_APP_TITLE}</p>", unsafe_allow_html=True) # Use PAGE_CONFIG_APP_TITLE for "Trading Mastery Hub"
+    # --- MODIFICATION END ---
+    
+    st.markdown("<p class='tagline'>Unlock insights from your trading data with powerful analytics and visualizations.</p>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # End hero-section
+    
+    # Removed the st.markdown("---") that creates a horizontal line
+    
+    st.markdown("<h2 class='features-title' style='text-align: center; color: var(--secondary-color);'>Get Started</h2>", unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1,1,1], gap="large")
+
     with col1:
-        st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-item'>", unsafe_allow_html=True)
         st.markdown("<h4>📄 Upload Data</h4>", unsafe_allow_html=True)
         st.markdown("<p>Begin by uploading your trade journal (CSV) via the sidebar. Our intelligent mapping assistant will guide you through aligning your columns.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
     with col2:
-        st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-item'>", unsafe_allow_html=True)
         st.markdown("<h4>📊 Analyze Performance</h4>", unsafe_allow_html=True)
         st.markdown("<p>Dive deep into comprehensive performance metrics, equity curves, and statistical breakdowns once your data is loaded and processed.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
     with col3:
-        st.markdown("<div class='feature-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='feature-item'>", unsafe_allow_html=True)
         st.markdown("<h4>💡 Discover Insights</h4>", unsafe_allow_html=True)
         st.markdown("<p>Leverage advanced tools like categorical analysis, strategy comparisons, and AI-driven suggestions available in the dashboard pages.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
     st.markdown("<br>", unsafe_allow_html=True)
+
     st.markdown("<div style='text-align: center; margin-top: 30px;'>", unsafe_allow_html=True)
     user_guide_page_path = "pages/0_❓_User_Guide.py"
     if os.path.exists(user_guide_page_path):
@@ -443,8 +452,9 @@ def main_page_layout():
     else:
         st.markdown("<p style='text-align: center; font-style: italic;'>User guide page not found.</p>", unsafe_allow_html=True)
         logger.warning(f"User Guide page not found at expected path: {user_guide_page_path}")
+
     st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # End welcome-container
 
 # --- Page Navigation and Display ---
 if not uploaded_file and st.session_state.processed_data is None:
