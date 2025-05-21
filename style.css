@@ -2,23 +2,23 @@
 
 /* --- Root Variables (Dark Theme - Default) --- */
 :root {
-    --primary-color: #5D78FF; /* A slightly softer, modern Royal Blue */
-    --secondary-color: #7B68EE; /* Medium Slate Blue - a bit more vibrant */
+    --primary-color: #5D78FF; 
+    --secondary-color: #7B68EE; 
     
-    --background-color: #1A1B26; /* Darker, slightly desaturated background */
-    --card-background-color: #242535; /* Card background, for subtle contrast */
-    --section-background-color: #20212F; /* For larger sections, if needed */
-    --expander-header-bg: #2A2B3A; /* Darker expander header */
+    --background-color: #1A1B26; 
+    --card-background-color: #242535; 
+    --section-background-color: #20212F; 
+    --expander-header-bg: #2A2B3A; 
     --expander-content-bg: var(--card-background-color);
     
-    --text-color: #E0E1E6; /* Slightly off-white for better readability */
-    --text-muted-color: #A0A2B3; /* Muted text for less emphasis */
-    --text-heading-color: #F0F1F6; /* Brighter for headings */
+    --text-color: #E0E1E6; 
+    --text-muted-color: #A0A2B3; 
+    --text-heading-color: #F0F1F6; 
     
-    --border-color: #3A3C4E; /* Softer border color */
-    --input-border-color: #4A4C5E; /* Specific for input fields */
+    --border-color: #3A3C4E; 
+    --input-border-color: #4A4C5E; 
     
-    --accent-color: #FF8C00; /* Dark Orange - for call to actions or highlights */
+    --accent-color: #FF8C00; 
     
     --success-color: #28a745; 
     --warning-color: #ffc107; 
@@ -28,9 +28,9 @@
     --font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    --border-radius-sm: 0.25rem; /* 4px */
-    --border-radius-md: 0.5rem;  /* 8px */
-    --border-radius-lg: 0.75rem; /* 12px */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem; 
+    --border-radius-lg: 0.75rem;
 
     --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.15); 
     --box-shadow-md: 0 4px 8px rgba(0,0,0,0.2);
@@ -41,16 +41,26 @@
     --header-toolbar-text-color: var(--text-muted-color);
     --header-toolbar-hover-text-color: var(--text-color);
 
+    --sidebar-link-hover-bg: var(--primary-color);
+    --sidebar-link-active-bg: var(--primary-color);
+    --sidebar-link-text-color: var(--text-muted-color);
+    --sidebar-link-hover-text-color: #FFFFFF;
+    --sidebar-link-active-text-color: #FFFFFF;
+    --sidebar-icon-color: var(--text-muted-color);
+    --sidebar-icon-hover-color: #FFFFFF;
+    --sidebar-icon-active-color: #FFFFFF;
+
+
     --transition-speed: 0.2s;
     --transition-timing: ease-in-out;
 }
 
 /* --- Light Theme Variables --- */
 [data-theme="light"] {
-    --primary-color: #0062E6; /* Stronger blue for light theme */
-    --secondary-color: #5A6ACF; /* Complementary purple/blue */
+    --primary-color: #0062E6; 
+    --secondary-color: #5A6ACF; 
     
-    --background-color: #F7F8FC; /* Very light gray, not stark white */
+    --background-color: #F7F8FC; 
     --card-background-color: #FFFFFF;
     --section-background-color: #FFFFFF; 
     --expander-header-bg: #E9ECEF; 
@@ -63,7 +73,7 @@
     --border-color: #DEE2E6; 
     --input-border-color: #CED4DA;
 
-    --accent-color: #FF6B00; /* Brighter orange for light theme */
+    --accent-color: #FF6B00; 
 
     --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.05); 
     --box-shadow-md: 0 4px 8px rgba(0,0,0,0.07);
@@ -73,6 +83,15 @@
     --header-toolbar-background: var(--card-background-color);
     --header-toolbar-text-color: var(--text-muted-color);
     --header-toolbar-hover-text-color: var(--text-color);
+
+    --sidebar-link-hover-bg: var(--primary-color);
+    --sidebar-link-active-bg: var(--primary-color);
+    --sidebar-link-text-color: var(--text-muted-color);
+    --sidebar-link-hover-text-color: #FFFFFF;
+    --sidebar-link-active-text-color: #FFFFFF;
+    --sidebar-icon-color: var(--text-muted-color);
+    --sidebar-icon-hover-color: #FFFFFF;
+    --sidebar-icon-active-color: #FFFFFF;
 }
 
 
@@ -95,7 +114,7 @@ body {
 
 /* --- Main Layout Container --- */
 .main .block-container {
-    padding: 1.5rem 2rem; /* Consistent padding */
+    padding: 1.5rem 2rem; 
 }
 
 /* --- Headings --- */
@@ -172,26 +191,70 @@ div[data-testid="stToolbar"] svg:hover {
 div[data-testid="stSidebar"] {
     background-color: var(--section-background-color); 
     border-right: 1px solid var(--border-color);
-    padding: 1rem;
+    padding: 1rem; /* Overall padding for the sidebar */
     box-shadow: var(--box-shadow-md);
 }
-div[data-testid="stSidebarNav"] ul {
-    padding-left: 0;
+
+/* Styling for the navigation link container */
+div[data-testid="stSidebarNav"] > ul {
+    padding: 0;
+    margin: 0;
     list-style: none;
 }
-div[data-testid="stSidebarNav"] a {
-    padding: 0.6rem 0.8rem;
+
+/* Styling for each navigation link item (anchor tag) */
+div[data-testid="stSidebarNav"] li > a {
+    display: flex; /* Use flexbox for icon and text alignment */
+    align-items: center; /* Vertically align icon and text */
+    padding: 0.75rem 1rem; /* Consistent padding */
+    margin: 0.25rem 0; /* Small margin between links */
     border-radius: var(--border-radius-md);
-    transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
-    display: block;
     text-decoration: none;
-    color: var(--text-muted-color);
+    color: var(--sidebar-link-text-color);
+    font-weight: 500; /* Slightly bolder for nav links */
+    font-size: 0.95rem;
+    transition: background-color var(--transition-speed) var(--transition-timing), 
+                color var(--transition-speed) var(--transition-timing),
+                box-shadow var(--transition-speed) var(--transition-timing);
 }
-div[data-testid="stSidebarNav"] a:hover,
-div[data-testid="stSidebarNav"] a.active { 
-    background-color: var(--primary-color);
-    color: #FFFFFF !important; 
+
+/* Icon styling within nav links (if Streamlit renders them as spans or svgs) */
+div[data-testid="stSidebarNav"] li > a > span:first-child, /* Often icons are in a span */
+div[data-testid="stSidebarNav"] li > a > svg { /* Or direct SVGs */
+    margin-right: 0.75rem; /* Space between icon and text */
+    font-size: 1.1em; /* Adjust icon size if needed */
+    color: var(--sidebar-icon-color); /* Use specific icon color variable */
+    fill: var(--sidebar-icon-color);
+    transition: color var(--transition-speed) var(--transition-timing), 
+                fill var(--transition-speed) var(--transition-timing);
 }
+
+/* Hover state for navigation links */
+div[data-testid="stSidebarNav"] li > a:hover {
+    background-color: var(--sidebar-link-hover-bg);
+    color: var(--sidebar-link-hover-text-color) !important;
+    box-shadow: var(--box-shadow-sm);
+}
+div[data-testid="stSidebarNav"] li > a:hover > span:first-child,
+div[data-testid="stSidebarNav"] li > a:hover > svg {
+    color: var(--sidebar-icon-hover-color);
+    fill: var(--sidebar-icon-hover-color);
+}
+
+/* Active state for navigation links (using aria-current attribute) */
+div[data-testid="stSidebarNav"] li > a[aria-current="page"] {
+    background-color: var(--sidebar-link-active-bg);
+    color: var(--sidebar-link-active-text-color) !important;
+    font-weight: 600; /* Make active link slightly bolder */
+    box-shadow: var(--box-shadow-md); /* More prominent shadow for active */
+}
+div[data-testid="stSidebarNav"] li > a[aria-current="page"] > span:first-child,
+div[data-testid="stSidebarNav"] li > a[aria-current="page"] > svg {
+    color: var(--sidebar-icon-active-color);
+    fill: var(--sidebar-icon-active-color);
+}
+
+
 div[data-testid="stSidebar"] .stButton button { 
     width: 100%;
     margin-top: 0.5rem;
@@ -254,61 +317,55 @@ div[data-testid="stTimeInput"] input {
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
-/* Specific styling for stSelectbox main control */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child {
     background-color: var(--card-background-color) !important;
     border: 1px solid var(--input-border-color) !important;
     border-radius: var(--border-radius-md) !important;
     box-shadow: var(--box-shadow-inset) !important;
-    padding: 0.5rem 0.75rem !important; /* Match other inputs */
+    padding: 0.5rem 0.75rem !important; 
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
-/* Text content (selected value or placeholder) within stSelectbox */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { /* If selectbox uses an input for search/display */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { 
     color: var(--text-color) !important;
-    background-color: transparent !important; /* Ensure no conflicting background */
-    opacity: 1 !important; /* Ensure text is not transparent */
-    padding: 0 !important; /* Remove padding from inner text element if container has it */
-    margin: 0 !important; /* Remove margin from inner text element */
-    line-height: inherit !important; /* Inherit line height for proper vertical alignment */
+    background-color: transparent !important; 
+    opacity: 1 !important; 
+    padding: 0 !important; 
+    margin: 0 !important; 
+    line-height: inherit !important; 
 }
 
-/* Selectbox dropdown arrow icon */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] svg {
-    fill: var(--text-muted-color) !important; /* Use muted color for arrow */
+    fill: var(--text-muted-color) !important; 
     transition: fill var(--transition-speed) var(--transition-timing);
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover svg {
-    fill: var(--text-color) !important; /* Darken arrow on hover of selectbox */
+    fill: var(--text-color) !important; 
 }
 
 
-/* Focus styling for all input types */
 div[data-testid="stTextInput"] input:focus,
 div[data-testid="stNumberInput"] input:focus,
 div[data-testid="stTextArea"] textarea:focus,
 div[data-testid="stDateInput"] input:focus,
 div[data-testid="stTimeInput"] input:focus,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child:focus-within { /* For selectbox focus */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child:focus-within { 
     border-color: var(--primary-color) !important;
     box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 25%, transparent 75%), var(--box-shadow-inset) !important;
 }
 
-/* Placeholder text color */
 ::placeholder { color: var(--text-muted-color); opacity: 1; }
 :-ms-input-placeholder { color: var(--text-muted-color); }
 ::-ms-input-placeholder { color: var(--text-muted-color); }
 
-/* Dropdown Menu Styling for stSelectbox */
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] {
     background-color: var(--card-background-color) !important;
     border-radius: var(--border-radius-md) !important;
     border: 1px solid var(--border-color) !important;
-    box-shadow: var(--box-shadow-lg) !important; /* More prominent shadow for dropdown */
+    box-shadow: var(--box-shadow-lg) !important; 
     margin-top: 4px !important;
-    padding: 0.25rem 0 !important; /* Add padding to the menu itself */
+    padding: 0.25rem 0 !important; 
 }
 
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] ul {
@@ -321,8 +378,8 @@ div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li {
     color: var(--text-color) !important;
     padding: 0.6rem 1rem !important;
     font-size: 0.9rem;
-    border-radius: var(--border-radius-sm); /* Add slight rounding to items */
-    margin: 0.125rem 0.25rem; /* Small margin around items */
+    border-radius: var(--border-radius-sm); 
+    margin: 0.125rem 0.25rem; 
     transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
 }
 
@@ -559,3 +616,4 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 [data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); }
 .custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
 .custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
+
