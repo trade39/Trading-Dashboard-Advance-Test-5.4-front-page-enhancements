@@ -2,19 +2,23 @@
 
 /* --- Root Variables (Dark Theme - Default) --- */
 :root {
-    --primary-color: #4169E1; /* Royal Blue - Accent */
-    --secondary-color: #6A5ACD; /* Slate Blue - Secondary Accent */
+    --primary-color: #5D78FF; /* A slightly softer, modern Royal Blue */
+    --secondary-color: #7B68EE; /* Medium Slate Blue - a bit more vibrant */
     
-    --background-color: #1E1E1E; 
-    --card-background-color: #2C2C2C; 
-    --section-background-color: #252525; 
-    --expander-header-bg: #3a3a3a; 
+    --background-color: #1A1B26; /* Darker, slightly desaturated background */
+    --card-background-color: #242535; /* Card background, for subtle contrast */
+    --section-background-color: #20212F; /* For larger sections, if needed */
+    --expander-header-bg: #2A2B3A; /* Darker expander header */
     --expander-content-bg: var(--card-background-color);
     
-    --text-color: #E0E0E0; 
-    --text-muted-color: #A0A0A0; 
-    --border-color: #4A4A4A; 
-    --accent-color: #FFA500;
+    --text-color: #E0E1E6; /* Slightly off-white for better readability */
+    --text-muted-color: #A0A2B3; /* Muted text for less emphasis */
+    --text-heading-color: #F0F1F6; /* Brighter for headings */
+    
+    --border-color: #3A3C4E; /* Softer border color */
+    --input-border-color: #4A4C5E; /* Specific for input fields */
+    
+    --accent-color: #FF8C00; /* Dark Orange - for call to actions or highlights */
     
     --success-color: #28a745; 
     --warning-color: #ffc107; 
@@ -24,170 +28,473 @@
     --font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    --border-radius-sm: 0.2rem;
-    --border-radius-md: 0.375rem;
-    --border-radius-lg: 0.5rem;
+    --border-radius-sm: 0.25rem; /* 4px */
+    --border-radius-md: 0.5rem;  /* 8px */
+    --border-radius-lg: 0.75rem; /* 12px */
 
-    --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.25); 
-    --box_shadow-md: 0 4px 8px rgba(0,0,0,0.3);
-    --box-shadow-lg: 0 6px 12px rgba(0,0,0,0.4);
+    --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.15); 
+    --box-shadow-md: 0 4px 8px rgba(0,0,0,0.2);
+    --box-shadow-lg: 0 6px 12px rgba(0,0,0,0.25);
+    --box-shadow-inset: inset 0 1px 2px rgba(0,0,0,0.1);
 
-    /* ... other root variables ... */
+    --header-toolbar-background: var(--background-color);
+    --header-toolbar-text-color: var(--text-muted-color);
+    --header-toolbar-hover-text-color: var(--text-color);
+
+    --transition-speed: 0.2s;
+    --transition-timing: ease-in-out;
 }
 
 /* --- Light Theme Variables --- */
 [data-theme="light"] {
-    --primary-color: #007bff; 
-    --secondary-color: #6c757d; 
-    --background-color: #FFFFFF; 
-    --card-background-color: #F8F9FA;
+    --primary-color: #0062E6; /* Stronger blue for light theme */
+    --secondary-color: #5A6ACF; /* Complementary purple/blue */
+    
+    --background-color: #F7F8FC; /* Very light gray, not stark white */
+    --card-background-color: #FFFFFF;
     --section-background-color: #FFFFFF; 
-    --expander-header-bg: #e9ecef; 
+    --expander-header-bg: #E9ECEF; 
     --expander-content-bg: var(--card-background-color);
+    
     --text-color: #212529; 
-    --text-muted-color: #6c757d; 
+    --text-muted-color: #6C757D; 
+    --text-heading-color: #121416;
+
     --border-color: #DEE2E6; 
-    --accent-color: #fd7e14; 
-    /* ... other light theme variables ... */
+    --input-border-color: #CED4DA;
+
+    --accent-color: #FF6B00; /* Brighter orange for light theme */
+
+    --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.05); 
+    --box-shadow-md: 0 4px 8px rgba(0,0,0,0.07);
+    --box-shadow-lg: 0 6px 12px rgba(0,0,0,0.1);
+    --box-shadow-inset: inset 0 1px 2px rgba(0,0,0,0.05);
+
+    --header-toolbar-background: var(--card-background-color);
+    --header-toolbar-text-color: var(--text-muted-color);
+    --header-toolbar-hover-text-color: var(--text-color);
 }
 
 
-/* --- General Body and Streamlit Base Styles --- */
-body { /* ... */ }
-.main .block-container { /* ... */ }
-h1, h2, h3, h4, h5, h6 { /* ... */ }
-h1 { font-size: 2.0rem; margin-bottom: 0.25rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;}
+/* --- General Body and HTML Styles --- */
+html {
+    background-color: var(--background-color);
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family-sans-serif);
+    color: var(--text-color);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Main Layout Container --- */
+.main .block-container {
+    padding: 1.5rem 2rem; /* Consistent padding */
+}
+
+/* --- Headings --- */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-heading-color);
+    font-weight: 600;
+    margin-top: 1.5em; /* Consistent top margin */
+    margin-bottom: 0.75em; /* Consistent bottom margin */
+    line-height: 1.3;
+}
+
+h1 { 
+    font-size: 2.25rem; /* 36px */
+    margin-bottom: 0.5rem; 
+    border-bottom: 2px solid var(--primary-color); 
+    padding-bottom: 0.5rem;
+    font-weight: 700;
+}
+
 h2.section-header { 
-    font-size: 1.6rem; /* Slightly larger for main section headers */
+    font-size: 1.75rem; /* 28px */
     color: var(--primary-color);
-    margin-top: 0; 
-    margin-bottom: 1.5rem; /* More space after section header */
+    margin-top: 2.5rem; 
+    margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
 }
-h3.section-subheader { /* For sub-headers like 'Forecast Results' */
-    font-size: 1.3rem;
-    color: var(--text-color);
-    margin-top: 1.5rem;
+
+h3.section-subheader {
+    font-size: 1.375rem; /* 22px */
+    color: var(--text-heading-color);
+    margin-top: 2rem;
     margin-bottom: 1rem;
     font-weight: 500;
 }
+
 .page-subtitle {
-    font-size: 1.05rem;
+    font-size: 1.1rem; /* 18px */
     color: var(--text-muted-color);
-    margin-top: 0.5rem; /* Space below H1 */
-    margin-bottom: 2.5rem; /* More space before the first task container */
-    font-weight: 300;
-    max-width: 80ch; /* Limit width for readability */
+    margin-top: -0.25rem; /* Pull closer to H1 */
+    margin-bottom: 2.5rem; 
+    font-weight: 300; /* Lighter weight for subtitle */
+    max-width: 75ch; 
+}
+
+/* --- Streamlit Toolbar Styling --- */
+div[data-testid="stToolbar"] {
+    background-color: var(--header-toolbar-background) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: var(--box-shadow-sm);
+    z-index: 999; /* Ensure it's above other content */
+}
+
+div[data-testid="stToolbar"] button,
+div[data-testid="stToolbar"] a,
+div[data-testid="stToolbar"] label,
+div[data-testid="stToolbar"] svg {
+    color: var(--header-toolbar-text-color) !important;
+    fill: var(--header-toolbar-text-color) !important;
+    transition: color var(--transition-speed) var(--transition-timing), fill var(--transition-speed) var(--transition-timing);
+}
+
+div[data-testid="stToolbar"] button:hover,
+div[data-testid="stToolbar"] a:hover,
+div[data-testid="stToolbar"] label:hover,
+div[data-testid="stToolbar"] svg:hover {
+    color: var(--header-toolbar-hover-text-color) !important;
+    fill: var(--header-toolbar-hover-text-color) !important;
+    background-color: transparent !important;
+}
+
+/* --- Sidebar Styling --- */
+div[data-testid="stSidebar"] {
+    background-color: var(--section-background-color); /* Slightly different from main bg */
+    border-right: 1px solid var(--border-color);
+    padding: 1rem;
+    box-shadow: var(--box-shadow-md);
+}
+div[data-testid="stSidebarNav"] ul {
+    padding-left: 0;
+    list-style: none;
+}
+div[data-testid="stSidebarNav"] a {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--border-radius-md);
+    transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
+    display: block;
+    text-decoration: none;
+    color: var(--text-muted-color);
+}
+div[data-testid="stSidebarNav"] a:hover,
+div[data-testid="stSidebarNav"] a.active { /* Assuming Streamlit adds an 'active' class or similar */
+    background-color: var(--primary-color);
+    color: #FFFFFF !important; /* Ensure text is white on primary bg */
+}
+div[data-testid="stSidebar"] .stButton button { /* Buttons in sidebar */
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 
 /* --- General Button Styling for Streamlit --- */
-/* ... existing button styles ... */
-
-
-/* --- Column Mapper Specific Styles (Existing) --- */
-/* ... */
-
-/* --- Expander Styling for Column Mapper (Existing) --- */
-/* ... */
-
-
-/* --- Data View Page Specific Styles (Existing) --- */
-.page-content-container { 
-    margin-top: 1rem;
+div[data-testid="stButton"] > button {
+    background-color: var(--primary-color);
+    color: #FFFFFF !important; 
+    border: 1px solid var(--primary-color);
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 500; /* Slightly less bold for general buttons */
+    font-size: 0.95rem;
+    transition: background-color var(--transition-speed) var(--transition-timing), 
+                border-color var(--transition-speed) var(--transition-timing),
+                transform var(--transition-speed) var(--transition-timing),
+                box-shadow var(--transition-speed) var(--transition-timing);
+    box-shadow: var(--box-shadow-sm);
+    cursor: pointer;
 }
-.config-section-container,
-.table-section-container { /* ... */ }
-.data-count-info { /* ... */ }
-/* ... other data view styles ... */
 
-/* --- Trade Notes Page Specific Styles (Existing) --- */
-/* ... */
+div[data-testid="stButton"] > button:hover {
+    background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%);
+    border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
+}
+
+div[data-testid="stButton"] > button:active {
+    transform: translateY(0px);
+    box-shadow: var(--box-shadow-sm);
+    background-color: color-mix(in srgb, var(--primary-color) 70%, black 30%);
+    border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%);
+}
+
+/* Secondary/Accent Button Style (example, apply with a class if needed or target specific buttons) */
+div[data-testid="stButton"] > button.secondary-button { /* You'd need to add this class via markdown or st.button(..., class="secondary-button") if possible */
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+div[data-testid="stButton"] > button.secondary-button:hover {
+    background-color: color-mix(in srgb, var(--accent-color) 85%, black 15%);
+    border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%);
+}
 
 
-/* --- AI & ML Page Specific Styles --- */
-.ai-ml-task-container {
+/* --- Input Fields (Select, Text Input, etc.) --- */
+div[data-testid="stTextInput"] input,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div, /* Targets the visible part of selectbox */
+div[data-testid="stNumberInput"] input,
+div[data-testid="stTextArea"] textarea {
+    background-color: var(--card-background-color) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--input-border-color) !important;
+    border-radius: var(--border-radius-md) !important;
+    box-shadow: var(--box-shadow-inset) !important;
+    padding: 0.5rem 0.75rem !important; /* Consistent padding */
+    transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
+}
+div[data-testid="stTextInput"] input:focus,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within, /* For selectbox focus */
+div[data-testid="stNumberInput"] input:focus,
+div[data-testid="stTextArea"] textarea:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 25%, transparent 75%) !important; /* Focus ring */
+}
+/* Placeholder text color */
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--text-muted-color);
+  opacity: 1; /* Firefox */
+}
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: var(--text-muted-color);
+}
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: var(--text-muted-color);
+}
+
+/* --- Expander Styling --- */
+div[data-testid="stExpander"] summary {
+    font-size: 1.05rem; /* Slightly larger for clarity */
+    font-weight: 500;
+    color: var(--text-heading-color);
+    background-color: var(--expander-header-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 0.8rem 1.25rem;
+    transition: background-color var(--transition-speed) var(--transition-timing);
+    margin-bottom: -1px; /* Overlap border with content */
+}
+div[data-testid="stExpander"] summary:hover {
+    background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
+}
+div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: 1.5rem;
+    background-color: var(--expander-content-bg);
+    border: 1px solid var(--border-color);
+    border-top: none; /* Header has bottom border */
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); /* Round bottom corners */
+}
+
+/* --- Card Styling (Generic) --- */
+.custom-card { /* Apply this class via st.container() with a class parameter or markdown */
     background-color: var(--card-background-color);
-    padding: 1.5rem 2rem;
+    padding: 1.5rem;
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color);
-    box-shadow: var(--box_shadow-md);
-    margin-bottom: 2.5rem; /* Space between task containers */
-}
-.ai-ml-task-container.placeholder-section { /* For "Coming Soon" sections */
-    border-left: 5px solid var(--secondary-color);
+    box-shadow: var(--box-shadow-md);
+    margin-bottom: 1.5rem;
 }
 
-/* Styling for Streamlit expander headers within AI/ML tasks */
-.ai-ml-task-container div[data-testid="stExpander"] summary {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-color);
-    background-color: var(--expander-header-bg); /* Use defined expander bg */
-    border-bottom: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
+/* --- AI & ML Page Specific Styles --- */
+.ai-ml-task-container { /* This is your existing class, let's refine it */
+    background-color: var(--card-background-color);
+    padding: 2rem; /* More generous padding */
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow-md);
+    margin-bottom: 2.5rem;
 }
-.ai-ml-task-container div[data-testid="stExpander"] summary:hover {
-    background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 10%);
+.ai-ml-task-container.placeholder-section {
+    border-left: 4px solid var(--secondary-color); /* Thicker accent border */
+    background-color: color-mix(in srgb, var(--card-background-color) 95%, var(--secondary-color) 5%); /* Slight tint */
 }
-.ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 1.5rem 1rem 1rem 1rem; /* More padding inside expander */
-    background-color: var(--expander-content-bg);
+.ai-ml-task-container div[data-testid="stExpander"] summary { /* Overrides generic expander for this context if needed */
+    font-size: 1.15rem; /* Slightly larger for task headers */
+    padding: 1rem 1.5rem;
 }
-
-/* Styling for captions used for model descriptions */
 .ai-ml-task-container div[data-testid="stForm"] .stCaption {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--text-muted-color);
-    margin-top: -0.5rem; /* Pull up slightly under the selectbox */
-    margin-bottom: 0.75rem;
-    padding-left: 0.2rem;
+    margin-top: -0.25rem; 
+    margin-bottom: 1rem; /* More space after caption */
 }
-
-/* Styling for ARIMA manual order input groups */
-.ai-ml-task-container div[data-testid="stForm"] h6 { /* For "Specify ARIMA Order" */
-    font-size: 0.95rem;
-    color: var(--text-color);
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
+.ai-ml-task-container div[data-testid="stForm"] h6 {
+    font-size: 1rem;
+    color: var(--text-heading-color);
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
     font-weight: 500;
 }
-
-/* Styling for st.code used for model summary */
 .ai-ml-task-container div[data-testid="stCodeBlock"] {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    background-color: var(--background-color); /* Match main background for code */
+    background-color: var(--background-color); 
+    margin-top: 1rem;
 }
 .ai-ml-task-container div[data-testid="stCodeBlock"] pre {
-    padding: 0.75rem;
-    font-size: 0.85rem;
+    padding: 1rem;
+    font-size: 0.875rem; /* Slightly larger code font */
+}
+
+/* --- Welcome Page Styles --- */
+.welcome-container {
+    padding: 2.5rem 3rem; /* Generous padding */
+    max-width: 960px;
+    margin: 3rem auto;
+    background-color: var(--card-background-color); 
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-lg); /* More prominent shadow for welcome */
+    border: 1px solid var(--border-color);
+}
+.hero-section h1 { /* Welcome page H1 */
+    font-size: 2.75rem; 
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+    border-bottom: none; /* No border for welcome H1 */
+    text-align: center;
+}
+.hero-section .tagline {
+    font-size: 1.3rem; 
+    font-weight: 300;
+    margin-bottom: 2rem;
+    color: var(--text-muted-color);
+    text-align: center;
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+.feature-card { /* Welcome page feature cards */
+    background-color: var(--section-background-color); /* Slightly different from welcome container */
+    padding: 1.75rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow-sm);
+    transition: transform var(--transition-speed) var(--transition-timing), 
+                box-shadow var(--transition-speed) var(--transition-timing);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.feature-card:hover {
+    transform: translateY(-5px) scale(1.02); /* Slight lift and scale */
+    box-shadow: var(--box-shadow-md);
+}
+.feature-card h4 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem; /* 20px */
+    font-weight: 600;
+}
+.feature-card p {
+    font-size: 0.95rem;
+    line-height: 1.7; /* Increased line height for readability */
+    color: var(--text-color);
+    flex-grow: 1;
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+    width: 12px; 
+    height: 12px;
+}
+::-webkit-scrollbar-track {
+    background: var(--background-color); /* Match main background */
+    border-radius: var(--border-radius-sm);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: var(--border-radius-md);
+    border: 3px solid var(--background-color); /* Creates padding effect */
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--secondary-color);
 }
 
 
-/* Styling for st.multiselect selected items (pills/tags) - Ensure this is still effective */
-/* ... existing multiselect styles ... */
-
-/* --- KPI Card Styling (existing) --- */
-/* ... */
-/* --- Custom Message Box Styling (existing) --- */
-/* ... */
-/* --- Scroll Button Styles (existing) --- */
-/* ... */
-/* --- Tooltip Styles (existing) --- */
-/* ... */
-
-/* --- Responsive Design Adjustments (existing) --- */
-@media (max-width: 767px) { 
-    h1 { font-size: 1.6rem; margin-bottom: 1rem; }
-    h2.section-header { font-size: 1.4rem; }
-    h3.section-subheader { font-size: 1.15rem; }
-    .page-subtitle { font-size: 0.95rem; margin-bottom: 1.5rem; }
-    .ai-ml-task-container { padding: 1rem; }
-    .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.6rem 0.8rem;}
-    .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem 0.8rem; }
-
-    /* ... other responsive styles ... */ 
+/* --- Responsive Design Adjustments --- */
+@media (max-width: 992px) { /* Tablet */
+    .main .block-container { padding: 1.5rem; }
+    h1 { font-size: 2rem; }
+    h2.section-header { font-size: 1.6rem; }
+    .page-subtitle { font-size: 1rem; }
+    .welcome-container { padding: 2rem; margin: 2rem auto; }
+    .hero-section h1 { font-size: 2.25rem; }
+    .hero-section .tagline { font-size: 1.15rem; }
 }
-/* ... other media queries ... */
+
+@media (max-width: 767px) { /* Mobile */
+    .main .block-container { padding: 1rem; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    h2.section-header { font-size: 1.4rem; margin-bottom: 1rem; }
+    h3.section-subheader { font-size: 1.2rem; }
+    .page-subtitle { font-size: 0.9rem; margin-bottom: 1.5rem; }
+    
+    .ai-ml-task-container { padding: 1.25rem; }
+    .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.75rem 1rem;}
+    .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem; }
+
+    .welcome-container { padding: 1.5rem; margin: 1.5rem auto; }
+    .hero-section h1 { font-size: 2rem; }
+    .hero-section .tagline { font-size: 1.05rem; }
+    .feature-card { margin-bottom: 1.5rem; padding: 1.25rem; }
+    .feature-card h4 { font-size: 1.15rem; }
+}
+
+/* Add other specific styles for Data View, Trade Notes, KPI Cards, Messages, Tooltips, etc. below,
+   ensuring they use the theme variables for consistency. */
+
+/* Example for KPI Cards (if you have a class like .kpi-card) */
+.kpi-card {
+    background-color: var(--card-background-color);
+    padding: 1.25rem;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-sm);
+    border-left: 4px solid var(--primary-color);
+    margin-bottom: 1rem;
+}
+.kpi-card .kpi-title {
+    font-size: 0.9rem;
+    color: var(--text-muted-color);
+    margin-bottom: 0.25rem;
+}
+.kpi-card .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-heading-color);
+}
+.kpi-card .kpi-delta.positive { color: var(--success-color); }
+.kpi-card .kpi-delta.negative { color: var(--error-color); }
+
+
+/* Custom Message Box Styling (refinement) */
+.custom-message-box {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--border-radius-md);
+    border-width: 1px;
+    border-style: solid;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    box-shadow: var(--box-shadow-sm);
+}
+.custom-message-box-icon { margin-right: 0.75rem; font-size: 1.25rem; }
+.custom-message-box.success { background-color: color-mix(in srgb, var(--success-color) 15%, transparent); border-color: var(--success-color); color: var(--success-color); }
+.custom-message-box.warning { background-color: color-mix(in srgb, var(--warning-color) 15%, transparent); border-color: var(--warning-color); color: color-mix(in srgb, var(--warning-color) 80%, black); } /* Darken text for warning */
+[data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); }
+.custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
+.custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
+
