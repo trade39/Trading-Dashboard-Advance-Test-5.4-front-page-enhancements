@@ -114,7 +114,7 @@ body {
 
 /* --- Main Layout Container --- */
 .main .block-container {
-    padding: 1.5rem 2rem; 
+    padding: 1.5rem 2rem; /* Default padding for main content area */
 }
 
 /* --- Headings --- */
@@ -468,17 +468,21 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 
 /* --- Welcome Page Styles --- */
 .welcome-container {
-    padding: 2.5rem 3rem; 
+    padding: 2rem 3rem; /* Reduced top/bottom padding from 2.5rem */
     max-width: 960px;
-    margin: 3rem auto;
+    margin: 1.5rem auto 3rem auto; /* Reduced top margin from 3rem to 1.5rem */
     background-color: var(--card-background-color); 
     border-radius: var(--border-radius-lg);
     box-shadow: var(--box-shadow-lg); 
     border: 1px solid var(--border-color);
 }
+.hero-section { /* Added a class for the hero section if needed for more specific control */
+    padding-top: 0; /* Ensure no extra padding at the top of the hero section itself */
+}
 .hero-section h1 { 
     font-size: 2.75rem; 
     font-weight: 700;
+    margin-top: 0; /* Remove top margin from h1 if it's the first element */
     margin-bottom: 0.75rem;
     color: var(--primary-color);
     border-bottom: none; 
@@ -495,18 +499,16 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-right: auto;
 }
 
-/* MODIFIED: Cleaner Feature "Cards" - No explicit boxes */
-.feature-item { /* Renamed from .feature-card for clarity */
-    padding: 1rem 0.5rem; /* Adjust padding as needed */
-    text-align: center; /* Center align content */
-    /* No background, border, or shadow by default for a cleaner look */
+.feature-item { 
+    padding: 1rem 0.5rem; 
+    text-align: center; 
 }
 
 .feature-item h4 {
     color: var(--primary-color);
     margin-top: 0;
-    margin-bottom: 0.75rem; /* Space between heading and paragraph */
-    font-size: 1.2rem; /* Slightly smaller if no box */
+    margin-bottom: 0.75rem; 
+    font-size: 1.2rem; 
     font-weight: 600;
 }
 
@@ -514,24 +516,9 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--text-color);
-    /* flex-grow: 1; Removed as it's less relevant without a fixed card height */
-    max-width: 30ch; /* Limit width of paragraph for better readability */
+    max-width: 30ch; 
     margin-left: auto;
     margin-right: auto;
-}
-
-/* Optional: Add a subtle separator between feature items if needed when columns stack on mobile */
-@media (max-width: 767px) {
-    .feature-item {
-        margin-bottom: 1.5rem; /* Space when items stack */
-        /* border-bottom: 1px solid var(--border-color); /* Uncomment for a very subtle separator */
-        /* padding-bottom: 1.5rem; /* Add padding if border is used */
-    }
-    .feature-item:last-child {
-        margin-bottom: 0;
-        border-bottom: none;
-        padding-bottom: 0;
-    }
 }
 
 
@@ -560,7 +547,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     h1 { font-size: 2rem; }
     h2.section-header { font-size: 1.6rem; }
     .page-subtitle { font-size: 1rem; }
-    .welcome-container { padding: 2rem; margin: 2rem auto; }
+    .welcome-container { padding: 1.5rem; margin: 1rem auto 2rem auto; } /* Adjusted margins */
     .hero-section h1 { font-size: 2.25rem; }
     .hero-section .tagline { font-size: 1.15rem; }
 }
@@ -576,10 +563,15 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.75rem 1rem;}
     .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem; }
 
-    .welcome-container { padding: 1.5rem; margin: 1.5rem auto; }
+    .welcome-container { padding: 1rem; margin: 1rem auto 1.5rem auto; } /* Further adjusted margins */
     .hero-section h1 { font-size: 2rem; }
     .hero-section .tagline { font-size: 1.05rem; }
-    /* .feature-card styling handled by .feature-item above for mobile */
+    .feature-item {
+        margin-bottom: 1.5rem; 
+    }
+    .feature-item:last-child {
+        margin-bottom: 0;
+    }
     .feature-item h4 { font-size: 1.15rem; }
 }
 
