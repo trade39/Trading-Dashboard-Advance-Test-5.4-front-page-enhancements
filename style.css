@@ -1,193 +1,210 @@
-/* style.css */
+/* General Body Styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
 
-/* --- Root Variables (Dark Theme - Default) --- */
+/* Theme Variables - Define defaults and then override per theme */
 :root {
-    --primary-color: #4169E1; /* Royal Blue - Accent */
-    --secondary-color: #6A5ACD; /* Slate Blue - Secondary Accent */
-    
-    --background-color: #1E1E1E; 
-    --card-background-color: #2C2C2C; 
-    --section-background-color: #252525; 
-    --expander-header-bg: #3a3a3a; 
-    --expander-content-bg: var(--card-background-color);
-    
-    --text-color: #E0E0E0; 
-    --text-muted-color: #A0A0A0; 
-    --border-color: #4A4A4A; 
-    --accent-color: #FFA500;
-    
-    --success-color: #28a745; 
-    --warning-color: #ffc107; 
-    --error-color: #dc3545; 
-    --info-color: #17a2b8; 
-
-    --font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    --border-radius-sm: 0.2rem;
-    --border-radius-md: 0.375rem;
-    --border-radius-lg: 0.5rem;
-
-    --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.25); 
-    --box_shadow-md: 0 4px 8px rgba(0,0,0,0.3);
-    --box-shadow-lg: 0 6px 12px rgba(0,0,0,0.4);
-
-    /* ... other root variables ... */
+    /* Light Theme Defaults (can be overridden by Streamlit's config.toml or data-theme specific rules) */
+    --primary-color: #007bff;
+    --secondary-color: #0056b3;
+    --background-color: #ffffff;
+    --secondary-background-color: #f8f9fa; /* For elements like cards or slightly off-main bg */
+    --text-color: #212529;
+    --text-color-light: #495057; /* Lighter text for secondary info */
+    --border-color: #dee2e6;
+    --card-background: #ffffff; /* Welcome page card background */
+    --button-text-color: #ffffff;
+    --box-shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+    --box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    --box-shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
+    --border-radius: 0.375rem; /* Standard border radius */
 }
 
-/* --- Light Theme Variables --- */
-[data-theme="light"] {
-    --primary-color: #007bff; 
-    --secondary-color: #6c757d; 
-    --background-color: #FFFFFF; 
-    --card-background-color: #F8F9FA;
-    --section-background-color: #FFFFFF; 
-    --expander-header-bg: #e9ecef; 
-    --expander-content-bg: var(--card-background-color);
-    --text-color: #212529; 
-    --text-muted-color: #6c757d; 
-    --border-color: #DEE2E6; 
-    --accent-color: #fd7e14; 
-    /* ... other light theme variables ... */
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+    --primary-color: #17a2b8;       /* Teal/cyan for dark mode */
+    --secondary-color: #138496;     /* Darker teal/cyan */
+    --background-color: #0a192f;    /* Deep, professional dark blue */
+    --secondary-background-color: #132f4c; /* Slightly lighter than main dark bg */
+    --text-color: #e6f1ff;          /* Light text for dark background */
+    --text-color-light: #adb5bd;    /* Lighter grey for secondary dark text */
+    --border-color: #3a506b;        /* Muted border for dark mode */
+    --card-background: #132f4c;     /* Welcome page card background for dark */
+    --button-text-color: #ffffff;   /* Text color for buttons can often remain white */
 }
 
-
-/* --- General Body and Streamlit Base Styles --- */
-body { /* ... */ }
-.main .block-container { /* ... */ }
-h1, h2, h3, h4, h5, h6 { /* ... */ }
-h1 { font-size: 2.0rem; margin-bottom: 0.25rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;}
-h2.section-header { 
-    font-size: 1.6rem; /* Slightly larger for main section headers */
-    color: var(--primary-color);
-    margin-top: 0; 
-    margin-bottom: 1.5rem; /* More space after section header */
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-}
-h3.section-subheader { /* For sub-headers like 'Forecast Results' */
-    font-size: 1.3rem;
+/* Apply general background and text color based on theme */
+body {
+    background-color: var(--background-color);
     color: var(--text-color);
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-    font-weight: 500;
-}
-.page-subtitle {
-    font-size: 1.05rem;
-    color: var(--text-muted-color);
-    margin-top: 0.5rem; /* Space below H1 */
-    margin-bottom: 2.5rem; /* More space before the first task container */
-    font-weight: 300;
-    max-width: 80ch; /* Limit width for readability */
 }
 
 
-/* --- General Button Styling for Streamlit --- */
-/* ... existing button styles ... */
-
-
-/* --- Column Mapper Specific Styles (Existing) --- */
-/* ... */
-
-/* --- Expander Styling for Column Mapper (Existing) --- */
-/* ... */
-
-
-/* --- Data View Page Specific Styles (Existing) --- */
-.page-content-container { 
-    margin-top: 1rem;
-}
-.config-section-container,
-.table-section-container { /* ... */ }
-.data-count-info { /* ... */ }
-/* ... other data view styles ... */
-
-/* --- Trade Notes Page Specific Styles (Existing) --- */
-/* ... */
-
-
-/* --- AI & ML Page Specific Styles --- */
-.ai-ml-task-container {
-    background-color: var(--card-background-color);
-    padding: 1.5rem 2rem;
-    border-radius: var(--border-radius-lg);
+/* Welcome Page Specific Styles */
+.welcome-container {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 2rem auto;
+    background-color: var(--secondary-background-color); /* Use secondary for slight distinction */
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
     border: 1px solid var(--border-color);
-    box-shadow: var(--box_shadow-md);
-    margin-bottom: 2.5rem; /* Space between task containers */
-}
-.ai-ml-task-container.placeholder-section { /* For "Coming Soon" sections */
-    border-left: 5px solid var(--secondary-color);
 }
 
-/* Styling for Streamlit expander headers within AI/ML tasks */
-.ai-ml-task-container div[data-testid="stExpander"] summary {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-color);
-    background-color: var(--expander-header-bg); /* Use defined expander bg */
-    border-bottom: 1px solid var(--border-color);
-    padding: 0.75rem 1rem;
-}
-.ai-ml-task-container div[data-testid="stExpander"] summary:hover {
-    background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 10%);
-}
-.ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 1.5rem 1rem 1rem 1rem; /* More padding inside expander */
-    background-color: var(--expander-content-bg);
-}
-
-/* Styling for captions used for model descriptions */
-.ai-ml-task-container div[data-testid="stForm"] .stCaption {
-    font-size: 0.85rem;
-    color: var(--text-muted-color);
-    margin-top: -0.5rem; /* Pull up slightly under the selectbox */
-    margin-bottom: 0.75rem;
-    padding-left: 0.2rem;
-}
-
-/* Styling for ARIMA manual order input groups */
-.ai-ml-task-container div[data-testid="stForm"] h6 { /* For "Specify ARIMA Order" */
-    font-size: 0.95rem;
-    color: var(--text-color);
-    margin-top: 1rem;
+.hero-section h1 {
+    font-size: 2.5em; /* Slightly adjusted */
+    font-weight: 700;
     margin-bottom: 0.5rem;
-    font-weight: 500;
+    color: var(--primary-color); /* Dynamically set by theme */
 }
 
-/* Styling for st.code used for model summary */
-.ai-ml-task-container div[data-testid="stCodeBlock"] {
+.hero-section .tagline {
+    font-size: 1.25em; /* Slightly adjusted */
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    color: var(--text-color-light); /* Use the lighter text variant */
+}
+
+.feature-card {
+    background-color: var(--background-color); /* Main background for cards to stand out on secondary */
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    background-color: var(--background-color); /* Match main background for code */
+    box-shadow: var(--box-shadow-sm);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
-.ai-ml-task-container div[data-testid="stCodeBlock"] pre {
-    padding: 0.75rem;
-    font-size: 0.85rem;
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow);
+}
+
+.feature-card h4 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.3em;
+}
+
+.feature-card p {
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: var(--text-color);
+    flex-grow: 1; /* Allows paragraph to take available space */
+}
+
+/* General Button Styling (Streamlit's default buttons are targeted by data-testid) */
+div[data-testid="stButton"] > button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color) !important; /* Important to override Streamlit's default text color for buttons */
+    border: 1px solid var(--primary-color); /* Border same as background for solid look */
+    padding: 0.65rem 1.3rem; /* Slightly adjusted padding */
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 1em;
+    transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--box-shadow-sm);
+}
+
+div[data-testid="stButton"] > button:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--button-text-color) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+div[data-testid="stButton"] > button:active {
+    transform: translateY(0px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Sidebar button for theme toggle */
+/* You might need to inspect the exact class if this doesn't work, or use a more general approach */
+/* For the st.sidebar.button, it might inherit the above stButton styles if it uses the same data-testid */
+/* If it's different, you'd add specific styling for it. */
+
+
+/* General utility for separators */
+hr {
+    border: none;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 2rem 0;
+}
+
+/* Streamlit Overrides & Enhancements */
+/* Sidebar styling */
+div[data-testid="stSidebarNav"] { /* Target the navigation links in sidebar */
+  /* Example: add some padding or modify link appearance */
+}
+
+div[data-testid="stSidebar"] {
+    border-right: 1px solid var(--border-color);
+    background-color: var(--secondary-background-color); /* Slightly different bg for sidebar */
+}
+
+/* Ensure main content area has some padding if not using st.container extensively */
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-left: 1rem; /* Adjust as needed */
+    padding-right: 1rem; /* Adjust as needed */
 }
 
 
-/* Styling for st.multiselect selected items (pills/tags) - Ensure this is still effective */
-/* ... existing multiselect styles ... */
-
-/* --- KPI Card Styling (existing) --- */
-/* ... */
-/* --- Custom Message Box Styling (existing) --- */
-/* ... */
-/* --- Scroll Button Styles (existing) --- */
-/* ... */
-/* --- Tooltip Styles (existing) --- */
-/* ... */
-
-/* --- Responsive Design Adjustments (existing) --- */
-@media (max-width: 767px) { 
-    h1 { font-size: 1.6rem; margin-bottom: 1rem; }
-    h2.section-header { font-size: 1.4rem; }
-    h3.section-subheader { font-size: 1.15rem; }
-    .page-subtitle { font-size: 0.95rem; margin-bottom: 1.5rem; }
-    .ai-ml-task-container { padding: 1rem; }
-    .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.6rem 0.8rem;}
-    .ai-ml-task-container div[data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding: 1rem 0.8rem; }
-
-    /* ... other responsive styles ... */ 
+/* Responsive adjustments */
+@media (max-width: 992px) { /* Adjust breakpoint for tablets */
+    .hero-section h1 {
+        font-size: 2.2em;
+    }
+    .hero-section .tagline {
+        font-size: 1.1em;
+    }
 }
-/* ... other media queries ... */
+
+@media (max-width: 768px) { /* Adjust breakpoint for mobile */
+    .welcome-container {
+        padding: 1.5rem; /* More padding for smaller screens */
+        margin: 1rem;
+    }
+    .hero-section h1 {
+        font-size: 2em;
+    }
+    .hero-section .tagline {
+        font-size: 1em;
+    }
+    .feature-card {
+        margin-bottom: 1rem;
+    }
+    /* Stack columns on mobile if st.columns doesn't do it by default effectively */
+}
+
+/* Custom scrollbar for a more modern look (optional) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--secondary-background-color);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    border: 2px solid var(--secondary-background-color); /* Creates padding around thumb */
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--secondary-color);
+}
+
