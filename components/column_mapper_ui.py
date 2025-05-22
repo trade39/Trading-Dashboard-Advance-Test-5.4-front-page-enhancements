@@ -45,7 +45,7 @@ except ImportError:
         "notes": ["comments", "journal_entry", "lesson_learned"],
         "duration_minutes": ["trade_duration_min", "holding_time_mins"],
         "risk_pct": ["risk_percent", "pct_risk"], "tags": ["label", "category_tag"],
-        "quantity": ["trade_size", "lot_size", "amount", "vol", "volume"] # Added more synonyms for quantity
+        "quantity": ["trade_size", "lot_size", "amount", "vol", "volume"] 
     }
     CRITICAL_CONCEPTUAL_COLUMNS = ["date", "pnl", "symbol"]
     # New: Fallback categories if not in config
@@ -119,11 +119,13 @@ class ColumnMapperUI:
             "trade_model": "strategy", "r_r": "r_r_csv_num", "pnl": "pnl", "date": "date",
             "symbol_1": "symbol", "lesson_learned": "notes", "duration_mins": "duration_minutes",
             "risk_pct": "risk_pct", "entry": "entry_price", "exit": "exit_price", 
-            "size": "quantity"  # This is the key rule for "Size" -> "quantity"
+            "size": "quantity"  
         }
         logger.debug(f"Starting specific rule mapping. Current auto_mapping: {auto_mapping}, used_csv_headers: {used_csv_headers}")
         for norm_specific_csv, target_conceptual_key in specific_csv_header_targets.items():
-            logger.debug(f"  Specific rule check: Normalized CSV target='{norm_specific_csv}', Conceptual key='{target_conceptual_key}'")
+            display_name_for_log = self.conceptual_columns_map.get(target_conceptual_key, f"'{target_conceptual_key}' (Key not in conceptual_columns_map!)")
+            logger.debug(f"  Specific rule check: Normalized CSV target='{norm_specific_csv}', Conceptual key='{target_conceptual_key}' (Display: '{display_name_for_log}')")
+            
             if norm_specific_csv in normalized_csv_headers_map:
                 original_csv_header = normalized_csv_headers_map[norm_specific_csv]
                 logger.debug(f"    Found '{original_csv_header}' (normalizes to '{norm_specific_csv}') in CSV headers.")
@@ -132,67 +134,64 @@ class ColumnMapperUI:
                 if original_csv_header not in used_csv_headers and target_conceptual_key not in auto_mapping:
                     auto_mapping[target_conceptual_key] = original_csv_header
                     used_csv_headers.add(original_csv_header)
-                    display_name = self.conceptual_columns_map.get(target_conceptual_key, target_conceptual_key)
-                    logger.info(f"    SUCCESS: Auto-mapped (Specific Rule '{norm_specific_csv}' -> '{target_conceptual_key}') CSV '{original_csv_header}' to Conceptual '{display_name}'")
+                    logger.info(f"    SUCCESS: Auto-mapped (Specific Rule '{norm_specific_csv}' -> '{target_conceptual_key}') CSV '{original_csv_header}' to Conceptual '{display_name_for_log}'")
                 else:
-                    logger.warning(f"    SKIPPED Specific Rule mapping for CSV target '{norm_specific_csv}' (orig: '{original_csv_header}') to Conceptual '{target_conceptual_key}'. Reason: CSV header already used OR Conceptual key already mapped.")
+                    logger.warning(f"    SKIPPED Specific Rule mapping for CSV target '{norm_specific_csv}' (orig: '{original_csv_header}') to Conceptual '{display_name_for_log}'. Reason: CSV header already used OR Conceptual key already mapped.")
             else:
-                logger.debug(f"    Normalized CSV target '{norm_specific_csv}' not found in normalized_csv_headers_map.")
+                logger.debug(f"    Normalized CSV target '{norm_specific_csv}' not found in normalized_csv_headers_map for Conceptual '{display_name_for_log}'.")
         
         logger.debug(f"After specific rules. auto_mapping: {auto_mapping}, used_csv_headers: {used_csv_headers}")
         logger.debug("Starting general rule mapping (exact, synonym, fuzzy)...")
 
         for conceptual_key in self.conceptual_columns_map.keys():
+            display_name_for_log = self.conceptual_columns_map.get(conceptual_key, conceptual_key)
             if conceptual_key in auto_mapping: 
-                logger.debug(f"  Skipping general map for Conceptual '{conceptual_key}': already in auto_mapping.")
+                logger.debug(f"  Skipping general map for Conceptual '{display_name_for_log}' (key: {conceptual_key}): already in auto_mapping.")
                 continue
 
-            logger.debug(f"  Attempting general map for Conceptual '{conceptual_key}' ({self.conceptual_columns_map.get(conceptual_key, '')})")
+            logger.debug(f"  Attempting general map for Conceptual '{display_name_for_log}' (key: {conceptual_key})")
             mapped_csv_header = None
             norm_conceptual_key = self._normalize_header(conceptual_key) 
 
-            # 1. Exact match of normalized conceptual key to normalized CSV header
             if norm_conceptual_key in normalized_csv_headers_map and \
                normalized_csv_headers_map[norm_conceptual_key] not in used_csv_headers:
                 mapped_csv_header = normalized_csv_headers_map[norm_conceptual_key]
-                logger.debug(f"    Exact match found: CSV '{mapped_csv_header}' for Conceptual '{conceptual_key}'")
+                logger.debug(f"    Exact match found: CSV '{mapped_csv_header}' for Conceptual '{display_name_for_log}'")
             
-            # 2. Synonym match
             if not mapped_csv_header and conceptual_key in self.conceptual_column_synonyms:
-                logger.debug(f"    Checking synonyms for '{conceptual_key}': {self.conceptual_column_synonyms[conceptual_key]}")
+                logger.debug(f"    Checking synonyms for '{display_name_for_log}': {self.conceptual_column_synonyms[conceptual_key]}")
                 for synonym in self.conceptual_column_synonyms[conceptual_key]:
                     norm_synonym = self._normalize_header(synonym) 
                     if norm_synonym in normalized_csv_headers_map and \
                        normalized_csv_headers_map[norm_synonym] not in used_csv_headers:
                         mapped_csv_header = normalized_csv_headers_map[norm_synonym]
-                        logger.debug(f"    Synonym match found: CSV '{mapped_csv_header}' (from synonym '{synonym}') for Conceptual '{conceptual_key}'")
+                        logger.debug(f"    Synonym match found: CSV '{mapped_csv_header}' (from synonym '{synonym}') for Conceptual '{display_name_for_log}'")
                         break 
             
-            # 3. Fuzzy match
             FUZZY_MATCH_THRESHOLD = 85 
             if not mapped_csv_header:
-                logger.debug(f"    No exact or synonym match for '{conceptual_key}'. Trying fuzzy match (threshold: {FUZZY_MATCH_THRESHOLD}).")
+                logger.debug(f"    No exact or synonym match for '{display_name_for_log}'. Trying fuzzy match (threshold: {FUZZY_MATCH_THRESHOLD}).")
                 best_match_score = 0
                 potential_header = None
                 for norm_csv_h, original_csv_h in normalized_csv_headers_map.items():
                     if original_csv_h in used_csv_headers: continue 
                     score = fuzz.ratio(norm_conceptual_key, norm_csv_h)
-                    logger.debug(f"      Fuzzy: Conceptual '{norm_conceptual_key}' vs CSV norm '{norm_csv_h}' (orig: '{original_csv_h}') -> Score: {score}")
+                    # logger.debug(f"      Fuzzy: Conceptual '{norm_conceptual_key}' vs CSV norm '{norm_csv_h}' (orig: '{original_csv_h}') -> Score: {score}") # Can be too verbose
                     if score > best_match_score and score >= FUZZY_MATCH_THRESHOLD:
                         best_match_score = score
                         potential_header = original_csv_h
                 if potential_header:
                     mapped_csv_header = potential_header
-                    logger.debug(f"    Fuzzy match found: CSV '{mapped_csv_header}' for Conceptual '{conceptual_key}' with score {best_match_score}")
+                    logger.debug(f"    Fuzzy match found: CSV '{mapped_csv_header}' for Conceptual '{display_name_for_log}' with score {best_match_score}")
             
             if mapped_csv_header:
                 auto_mapping[conceptual_key] = mapped_csv_header
                 used_csv_headers.add(mapped_csv_header)
-                logger.info(f"    SUCCESS: Auto-mapped (General Rule) CSV '{mapped_csv_header}' to Conceptual '{self.conceptual_columns_map.get(conceptual_key, '')}'")
+                logger.info(f"    SUCCESS: Auto-mapped (General Rule) CSV '{mapped_csv_header}' to Conceptual '{display_name_for_log}'")
             elif conceptual_key in self.critical_conceptual_cols:
-                logger.warning(f"    FAILED: Could not auto-map critical Conceptual column: '{conceptual_key}' ({self.conceptual_columns_map.get(conceptual_key, '')}) by any general rule.")
+                logger.warning(f"    FAILED: Could not auto-map critical Conceptual column: '{display_name_for_log}' (key: {conceptual_key}) by any general rule.")
             else:
-                logger.debug(f"    No general mapping found for optional Conceptual '{conceptual_key}'.")
+                logger.debug(f"    No general mapping found for optional Conceptual '{display_name_for_log}'.")
         
         logger.info(f"Final auto_mapping result: {auto_mapping}")
         return auto_mapping
@@ -349,7 +348,8 @@ class ColumnMapperUI:
         col_idx = 0
         for conceptual_key in conceptual_keys_to_render:
             if conceptual_key not in self.conceptual_columns_map:
-                logger.warning(f"Conceptual key '{conceptual_key}' from categories not found in main conceptual_columns_map. Skipping.")
+                # This log is important if a key from categories is missing in the main map
+                logger.warning(f"RenderSelectbox: Conceptual key '{conceptual_key}' from categories NOT FOUND in self.conceptual_columns_map. Skipping selectbox.")
                 continue
 
             conceptual_desc = self.conceptual_columns_map[conceptual_key]
@@ -363,14 +363,27 @@ class ColumnMapperUI:
                     label_html += " <span class='critical-marker'>*</span>" 
                 
                 default_csv_header = initial_mapping.get(conceptual_key)
+                
+                # --- ADDED DIAGNOSTIC LOG ---
+                if "quantity" in conceptual_key.lower() or "size" in conceptual_desc.lower() or conceptual_key == "quantity":
+                    logger.debug(
+                        f"RenderSelectbox for '{conceptual_desc}' (Key: '{conceptual_key}'): "
+                        f"Retrieved default_csv_header='{default_csv_header}' from initial_mapping.get('{conceptual_key}'). "
+                        f"Full initial_mapping: {initial_mapping}"
+                    )
+                # --- END OF DIAGNOSTIC LOG ---
+
                 default_index = 0
                 if default_csv_header and default_csv_header in self.csv_headers:
                     try:
                         default_index = self.csv_headers.index(default_csv_header)
                     except ValueError: 
-                        logger.error(f"Error finding index for default header '{default_csv_header}' for conceptual key '{conceptual_key}'")
+                        logger.error(f"RenderSelectbox: Error finding index for default_csv_header '{default_csv_header}' (for conceptual key '{conceptual_key}') in self.csv_headers. Defaulting to index 0.")
                         default_index = 0
-                
+                elif default_csv_header: # Header was in initial_mapping but not in self.csv_headers (should not happen if CSV parsing is correct)
+                     logger.warning(f"RenderSelectbox: default_csv_header '{default_csv_header}' for conceptual key '{conceptual_key}' was in initial_mapping but NOT FOUND in self.csv_headers. This is unexpected. CSV Headers: {self.csv_headers}")
+
+
                 selectbox_key = f"map_{self.uploaded_file_name.replace('.', '_').replace(' ', '_')}_{conceptual_key}"
                 
                 st.markdown(f"<label class='selectbox-label' for='{selectbox_key}'>{label_html}</label>", unsafe_allow_html=True)
@@ -410,7 +423,7 @@ if __name__ == "__main__":
     
     # Configure logger for testing
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger_test = logging.getLogger(APP_TITLE) # Use the same logger name as in the class
+    logger_test = logging.getLogger(APP_TITLE) 
     logger_test.info("Starting ColumnMapperUI test run...")
 
 
@@ -428,7 +441,7 @@ if __name__ == "__main__":
         ("symbol", "Trading Symbol"),
         ("entry_price", "Entry Price"), 
         ("exit_price", "Exit Price"), 
-        ("quantity", "Quantity/Size"), 
+        ("quantity", "Quantity/Size"), # Key is 'quantity', display is 'Quantity/Size'
         ("pnl", "Profit or Loss (PnL)"), 
         ("strategy", "Strategy Name"), 
         ("r_r_csv_num", "Risk:Reward Ratio"), 
@@ -455,13 +468,12 @@ if __name__ == "__main__":
     _MOCK_CRITICAL_CONCEPTUAL_COLUMNS = ["date", "pnl", "symbol", "entry_price", "exit_price", "quantity"]
     
     _MOCK_CONCEPTUAL_COLUMN_CATEGORIES = OrderedDict([
-        ("Core Trade Data", ["date", "symbol", "entry_price", "exit_price", "quantity"]),
+        ("Core Trade Data", ["date", "symbol", "entry_price", "exit_price", "quantity"]), # 'quantity' is here
         ("Performance Metrics", ["pnl", "strategy", "r_r_csv_num", "duration_minutes"]),
         ("Financials & Risk", ["risk_pct", "commission", "fees"]),
         ("Additional Information", ["notes", "tags"])
     ])
 
-    # Test CSV 1: With "Size" column
     sample_csv_content_1 = """Trade ID,Date,Entry Time,Size,Entry,Take Profit,Stop Loss,Exit,Candle Count,Exit Type,Trade Model ,PnL,R:R,Duration (mins),Risk %,Symbol 1,Lesson Learned,Tags,Commission,Total Fees
 1,2023-01-01 10:00:00,10:00:00,10000,1.1000,1.1050,1.0950,1.1050,5,TP,Scalp V1,50.00,2.0,15,1,EURUSD,Good exit,News,2.50,0.50
 """
@@ -484,29 +496,5 @@ if __name__ == "__main__":
     if mapping_result_1 is not None:
         st.success("Mapping Confirmed (Scenario 1):")
         st.json(mapping_result_1)
-
-    # Test CSV 2: With "Volume" column, no "Size"
-    sample_csv_content_2 = """Trade ID,Date,Entry Time,Volume,Entry,Exit,PnL,Symbol 1
-1,2023-02-01 10:00:00,10:00:00,500,1.2,1.21,10,GBPUSD
-"""
-    mock_uploaded_file_bytes_2 = BytesIO(sample_csv_content_2.encode('utf-8'))
-    mock_csv_headers_2 = sample_csv_content_2.splitlines()[0].split(',')
-    st.write("### Scenario 2: Mapping for 'sample_trades_with_Volume.csv'")
-    st.caption("This CSV includes a 'Volume' column (synonym for Quantity/Size), no 'Size' column.")
-    mapper_ui_instance_2 = ColumnMapperUI(
-        uploaded_file_name="sample_trades_with_Volume.csv", 
-        uploaded_file_bytes=mock_uploaded_file_bytes_2, 
-        csv_headers=mock_csv_headers_2,
-        conceptual_columns_map=_MOCK_CONCEPTUAL_COLUMNS, 
-        conceptual_column_types=_MOCK_CONCEPTUAL_COLUMN_TYPES,
-        conceptual_column_synonyms=_MOCK_CONCEPTUAL_COLUMN_SYNONYMS, 
-        critical_conceptual_cols=_MOCK_CRITICAL_CONCEPTUAL_COLUMNS,
-        conceptual_column_categories=_MOCK_CONCEPTUAL_COLUMN_CATEGORIES
-    )
-    mapping_result_2 = mapper_ui_instance_2.render()
-    if mapping_result_2 is not None:
-        st.success("Mapping Confirmed (Scenario 2):")
-        st.json(mapping_result_2)
-
 
     logger_test.info("ColumnMapperUI test run finished.")
