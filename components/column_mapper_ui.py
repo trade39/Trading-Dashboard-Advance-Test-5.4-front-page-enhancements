@@ -216,12 +216,15 @@ class ColumnMapperUI:
         st.markdown("</div>", unsafe_allow_html=True) # Close data-preview-container
         # --- End of Data Preview Section ---
 
+        # --- Enhanced Instructions Section ---
         st.markdown(
             "<div class='mapper-instructions'>"
+            "<span class='instruction-icon'>ℹ️</span> " # Info icon
             "Map your CSV columns to the application's expected fields. "
-            "Fields marked with an asterisk (`*`) are critical for the application to function correctly. "
-            "A warning (⚠️) indicates a potential data type mismatch between the CSV column and the expected field type."
+            "Fields marked with a red asterisk (<strong>*</strong>) are critical. " # Emphasize asterisk
+            "A warning icon (⚠️) next to a selection indicates a potential data type mismatch."
             "</div>", unsafe_allow_html=True)
+        # --- End of Instructions Section ---
         
         initial_mapping = self._attempt_automatic_mapping()
         
@@ -249,19 +252,22 @@ class ColumnMapperUI:
                         continue
 
                     has_critical = any(key in self.critical_conceptual_cols for key in valid_keys_in_category)
-                    expander_label = f"{category_name}{' *' if has_critical else ''}"
-                    
+                    # Display category name, bold if it contains critical fields
+                    expander_label_html = f"<strong>{category_name}</strong>" if has_critical else category_name
+                    if has_critical:
+                         expander_label_html += " <span style='color: var(--error-color); font-weight: bold;'>*</span>"
+
+
                     open_by_default = False
                     for key in valid_keys_in_category:
                         # Open expander if it contains an unmapped critical field
                         if key in self.critical_conceptual_cols and not initial_mapping.get(key):
                             open_by_default = True
                             break
-                        # Optionally, open if any field is unmapped (can be noisy)
-                        # if not initial_mapping.get(key) and key in self.conceptual_columns_map:
-                        #     open_by_default = True; break
                     
-                    with st.expander(expander_label, expanded=open_by_default):
+                    # Use st.markdown for the expander label to render HTML for bolding critical categories
+                    st.markdown(f"<h6>{expander_label_html}</h6>", unsafe_allow_html=True)
+                    with st.expander("View/Edit Mappings", expanded=open_by_default): # Generic label for expander toggle
                         self._render_mapping_selectboxes(valid_keys_in_category, initial_mapping)
             
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
@@ -321,31 +327,37 @@ class ColumnMapperUI:
             
             with target_container:
                 is_critical = conceptual_key in self.critical_conceptual_cols
-                label_text = f"{conceptual_desc}{' *' if is_critical else ''}"
+                # Use HTML for red asterisk for critical fields
+                label_html = f"{conceptual_desc}"
+                if is_critical:
+                    label_html += " <span style='color: var(--error-color); font-weight: bold;'>*</span>"
                 
                 default_csv_header = initial_mapping.get(conceptual_key)
                 default_index = 0 # Default to "Not Applicable" (empty string at index 0)
                 if default_csv_header and default_csv_header in self.csv_headers:
                     try:
                         default_index = self.csv_headers.index(default_csv_header)
-                    except ValueError: # Should not happen if default_csv_header is in self.csv_headers
+                    except ValueError: 
                         logger.error(f"Error finding index for default header '{default_csv_header}'")
                         default_index = 0
                 
-                # Unique key for each selectbox
                 selectbox_key = f"map_{self.uploaded_file_name.replace('.', '_').replace(' ', '_')}_{conceptual_key}"
+                
+                # Use st.markdown for the label to render HTML
+                st.markdown(f"<label for='{selectbox_key}'>{label_html}</label>", unsafe_allow_html=True)
                 selected_csv_col = st.selectbox(
-                    label_text, options=self.csv_headers, index=default_index,
-                    key=selectbox_key,
+                    label="", # Label is now handled by st.markdown above
+                    options=self.csv_headers, index=default_index,
+                    key=selectbox_key,  # This key is what st.markdown's label `for` attribute should target (though Streamlit handles this internally)
+                    label_visibility="collapsed", # Hide the default label
                     help=(
-                        f"Select the CSV column that corresponds to '{conceptual_desc}'. "
-                        f"Expected data type: '{self.conceptual_column_types.get(conceptual_key, 'any')}'. "
+                        f"Select the CSV column for '{conceptual_desc}'. "
+                        f"Expected type: '{self.conceptual_column_types.get(conceptual_key, 'any')}'. "
                         f"{'This field is critical.' if is_critical else 'This field is optional.'}"
                     )
                 )
                 self.mapping[conceptual_key] = selected_csv_col if selected_csv_col else None
 
-                # Display type mismatch warning if a CSV column is selected
                 if selected_csv_col:
                     inferred_type = self._infer_column_data_type(selected_csv_col)
                     expected_type = self.conceptual_column_types.get(conceptual_key, "any")
@@ -355,7 +367,6 @@ class ColumnMapperUI:
                         type_mismatch = True
                     elif expected_type == "datetime" and inferred_type not in ["datetime", "empty", "unknown"]:
                         type_mismatch = True
-                    # Add more type checks if needed (e.g., for boolean, specific text formats)
                     
                     if type_mismatch:
                         st.markdown(
@@ -366,9 +377,8 @@ class ColumnMapperUI:
 
 # --- Main execution block for testing this component ---
 if __name__ == "__main__":
-    st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+    st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="Column Mapper Test")
     
-    # Attempt to load global styles (ensure style.css is in the same directory or adjust path)
     try:
         with open("style.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -376,9 +386,8 @@ if __name__ == "__main__":
         st.warning("style.css not found. Using default Streamlit styling for component test.")
 
     st.title("Test Categorized Column Mapper UI")
-    st.markdown("This page demonstrates the `ColumnMapperUI` component with categorized fields and data preview.")
+    st.markdown("This page demonstrates the `ColumnMapperUI` component with categorized fields, styled instructions, and data preview.")
 
-    # Mock data for testing (consistent with fallback or actual config structure)
     _MOCK_CONCEPTUAL_COLUMNS = {
         "date": "Trade Date/Time", "pnl": "Profit or Loss (PnL)", "strategy": "Strategy Name", 
         "symbol": "Trading Symbol", "r_r_csv_num": "Risk:Reward Ratio", "notes": "Trade Notes",
@@ -407,19 +416,13 @@ if __name__ == "__main__":
         ("Additional Information", ["notes", "tags"])
     ])
 
-    # Sample CSV data for preview and mapping
     sample_csv_content = """Trade ID,Date,Entry Time,Size,Entry,Take Profit,Stop Loss,Exit,Candle Count,Exit Type,Trade Model ,PnL,R:R,Duration (mins),Risk %,Symbol 1,Lesson Learned,Tags,Commission,Total Fees
 1,2023-01-01 10:00:00,10:00:00,10000,1.1000,1.1050,1.0950,1.1050,5,TP,Scalp V1,50.00,2.0,15,1,EURUSD,Good exit,News,2.50,0.50
 2,2023-01-02 11:30:00,11:30:00,5000,1.2500,1.2600,1.2400,1.2400,12,SL,Swing V2,-50.25,1.5,120,0.5,GBPUSD,Held too long,Trend,1.50,0.20
 3,2023-01-03 09:15:00,09:15:00,20000,150.00,152.00,149.00,152.00,8,TP,DayTrade X,400.00,2.5,45,1.5,USOIL,Market entry,Volatile,5.00,1.00
-4,2023-01-04 14:00:00,14:00:00,100,1800.00,1810.00,1795.00,1810.00,20,TP,GoldRunner,1000.00,3.0,60,2,XAUUSD,Followed plan,Breakout,10.00,2.00
-5,2023-01-05 16:45:00,16:45:00,7500,0.7000,0.7050,0.6950,0.6980,10,Manual,AUDCAD Strat,-15.75,0.8,30,1,AUDCAD,Exited early,Range,2.00,0.40
 """
     
-    # Create a BytesIO object from the sample CSV string
     mock_uploaded_file_bytes = BytesIO(sample_csv_content.encode('utf-8'))
-    
-    # Extract headers from the first line of the CSV content
     mock_csv_headers = sample_csv_content.splitlines()[0].split(',')
 
     st.write("### Scenario: Mapping for 'sample_trades.csv'")
@@ -440,8 +443,7 @@ if __name__ == "__main__":
         st.json(mapping_result)
         
         st.subheader("Review Auto-mapping Decisions (Internal):")
-        # Accessing the protected method for testing/demonstration purposes
         test_auto_map_result = mapper_ui_instance._attempt_automatic_mapping() 
-        st.json({k:v for k,v in test_auto_map_result.items() if v}) # Show only mapped items
+        st.json({k:v for k,v in test_auto_map_result.items() if v})
 
     logger.info("ColumnMapperUI component test complete.")
