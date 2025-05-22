@@ -52,7 +52,6 @@
     --sidebar-icon-hover-color: #FFFFFF;
     --sidebar-icon-active-color: #FFFFFF;
 
-
     --transition-speed: 0.2s;
     --transition-timing: ease-in-out;
 }
@@ -76,10 +75,8 @@
     --input-border-color: #CED4DA;
     --slider-track-color: #DEE2E6; /* For inactive part of slider track */
 
-
     --accent-color: #FF6B00; 
     --info-accent-color: #17A2B8; /* Consistent info color */
-
 
     --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.05); 
     --box-shadow-md: 0 4px 8px rgba(0,0,0,0.07);
@@ -100,7 +97,6 @@
     --sidebar-icon-active-color: #FFFFFF;
 }
 
-
 /* --- General Body and HTML Styles --- */
 html {
     background-color: var(--background-color);
@@ -114,13 +110,13 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
-    font-size: 16px; /* Base font size for rem calculation, can be browser default */
+    font-size: 16px; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 /* --- Main Layout Container --- */
-.main .block-container { /* Default Streamlit main content area */
+.main .block-container { 
     padding: 1rem 2rem; 
 }
 
@@ -141,7 +137,7 @@ h1 {
     font-weight: 700;
 }
 
-h2.section-header { /* Custom class for major section titles */
+h2.section-header { 
     font-size: 1.75rem; 
     color: var(--primary-color);
     margin-top: 2.5rem; 
@@ -151,7 +147,7 @@ h2.section-header { /* Custom class for major section titles */
     font-weight: 600;
 }
 
-h3.section-subheader { /* Custom class for sub-section titles */
+h3.section-subheader { 
     font-size: 1.375rem; 
     color: var(--text-heading-color);
     margin-top: 2rem;
@@ -159,13 +155,12 @@ h3.section-subheader { /* Custom class for sub-section titles */
     font-weight: 500;
 }
 
-/* Component specific subheader, e.g., in Column Mapper or Performance Page sections */
 h3.component-subheader,
-.performance-section-container h3 { /* Target h3 within performance sections too */
+.performance-section-container h3 { 
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-heading-color);
-    margin-top: 0.25rem; /* Reduced top margin for component context */
+    margin-top: 0.25rem; 
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
@@ -174,23 +169,22 @@ h3.component-subheader,
 /* Styling for h6 used as plot titles within performance sections */
 .performance-section-container h6 {
     font-size: 1.05rem;
-    font-weight: 500; /* Slightly less bold than subheaders */
-    color: var(--text-muted-color); /* Muted color for plot titles */
-    margin-top: 1rem;
-    margin-bottom: 0.5rem; /* Space before the plot */
+    font-weight: 500; 
+    color: var(--text-muted-color); 
+    margin-top: 1.25rem; /* Increased top margin */
+    margin-bottom: 0.5rem; 
     padding-bottom: 0;
-    border-bottom: none; /* No border for these plot titles */
+    border-bottom: none; 
 }
 
-
-.page-subtitle { /* For subtitles under main page titles */
-    font-size: 1.15rem;  /* Increased for better readability */
+.page-subtitle { 
+    font-size: 1.15rem;  
     color: var(--text-muted-color);
     margin-top: -0.25rem; 
     margin-bottom: 2.5rem; 
     font-weight: 300; 
     max-width: 75ch; 
-    line-height: 1.65; /* Adjusted line height */
+    line-height: 1.65; 
 }
 
 /* --- Streamlit Toolbar Styling --- */
@@ -228,21 +222,15 @@ div[data-testid="stSidebar"] {
 }
 
 div[data-testid="stSidebarNav"] > ul {
-    padding: 0;
-    margin: 0;
-    list-style: none;
+    padding: 0; margin: 0; list-style: none;
 }
 
 div[data-testid="stSidebarNav"] li > a {
-    display: flex; 
-    align-items: center; 
-    padding: 0.75rem 1rem; 
-    margin: 0.25rem 0; 
+    display: flex; align-items: center; 
+    padding: 0.75rem 1rem; margin: 0.25rem 0; 
     border-radius: var(--border-radius-md);
-    text-decoration: none;
-    color: var(--sidebar-link-text-color);
-    font-weight: 500; 
-    font-size: 0.95rem;
+    text-decoration: none; color: var(--sidebar-link-text-color);
+    font-weight: 500; font-size: 0.95rem;
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 color var(--transition-speed) var(--transition-timing),
                 box-shadow var(--transition-speed) var(--transition-timing);
@@ -250,10 +238,8 @@ div[data-testid="stSidebarNav"] li > a {
 
 div[data-testid="stSidebarNav"] li > a > span:first-child, 
 div[data-testid="stSidebarNav"] li > a > svg { 
-    margin-right: 0.75rem; 
-    font-size: 1.1em; 
-    color: var(--sidebar-icon-color); 
-    fill: var(--sidebar-icon-color);
+    margin-right: 0.75rem; font-size: 1.1em; 
+    color: var(--sidebar-icon-color); fill: var(--sidebar-icon-color);
     transition: color var(--transition-speed) var(--transition-timing), 
                 fill var(--transition-speed) var(--transition-timing);
 }
@@ -272,8 +258,7 @@ div[data-testid="stSidebarNav"] li > a:hover > svg {
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] {
     background-color: var(--sidebar-link-active-bg);
     color: var(--sidebar-link-active-text-color) !important;
-    font-weight: 600; 
-    box-shadow: var(--box-shadow-md); 
+    font-weight: 600; box-shadow: var(--box-shadow-md); 
 }
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] > span:first-child,
 div[data-testid="stSidebarNav"] li > a[aria-current="page"] > svg {
@@ -281,15 +266,11 @@ div[data-testid="stSidebarNav"] li > a[aria-current="page"] > svg {
     fill: var(--sidebar-icon-active-color);
 }
 
-
 div[data-testid="stSidebar"] .stButton button { 
-    width: 100%;
-    margin-top: 0.5rem;
+    width: 100%; margin-top: 0.5rem;
 }
 
-
 /* --- General Button Styling for Streamlit --- */
-/* This rule applies to st.button (default/secondary), st.download_button */
 div[data-testid="stButton"] > button,
 button[data-testid="baseButton-secondary"] {
     background-color: var(--primary-color) !important; 
@@ -297,17 +278,14 @@ button[data-testid="baseButton-secondary"] {
     border: 1px solid var(--primary-color) !important;
     padding: 0.6rem 1.25rem;
     border-radius: var(--border-radius-md);
-    font-weight: 500; 
-    font-size: 0.95rem;
+    font-weight: 500; font-size: 0.95rem;
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 border-color var(--transition-speed) var(--transition-timing),
                 transform var(--transition-speed) var(--transition-timing),
                 box-shadow var(--transition-speed) var(--transition-timing);
-    box-shadow: var(--box-shadow-sm);
-    cursor: pointer;
+    box-shadow: var(--box-shadow-sm); cursor: pointer;
 }
 
-/* Specific overrides for primary buttons (st.button(type="primary"), st.form_submit_button(type="primary")) */
 div[data-testid="stButton"] button[kind="primary"],
 div[data-testid="stFormSubmitButton"] button[kind="primary"],
 div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
@@ -316,22 +294,17 @@ div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
     border-color: var(--primary-color) !important;
 }
 
-
-/* Override for Streamlit's default RED danger/confirm buttons to use OUR primary color (blue) */
-/* This is to make "destructive" actions look consistent with primary actions if desired */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"], 
 div[data-testid="stButton"] > button[style*="background-color: #ff4b4b"],
 div[data-testid="stButton"] > button[style*="background-color: rgb(255, 75, 75)"],
 div[data-testid="stButton"] > button[style*="background-color: #ff4b4b !important"],
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"],
 div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] {
-    background-color: var(--primary-color) !important; /* Forcing to blue */
-    border-color: var(--primary-color) !important; /* Forcing to blue */
+    background-color: var(--primary-color) !important; 
+    border-color: var(--primary-color) !important; 
     color: #fff !important;
 }
 
-
-/* Secondary button style (apply with a class if needed, e.g. st.button("...", class_name="secondary-button")) */
 div[data-testid="stButton"] > button.secondary-button { 
     background-color: var(--accent-color) !important;
     border-color: var(--accent-color) !important;
@@ -341,13 +314,11 @@ div[data-testid="stButton"] > button.secondary-button:hover {
     border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
 }
 
-/* Hover and Active states for ALL buttons styled with our primary color */
 div[data-testid="stButton"] > button:hover,
 button[data-testid="baseButton-secondary"]:hover,
 div[data-testid="stButton"] button[kind="primary"]:hover,
 div[data-testid="stFormSubmitButton"] button[kind="primary"]:hover,
 div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:hover,
-/* Also include the "danger" buttons that we've forced to be blue */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"]:hover,
 div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover, 
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:hover,
@@ -364,7 +335,6 @@ button[data-testid="baseButton-secondary"]:active,
 div[data-testid="stButton"] button[kind="primary"]:active,
 div[data-testid="stFormSubmitButton"] button[kind="primary"]:active,
 div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:active,
-/* Also include the "danger" buttons that we've forced to be blue */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"]:active,
 div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:active,
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:active,
@@ -377,6 +347,23 @@ div[data-testid="stButton"] > button[style*="background-color: var(--error-color
 }
 
 /* --- Input Fields (Select, Text Input, etc.) --- */
+/* Add margin-bottom to input widgets for better spacing when stacked */
+div[data-testid="stTextInput"],
+div[data-testid="stNumberInput"],
+div[data-testid="stTextArea"],
+div[data-testid="stDateInput"],
+div[data-testid="stTimeInput"],
+div[data-testid="stSelectbox"],
+div[data-testid="stMultiselect"],
+div[data-testid="stSlider"],
+div[data-testid="stRadio"],
+div[data-testid="stCheckbox"],
+div[data-testid="stColorPicker"],
+div[data-testid="stFileUploader"] {
+    margin-bottom: 1rem; /* Consistent bottom margin for controls */
+}
+
+
 div[data-testid="stTextInput"] input,
 div[data-testid="stNumberInput"] input,
 div[data-testid="stTextArea"] textarea,
@@ -400,8 +387,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child {
     padding: 0.25rem 0.75rem !important; 
     line-height: 1.5; 
     min-height: calc(1.5em + 1rem + 2px); 
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
@@ -409,9 +395,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > di
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { 
     color: var(--text-color) !important;
     background-color: transparent !important; 
-    opacity: 1 !important; 
-    padding: 0 !important; 
-    margin: 0 !important; 
+    opacity: 1 !important; padding: 0 !important; margin: 0 !important; 
     line-height: inherit !important; 
     font-family: var(--font-family-sans-serif) !important; 
     font-size: 1rem !important; 
@@ -424,7 +408,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] svg {
 div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover svg {
     fill: var(--text-color) !important; 
 }
-
 
 div[data-testid="stTextInput"] input:focus,
 div[data-testid="stNumberInput"] input:focus,
@@ -490,25 +473,22 @@ div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"]
 /* --- Slider Styling (st.slider) --- */
 div[data-testid="stSlider"] {
     padding: 0.5rem 0.25rem; 
+    /* margin-bottom is handled by the generic control rule */
 }
-div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(1) { /* Track background */
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(1) { 
     background-color: var(--slider-track-color) !important;
-    height: 6px !important; 
-    border-radius: var(--border-radius-sm);
+    height: 6px !important; border-radius: var(--border-radius-sm);
 }
-div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(2) > div { /* Filled part of track */
+div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(2) > div { 
     background-color: var(--primary-color) !important;
-    height: 6px !important; 
-    border-radius: var(--border-radius-sm);
+    height: 6px !important; border-radius: var(--border-radius-sm);
 }
-div[data-testid="stSlider"] div[role="slider"] { /* Thumb handle */
+div[data-testid="stSlider"] div[role="slider"] { 
     background-color: var(--primary-color) !important;
     border: 2px solid var(--card-background-color) !important; 
     box-shadow: var(--box-shadow-md) !important;
-    width: 18px !important; 
-    height: 18px !important; 
-    border-radius: 50% !important; 
-    cursor: pointer;
+    width: 18px !important; height: 18px !important; 
+    border-radius: 50% !important; cursor: pointer;
     transition: transform var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 div[data-testid="stSlider"] div[role="slider"]:hover {
@@ -520,27 +500,20 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
     outline: none;
 }
 
-
 /* --- Expander Styling --- */
-.column-mapper-container h6 { /* This was specific to column mapper, now more generic for h6 in containers */
-    font-size: 1.05rem; 
-    font-weight: 600; 
+.column-mapper-container h6 { 
+    font-size: 1.05rem; font-weight: 600; 
     color: var(--text-heading-color);
-    margin-top: 1.25rem; 
-    margin-bottom: 0.5rem; 
+    margin-top: 1.25rem; margin-bottom: 0.5rem; 
     padding-bottom: 0.25rem;
     border-bottom: 1px solid var(--input-border-color); 
 }
 .column-mapper-container h6 .critical-marker { 
-    color: var(--error-color);
-    font-weight: bold;
-    margin-left: 0.25rem;
+    color: var(--error-color); font-weight: bold; margin-left: 0.25rem;
 }
 
-
 div[data-testid="stExpander"] summary {
-    font-size: 1rem; 
-    font-weight: 500;
+    font-size: 1rem; font-weight: 500;
     color: var(--text-heading-color);
     background-color: var(--expander-header-bg);
     border: 1px solid var(--border-color);
@@ -552,8 +525,7 @@ div[data-testid="stExpander"] summary:hover {
     background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
 }
 div[data-testid="stExpander"][open] summary { 
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
 }
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     padding: 1.25rem; 
@@ -576,31 +548,24 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 /* --- AI & ML Page Specific Styles (Example) --- */
 .ai-ml-task-container { 
     background-color: var(--card-background-color);
-    padding: 2rem; 
-    border-radius: var(--border-radius-lg);
+    padding: 2rem; border-radius: var(--border-radius-lg);
     border: 1px solid var(--border-color);
-    box-shadow: var(--box-shadow-md);
-    margin-bottom: 2.5rem;
+    box-shadow: var(--box-shadow-md); margin-bottom: 2.5rem;
 }
 .ai-ml-task-container.placeholder-section {
     border-left: 4px solid var(--secondary-color); 
     background-color: color-mix(in srgb, var(--card-background-color) 95%, var(--secondary-color) 5%); 
 }
 .ai-ml-task-container div[data-testid="stExpander"] summary { 
-    font-size: 1.15rem; 
-    padding: 1rem 1.5rem;
+    font-size: 1.15rem; padding: 1rem 1.5rem;
 }
 .ai-ml-task-container div[data-testid="stForm"] .stCaption { 
-    font-size: 0.9rem;
-    color: var(--text-muted-color);
-    margin-top: -0.25rem; 
-    margin-bottom: 1rem; 
+    font-size: 0.9rem; color: var(--text-muted-color);
+    margin-top: -0.25rem; margin-bottom: 1rem; 
 }
 .ai-ml-task-container div[data-testid="stForm"] h6 {
-    font-size: 1rem;
-    color: var(--text-heading-color);
-    margin-top: 1.25rem;
-    margin-bottom: 0.75rem;
+    font-size: 1rem; color: var(--text-heading-color);
+    margin-top: 1.25rem; margin-bottom: 0.75rem;
     font-weight: 500;
 }
 .ai-ml-task-container div[data-testid="stCodeBlock"] {
@@ -610,67 +575,46 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-top: 1rem;
 }
 .ai-ml-task-container div[data-testid="stCodeBlock"] pre {
-    padding: 1rem;
-    font-size: 0.875rem; 
+    padding: 1rem; font-size: 0.875rem; 
 }
 
 /* --- Welcome Page Styles (Example) --- */
 .welcome-container {
-    background-color: transparent; 
-    border: none;
-    box-shadow: none;
-    max-width: 100%; 
-    padding: 0.5rem 2rem 2rem 2rem; 
-    margin: 0 auto; 
+    background-color: transparent; border: none;
+    box-shadow: none; max-width: 100%; 
+    padding: 0.5rem 2rem 2rem 2rem; margin: 0 auto; 
 }
 .hero-section { padding-top: 0; }
 .welcome-title { 
-    font-size: 2.5rem; 
-    font-weight: 700;
-    margin-top: 0.75rem; 
-    margin-bottom: 0.25rem; 
-    color: var(--primary-color);
-    text-align: center;
+    font-size: 2.5rem; font-weight: 700;
+    margin-top: 0.75rem; margin-bottom: 0.25rem; 
+    color: var(--primary-color); text-align: center;
     border-bottom: none; 
 }
 .welcome-subtitle { 
-    font-size: 0.9rem; 
-    font-weight: 400;
-    color: var(--text-muted-color);
-    text-align: center;
-    margin-top: 0; 
-    margin-bottom: 1.5rem; 
+    font-size: 0.9rem; font-weight: 400;
+    color: var(--text-muted-color); text-align: center;
+    margin-top: 0; margin-bottom: 1.5rem; 
 }
 .hero-section .tagline { 
-    font-size: 1.25rem; 
-    font-weight: 300;
-    margin-bottom: 2rem;
-    color: var(--text-muted-color);
-    text-align: center;
-    max-width: 60ch;
-    margin-left: auto;
-    margin-right: auto;
+    font-size: 1.25rem; font-weight: 300;
+    margin-bottom: 2rem; color: var(--text-muted-color);
+    text-align: center; max-width: 60ch;
+    margin-left: auto; margin-right: auto;
 }
 .feature-item { 
-    padding: 1rem 0.5rem; 
-    text-align: center; 
+    padding: 1rem 0.5rem; text-align: center; 
 }
 .feature-item h4 {
     color: var(--primary-color);
-    margin-top: 0;
-    margin-bottom: 0.75rem; 
-    font-size: 1.2rem; 
-    font-weight: 600;
+    margin-top: 0; margin-bottom: 0.75rem; 
+    font-size: 1.2rem; font-weight: 600;
 }
 .feature-item p {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--text-color);
-    max-width: 30ch; 
-    margin-left: auto;
-    margin-right: auto;
+    font-size: 0.95rem; line-height: 1.6;
+    color: var(--text-color); max-width: 30ch; 
+    margin-left: auto; margin-right: auto;
 }
-
 
 /* --- Custom Scrollbar --- */
 ::-webkit-scrollbar { width: 12px; height: 12px; }
@@ -678,13 +622,12 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 ::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: var(--border-radius-md); border: 3px solid var(--background-color); }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--secondary-color); }
 
-
 /* --- Responsive Design Adjustments --- */
 @media (max-width: 992px) { /* Tablet */
     .main .block-container { padding: 1rem 1.5rem; } 
     h1 { font-size: 2rem; }
     h2.section-header { font-size: 1.6rem; }
-    .page-subtitle { font-size: 1rem; } /* Adjusted from 1.15rem for tablet */
+    .page-subtitle { font-size: 1rem; } 
     .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } 
     .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } 
     .welcome-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; } 
@@ -696,7 +639,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
     h2.section-header { font-size: 1.4rem; margin-bottom: 1rem; }
     h3.section-subheader { font-size: 1.2rem; }
-    .page-subtitle { font-size: 0.95rem; } /* Adjusted from 1.15rem for mobile */
+    .page-subtitle { font-size: 0.95rem; } 
     
     .ai-ml-task-container { padding: 1.25rem; }
     .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.75rem 1rem;}
@@ -711,38 +654,12 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .feature-item h4 { font-size: 1.15rem; }
 }
 
-/* --- KPI Card Styling (Old, can be removed or adapted if st.metric is not enough) --- */
-.kpi-card {
-    background-color: var(--card-background-color);
-    padding: 1.25rem;
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--box-shadow-sm);
-    border-left: 4px solid var(--primary-color);
-    margin-bottom: 1rem;
-}
-.kpi-card .kpi-title {
-    font-size: 0.9rem;
-    color: var(--text-muted-color);
-    margin-bottom: 0.25rem;
-}
-.kpi-card .kpi-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-heading-color);
-}
-.kpi-card .kpi-delta.positive { color: var(--success-color); }
-.kpi-card .kpi-delta.negative { color: var(--error-color); }
-
-/* --- Custom Message Box Styling (Info, Success, Warning, Error) --- */
+/* --- Custom Message Box Styling --- */
 .custom-message-box {
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem; margin-bottom: 1.5rem;
     border-radius: var(--border-radius-md);
-    border-width: 1px;
-    border-style: solid;
-    display: flex;
-    align-items: center;
-    /* font-size: 0.95rem; /* Base size for message box, will be overridden by new rule */
+    border-width: 1px; border-style: solid;
+    display: flex; align-items: center;
     box-shadow: var(--box-shadow-sm);
 }
 .custom-message-box-icon { margin-right: 0.75rem; font-size: 1.25rem; }
@@ -752,264 +669,184 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 .custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
 .custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
 
-
 /* --- Column Mapper Specific Styles --- */
-
 .column-mapper-container .mapper-instructions {
-    font-size: 0.95rem; 
-    color: var(--text-color); 
+    font-size: 0.95rem; color: var(--text-color); 
     background-color: color-mix(in srgb, var(--info-accent-color) 10%, var(--section-background-color) 90%); 
-    padding: 1rem 1.25rem; 
-    border-radius: var(--border-radius-md);
+    padding: 1rem 1.25rem; border-radius: var(--border-radius-md);
     border-left: 4px solid var(--info-accent-color); 
-    margin-top: 1.5rem; 
-    margin-bottom: 2rem; 
-    line-height: 1.6; 
-    box-shadow: var(--box-shadow-sm);
-    display: flex; 
-    align-items: flex-start; 
+    margin-top: 1.5rem; margin-bottom: 2rem; 
+    line-height: 1.6; box-shadow: var(--box-shadow-sm);
+    display: flex; align-items: flex-start; 
 }
-
 .column-mapper-container .mapper-instructions .instruction-icon {
-    font-size: 1.2rem; 
-    margin-right: 0.75rem; 
-    color: var(--info-accent-color); 
-    line-height: 1.6; 
+    font-size: 1.2rem; margin-right: 0.75rem; 
+    color: var(--info-accent-color); line-height: 1.6; 
 }
-
 .column-mapper-container .mapper-instructions strong { 
-    color: var(--error-color);
-    font-weight: bold;
+    color: var(--error-color); font-weight: bold;
 }
-
-
 .column-mapper-container .type-mismatch-warning {
-    color: var(--warning-color) !important; 
-    font-size: 0.8rem;
-    display: block; 
-    margin-top: 0.25rem;
+    color: var(--warning-color) !important; font-size: 0.8rem;
+    display: block; margin-top: 0.25rem;
 }
-.column-mapper-container hr.styled-hr {
+.column-mapper-container hr.styled-hr,
+.performance-section-container hr { /* Style for <hr> used via st.markdown("<hr>") */
     border: none;
     border-top: 1px solid var(--border-color);
-    margin: 1.5rem 0;
+    margin: 2rem 0; /* Consistent vertical spacing for dividers */
 }
 
 .data-preview-container {
     background-color: var(--section-background-color); 
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-lg); 
-    padding: 1.25rem; 
-    margin-top: 1rem; 
-    margin-bottom: 1.5rem; 
+    padding: 1.25rem; margin-top: 1rem; margin-bottom: 1.5rem; 
     box-shadow: var(--box-shadow-sm); 
 }
-
 .data-preview-container .data-preview-title { 
-    font-size: 1.1rem; 
-    font-weight: 600; 
+    font-size: 1.1rem; font-weight: 600; 
     color: var(--text-heading-color);
-    margin-top: 0; 
-    margin-bottom: 1rem; 
+    margin-top: 0; margin-bottom: 1rem; 
     padding-bottom: 0.65rem; 
     border-bottom: 1px solid var(--input-border-color); 
     line-height: 1.4; 
 }
-
 .data-preview-container div[data-testid="stDataFrame"] {
     margin-top: 0.25rem; 
 }
-
 .data-preview-container .data-preview-placeholder {
-    font-size: 0.95rem; 
-    color: var(--text-muted-color);
-    padding: 1.5rem 1rem; 
-    text-align: center;
+    font-size: 0.95rem; color: var(--text-muted-color);
+    padding: 1.5rem 1rem; text-align: center;
     border: 1px dashed var(--input-border-color); 
     border-radius: var(--border-radius-md); 
     background-color: color-mix(in srgb, var(--section-background-color) 70%, var(--background-color) 30%); 
     margin-top: 0.5rem; 
 }
-
-.column-mapper-container label.selectbox-label { /* More specific for custom labels */
-    font-size: 1rem; 
-    color: var(--text-color);
-    display: block;
-    margin-bottom: 0.25rem; 
-    padding-left: 0; 
+.column-mapper-container label.selectbox-label { 
+    font-size: 1rem; color: var(--text-color);
+    display: block; margin-bottom: 0.25rem; padding-left: 0; 
 }
-
 .column-mapper-container label.selectbox-label .critical-marker,
-.column-mapper-container h6 .critical-marker { /* Styling for critical marker span */
-    color: var(--error-color) !important; /* Ensure this is applied */
-    font-weight: bold;
-    margin-left: 0.15rem; /* Small space before asterisk */
+.column-mapper-container h6 .critical-marker { 
+    color: var(--error-color) !important; 
+    font-weight: bold; margin-left: 0.15rem; 
 }
 
-
-/* --- Readability Enhancements for User Guide & General Content --- */
+/* --- Readability Enhancements --- */
 .main .block-container p,
 .main .block-container li,
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] p,
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
-.custom-card p,
-.custom-card li {
-    font-size: 1.08rem; /* Increased from typical 1rem */
-    line-height: 1.7;  /* Increased line height for better spacing */
+.custom-card p, .custom-card li,
+.performance-section-container p { /* Ensure paragraphs in perf sections also get this */
+    font-size: 1.08rem; line-height: 1.7;  
 }
-
-/* Fine-tune text within specific elements in the User Guide, like the conceptual column list */
-/* This targets the div used in the Python script for conceptual column items */
 .main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] {
-    font-size: 1.02rem; /* Slightly smaller than the main 1.08rem if needed for this specific list */
-    line-height: 1.65;
+    font-size: 1.02rem; line-height: 1.65;
 }
-
 .main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] code,
 .main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] strong {
-    font-size: 1.03rem; /* Make the conceptual key (code/strong) slightly more prominent */
-}
-
-.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] em {
-    font-size: 1rem; /* Keep description text clear and slightly smaller than the key */
-}
-
-/* Adjust font size for custom message box content */
-.custom-message-box,
-.custom-message-box p, /* Target paragraphs inside message boxes */
-.custom-message-box ul li { /* Target list items inside message boxes */
-    font-size: 1.02rem; 
-    line-height: 1.65;
-}
-.custom-message-box strong { /* For strong text within message boxes */
     font-size: 1.03rem; 
 }
-
-/* Ensure critical marker stands out but isn't oversized if its parent's font size increases */
-.critical-marker {
-    font-size: inherit; /* Inherit from parent, or set explicitly if needed */
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] em {
+    font-size: 1rem; 
 }
+.custom-message-box, .custom-message-box p, .custom-message-box ul li {
+    font-size: 1.02rem; line-height: 1.65;
+}
+.custom-message-box strong { font-size: 1.03rem; }
+.critical-marker { font-size: inherit; }
 
-/* Responsive adjustments for increased font sizes if necessary */
-@media (max-width: 767px) { /* Mobile */
-    .main .block-container p,
-    .main .block-container li,
+@media (max-width: 767px) { /* Mobile Readability */
+    .main .block-container p, .main .block-container li,
     div[data-testid="stExpander"] [data-testid="stExpanderDetails"] p,
     div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
-    .custom-card p,
-    .custom-card li {
-        font-size: 1.02rem; /* Slightly reduce on mobile if 1.08rem is too large */
-        line-height: 1.65;
+    .custom-card p, .custom-card li,
+    .performance-section-container p {
+        font-size: 1.02rem; line-height: 1.65;
     }
-
-    .custom-message-box,
-    .custom-message-box p,
-    .custom-message-box ul li {
-        font-size: 0.98rem; /* Adjust for mobile */
-        line-height: 1.6;
+    .custom-message-box, .custom-message-box p, .custom-message-box ul li {
+        font-size: 0.98rem; line-height: 1.6;
     }
-    .page-subtitle {
-        font-size: 1.05rem; /* Adjust subtitle for mobile */
-    }
+    .page-subtitle { font-size: 1.05rem; }
 }
 
 /* --- Radio Button Styling --- */
-/* Targets the individual radio button's outer circle when not selected */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] > div:first-child {
-    border-color: var(--input-border-color) !important; /* Unselected border */
-    background-color: var(--card-background-color) !important; /* Unselected background */
+    border-color: var(--input-border-color) !important; 
+    background-color: var(--card-background-color) !important; 
 }
-
-/* Targets the inner circle (dot) of the radio button when selected */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div > div:last-child {
-    background-color: var(--primary-color) !important; /* Selected inner dot color */
+    background-color: var(--primary-color) !important; 
 }
-
-/* Targets the outer circle of the radio button when selected */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div {
-    border-color: var(--primary-color) !important; /* Selected outer border color */
-    background-color: var(--card-background-color) !important; /* Selected outer background - can match card or be slightly different */
+    border-color: var(--primary-color) !important; 
+    background-color: var(--card-background-color) !important; 
 }
-
-/* Optional: Hover effect for unselected radio buttons */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"]:not(:has(input:checked)):hover > div:first-child {
     border-color: var(--primary-color) !important; 
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); /* Subtle glow */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); 
 }
-
-/* Text color for radio button labels */
-div[data-testid="stRadio"] label {
-    color: var(--text-color) !important;
-}
-
-/* Ensure focus outline is visible and uses primary color for accessibility */
+div[data-testid="stRadio"] label { color: var(--text-color) !important; }
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:focus-visible + div {
     outline: 2px solid var(--primary-color) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
 }
 
-
-/* --- NEW: Performance Page Specific Styling --- */
+/* --- Performance Page Specific Styling --- */
 .performance-section-container {
     background-color: var(--card-background-color);
-    padding: 1.5rem; /* Consistent padding */
-    border-radius: var(--border-radius-lg); /* Consistent border radius */
-    margin-bottom: 2rem; /* Space between sections */
-    box-shadow: var(--box-shadow-md); /* Consistent shadow */
-    border: 1px solid var(--border-color); /* Subtle border */
+    padding: 1.75rem; /* Slightly increased padding */
+    border-radius: var(--border-radius-lg); 
+    margin-bottom: 2rem; /* Consistent space between sections */
+    box-shadow: var(--box-shadow-md); 
+    border: 1px solid var(--border-color); 
 }
 
-/* Styling for st.metric to make KPIs look more professional */
 div[data-testid="stMetric"] {
-    background-color: var(--section-background-color); /* Slightly different background for emphasis */
+    background-color: var(--section-background-color); 
     padding: 1rem 1.25rem;
     border-radius: var(--border-radius-md);
     border: 1px solid var(--border-color);
     box-shadow: var(--box-shadow-sm);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-bottom: 0.5rem; /* Spacing if metrics stack or before other content in same column */
 }
-
 div[data-testid="stMetric"]:hover {
     transform: translateY(-2px);
     box-shadow: var(--box-shadow-md);
 }
-
-div[data-testid="stMetric"] label { /* Metric Label */
-    font-size: 0.9rem;
-    font-weight: 500;
+div[data-testid="stMetric"] label { 
+    font-size: 0.9rem; font-weight: 500;
     color: var(--text-muted-color);
-    margin-bottom: 0.25rem; /* Space between label and value */
+    margin-bottom: 0.25rem; 
 }
-
-div[data-testid="stMetric"] div[data-testid="stMetricValue"] { /* Metric Value */
-    font-size: 1.75rem; /* Larger font for value */
-    font-weight: 600;
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] { 
+    font-size: 1.75rem; font-weight: 600;
     color: var(--text-heading-color);
     line-height: 1.2;
 }
-
-div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { /* Metric Delta */
-    font-size: 0.85rem;
-    font-weight: 500;
-    /* Colors for delta (positive/negative) are handled by Streamlit based on delta_color="normal" */
+div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { 
+    font-size: 0.85rem; font-weight: 500;
 }
 
-/* Ensure subheaders within performance sections are styled correctly */
-.performance-section-container > div > div > div > div > h3 { /* Targets st.subheader within the container */
-    font-size: 1.45rem !important; /* Slightly larger for section titles */
-    color: var(--primary-color) !important; /* Use primary color for emphasis */
-    margin-top: 0.5rem !important;
-    margin-bottom: 1.25rem !important; /* More space after subheader */
+/* Subheaders within performance sections */
+.performance-section-container > div > div > div > div > h3 { 
+    font-size: 1.45rem !important; 
+    color: var(--primary-color) !important; 
+    margin-top: 0.25rem !important; /* Adjusted for better alignment at top of card */
+    margin-bottom: 1.25rem !important; 
     padding-bottom: 0.6rem !important;
     border-bottom: 1px solid var(--border-color) !important;
 }
 
-/* Adjust markdown text used as descriptions under subheaders */
-.performance-section-container > div > div > div > div > p { /* Targets st.markdown <p> directly under subheader */
+/* Markdown text used as descriptions under subheaders */
+.performance-section-container > div > div > div > div > p { 
     font-size: 0.95rem !important;
     color: var(--text-muted-color) !important;
-    margin-top: -0.75rem !important; /* Pull up slightly */
-    margin-bottom: 1.5rem !important;
+    margin-top: -0.75rem !important; 
+    margin-bottom: 1.5rem !important; /* Good space before next element (e.g., controls or plots) */
     line-height: 1.6 !important;
 }
