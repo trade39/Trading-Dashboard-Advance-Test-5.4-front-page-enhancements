@@ -273,25 +273,20 @@ button[data-testid="baseButton-secondary"] /* For st.download_button */ {
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 border-color var(--transition-speed) var(--transition-timing),
                 transform var(--transition-speed) var(--transition-timing),
-                box-shadow var(--transition-speed) var(--transition-timing);
+                box-shadow var(--box-shadow-speed) var(--transition-timing);
     box-shadow: var(--box-shadow-sm);
     cursor: pointer;
 }
 
-div[data-testid="stButton"] > button:hover,
-button[data-testid="baseButton-secondary"]:hover {
-    background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
-    border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow-md);
-}
-
-div[data-testid="stButton"] > button:active,
-button[data-testid="baseButton-secondary"]:active {
-    transform: translateY(0px);
-    box-shadow: var(--box-shadow-sm);
-    background-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
-    border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
+/* OVERRIDE: Force all danger/confirm/red buttons to use primary color (blue) */
+div[data-testid="stButton"] > button.danger,
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"],
+div[data-testid="stButton"] > button[style*="background-color: #ff5555"],
+div[data-testid="stButton"] > button[style*="background-color: red"],
+div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #FFFFFF !important;
 }
 
 /* If you want a secondary button style with accent color, you'd need to apply a class */
@@ -304,6 +299,31 @@ div[data-testid="stButton"] > button.secondary-button:hover {
     border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
 }
 
+div[data-testid="stButton"] > button:hover,
+button[data-testid="baseButton-secondary"]:hover,
+div[data-testid="stButton"] > button.danger:hover,
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover,
+div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:hover,
+div[data-testid="stButton"] > button[style*="background-color: red"]:hover,
+div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"]:hover {
+    background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
+    border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
+}
+
+div[data-testid="stButton"] > button:active,
+button[data-testid="baseButton-secondary"]:active,
+div[data-testid="stButton"] > button.danger:active,
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:active,
+div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:active,
+div[data-testid="stButton"] > button[style*="background-color: red"]:active,
+div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"]:active {
+    transform: translateY(0px);
+    box-shadow: var(--box-shadow-sm);
+    background-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
+    border-color: color-mix(in srgb, var(--primary-color) 70%, black 30%) !important;
+}
 
 /* --- Input Fields (Select, Text Input, etc.) --- */
 div[data-testid="stTextInput"] input,
@@ -674,4 +694,3 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 [data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); }
 .custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
 .custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
-
