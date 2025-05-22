@@ -44,7 +44,7 @@ except ImportError as e:
 
 logger = logging.getLogger(APP_TITLE)
 
-@st.cache_data # Cache the calculation
+@st.cache_data 
 def calculate_rolling_sharpe(pnl_series: pd.Series, window: int, min_periods: int, risk_free_rate_daily: float, periods_per_year: int = 252) -> pd.Series:
     """Calculates rolling Sharpe ratio."""
     if pnl_series.empty or len(pnl_series) < min_periods:
@@ -89,6 +89,7 @@ def show_performance_page():
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.subheader("🚀 Key Performance Indicators") 
     
+    st.markdown("<div class='kpi-metrics-block'>", unsafe_allow_html=True) # Apply specific class
     total_pnl = filtered_df[pnl_col].sum()
     total_trades = len(filtered_df)
     
@@ -102,9 +103,9 @@ def show_performance_page():
                 if not numeric_wins.isnull().all():
                     overall_win_rate = numeric_wins.mean() * 100
                 else:
-                    display_custom_message(f"Could not interpret '{win_col}' column for win rate. Ensure it contains 0/1 or True/False.", "warning")
+                    display_custom_message(f"Could not interpret '{win_col}' column for win rate.", "warning")
             except Exception:
-                 display_custom_message(f"Error converting '{win_col}' column for win rate. Please check its format.", "warning")
+                 display_custom_message(f"Error converting '{win_col}' column for win rate.", "warning")
 
     kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
     with kpi_col1:
@@ -116,34 +117,34 @@ def show_performance_page():
             st.metric(label="🎯 Overall Win Rate", value="N/A")
     with kpi_col3:
         st.metric(label="🔢 Total Trades", value=f"{total_trades:,}")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close kpi-metrics-block
+
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
     st.markdown("---")
 
     # --- Performance Breakdown Section ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.subheader("📈 Performance Breakdown") 
     st.markdown("Visualizing Profit & Loss distributions and categorical performance.")
+    
+    st.markdown("<div class='charts-grid'>", unsafe_allow_html=True) # Apply specific class for plot area
     try:
-        # Data for PnL Distribution
         pnl_dist_data_for_view = filtered_df[[pnl_col]].copy()
         pnl_dist_fig = plot_pnl_distribution(filtered_df, pnl_col=pnl_col, theme=plot_theme)
 
-        # Data for PnL by DOW
         pnl_dow_data_for_view = None
         pnl_dow_fig = None
         if 'trade_day_of_week' in filtered_df.columns:
             pnl_dow_data_for_view = filtered_df.groupby('trade_day_of_week')[pnl_col].agg(['sum', 'mean', 'count']).reset_index()
             pnl_dow_fig = plot_pnl_by_category(filtered_df, 'trade_day_of_week', pnl_col=pnl_col, theme=plot_theme, title_prefix="Total PnL by")
         
-        # Data for Win Rate by Hour
         winrate_hour_data_for_view = None
         winrate_hour_fig = None
         if 'trade_hour' in filtered_df.columns and win_col in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[win_col]):
             winrate_hour_data_for_view = filtered_df.groupby('trade_hour')[win_col].agg(['mean', 'count']).reset_index()
-            winrate_hour_data_for_view['mean'] *= 100 # Convert to percentage
+            winrate_hour_data_for_view['mean'] *= 100 
             winrate_hour_fig = plot_win_rate_analysis(filtered_df, 'trade_hour', win_col=win_col, theme=plot_theme, title_prefix="Win Rate by")
 
-        # Data for PnL by Month
         month_col_for_plot = 'trade_month_name' 
         pnl_month_data_for_view = None
         pnl_month_fig = None
@@ -151,26 +152,28 @@ def show_performance_page():
             pnl_month_data_for_view = filtered_df.groupby(month_col_for_plot)[pnl_col].agg(['sum', 'mean', 'count']).reset_index()
             pnl_month_fig = plot_pnl_by_category(filtered_df, month_col_for_plot, pnl_col=pnl_col, theme=plot_theme, title_prefix="Total PnL by")
 
-        # Display plots and "View Data" expanders
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("<h6>PnL Distribution</h6>", unsafe_allow_html=True)
             if pnl_dist_fig: 
                 st.plotly_chart(pnl_dist_fig, use_container_width=True)
                 with st.expander("👁️ View PnL Distribution Data (Raw)"):
+                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                     st.dataframe(pnl_dist_data_for_view)
+                    st.markdown("</div>", unsafe_allow_html=True)
             else: 
-                display_custom_message("Could not generate PnL distribution plot. Ensure PnL data is valid.", "warning")
+                display_custom_message("Could not generate PnL distribution plot.", "warning")
 
             if pnl_dow_fig:
                 st.markdown("<h6>PnL by Day of Week</h6>", unsafe_allow_html=True)
                 st.plotly_chart(pnl_dow_fig, use_container_width=True)
                 if pnl_dow_data_for_view is not None and not pnl_dow_data_for_view.empty:
                     with st.expander("👁️ View PnL by Day of Week Data"):
+                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                         st.dataframe(pnl_dow_data_for_view)
+                        st.markdown("</div>", unsafe_allow_html=True)
             elif 'trade_day_of_week' not in filtered_df.columns:
-                display_custom_message("Column 'trade_day_of_week' not found for PnL by Day of Week plot.", "info")
-
+                display_custom_message("Column 'trade_day_of_week' not found.", "info")
 
         with col2:
             if winrate_hour_fig:
@@ -178,25 +181,30 @@ def show_performance_page():
                 st.plotly_chart(winrate_hour_fig, use_container_width=True)
                 if winrate_hour_data_for_view is not None and not winrate_hour_data_for_view.empty:
                     with st.expander("👁️ View Win Rate by Hour Data"):
+                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                         st.dataframe(winrate_hour_data_for_view)
+                        st.markdown("</div>", unsafe_allow_html=True)
             elif 'trade_hour' not in filtered_df.columns:
-                 display_custom_message("Column 'trade_hour' not found for Win Rate by Hour plot.", "info")
+                 display_custom_message("Column 'trade_hour' not found.", "info")
             elif win_col not in filtered_df.columns:
-                 display_custom_message(f"Column '{win_col}' not found for Win Rate by Hour plot.", "info")
+                 display_custom_message(f"Column '{win_col}' not found.", "info")
             
             if pnl_month_fig:
                 st.markdown("<h6>PnL by Month</h6>", unsafe_allow_html=True)
                 st.plotly_chart(pnl_month_fig, use_container_width=True)
                 if pnl_month_data_for_view is not None and not pnl_month_data_for_view.empty:
                     with st.expander("👁️ View PnL by Month Data"):
+                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                         st.dataframe(pnl_month_data_for_view)
+                        st.markdown("</div>", unsafe_allow_html=True)
             elif month_col_for_plot not in filtered_df.columns:
-                display_custom_message(f"Column '{month_col_for_plot}' not found for PnL by Month plot.", "info")
-
+                display_custom_message(f"Column '{month_col_for_plot}' not found.", "info")
     except Exception as e:
-        logger.error(f"Error rendering performance breakdown section: {e}", exc_info=True)
-        display_custom_message(f"An error occurred in the Performance Breakdown section: {e}", "error")
-    st.markdown("</div>", unsafe_allow_html=True)
+        logger.error(f"Error in Performance Breakdown: {e}", exc_info=True)
+        display_custom_message(f"Error in Performance Breakdown: {e}", "error")
+    st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
+
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
     st.markdown("---")
 
     # --- Rolling Performance Metrics ---
@@ -204,38 +212,37 @@ def show_performance_page():
     st.subheader("🔄 Rolling Performance Metrics") 
     st.markdown("Track performance consistency over time with rolling window calculations.")
     
-    rolling_pnl_sum_data, rolling_win_rate_data, rolling_sharpe_data = None, None, None # Initialize for view data
+    rolling_pnl_sum_data, rolling_win_rate_data, rolling_sharpe_data = None, None, None 
 
     try:
         if date_col_main not in filtered_df.columns:
-            display_custom_message(f"Date column ('{date_col_main}') is required for rolling metrics.", "warning")
+            display_custom_message(f"Date column ('{date_col_main}') required for rolling metrics.", "warning")
         elif len(filtered_df) < 10: 
             display_custom_message("Not enough data points (minimum 10) for rolling metrics.", "info")
         else:
             with st.expander("⚙️ Customize Rolling Metrics"):
+                st.markdown("<div class='controls-expander-content'>", unsafe_allow_html=True) # Apply class
                 controls_col1, controls_col2, controls_col3 = st.columns(3)
                 max_slider_val_periods = min(100, len(filtered_df) // 2 if len(filtered_df) > 20 else 10) 
                 unique_days_count = len(filtered_df[date_col_main].dt.normalize().unique())
                 max_slider_val_days = min(200, unique_days_count // 2 if unique_days_count > 20 else 10)
 
                 with controls_col1: 
-                    rolling_pnl_window = st.slider("Rolling PnL Sum Window (Periods):", 
-                                                   min_value=5, 
-                                                   max_value=max(5, max_slider_val_periods), 
+                    rolling_pnl_window = st.slider("PnL Window (Periods):", 
+                                                   min_value=5, max_value=max(5, max_slider_val_periods), 
                                                    value=min(30, max(5, max_slider_val_periods)), 
                                                    step=5, key="roll_pnl_win_slider")
                 with controls_col2: 
-                    rolling_win_rate_window = st.slider("Rolling Win Rate Window (Periods):", 
-                                                        min_value=10, 
-                                                        max_value=max(10, max_slider_val_periods), 
+                    rolling_win_rate_window = st.slider("Win Rate Window (Periods):", 
+                                                        min_value=10, max_value=max(10, max_slider_val_periods), 
                                                         value=min(50, max(10, max_slider_val_periods)), 
                                                         step=10, key="roll_wr_win_slider")
                 with controls_col3: 
-                    rolling_sharpe_window = st.slider("Rolling Sharpe Window (Days):", 
-                                                      min_value=10, 
-                                                      max_value=max(10, max_slider_val_days), 
+                    rolling_sharpe_window = st.slider("Sharpe Window (Days):", 
+                                                      min_value=10, max_value=max(10, max_slider_val_days), 
                                                       value=min(50, max(10, max_slider_val_days)), 
                                                       step=10, key="roll_sharpe_win_slider")
+                st.markdown("</div>", unsafe_allow_html=True) # Close controls-expander-content
             
             min_periods_pnl = max(5, rolling_pnl_window // 3)
             min_periods_win_rate = max(10, rolling_win_rate_window // 3)
@@ -249,6 +256,7 @@ def show_performance_page():
             if df_for_rolling.empty:
                 display_custom_message("No valid numeric PnL data for rolling metrics.", "warning")
             else:
+                st.markdown("<div class='charts-grid'>", unsafe_allow_html=True) # Apply class for plot area
                 plot_col1, plot_col2, plot_col3 = st.columns([1,1,1]) 
                 with plot_col1:
                     if len(df_for_rolling) >= min_periods_pnl:
@@ -260,7 +268,9 @@ def show_performance_page():
                             st.plotly_chart(rolling_pnl_fig, use_container_width=True)
                             if rolling_pnl_sum_data is not None and not rolling_pnl_sum_data.empty:
                                 with st.expander("👁️ View Rolling PnL Data"):
+                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                     st.dataframe(rolling_pnl_sum_data)
+                                    st.markdown("</div>", unsafe_allow_html=True)
                     else: display_custom_message(f"Need {min_periods_pnl} periods for rolling PnL.", "info")
                 
                 with plot_col2:
@@ -273,8 +283,10 @@ def show_performance_page():
                             st.plotly_chart(rolling_wr_fig, use_container_width=True)
                             if rolling_win_rate_data is not None and not rolling_win_rate_data.empty:
                                 with st.expander("👁️ View Rolling Win Rate Data"):
+                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                     st.dataframe(rolling_win_rate_data)
-                    elif win_col not in df_for_rolling.columns: display_custom_message(f"'{win_col}' column needed for Rolling Win Rate.", "info")
+                                    st.markdown("</div>", unsafe_allow_html=True)
+                    elif win_col not in df_for_rolling.columns: display_custom_message(f"'{win_col}' column needed.", "info")
                     else: display_custom_message(f"Need {min_periods_win_rate} periods for rolling Win Rate.", "info")
 
                 with plot_col3:
@@ -289,13 +301,16 @@ def show_performance_page():
                              if rolling_sharpe_fig: 
                                  st.plotly_chart(rolling_sharpe_fig, use_container_width=True)
                                  with st.expander("👁️ View Rolling Sharpe Data"):
+                                     st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                      st.dataframe(rolling_sharpe_data)
-                        else: display_custom_message("Could not calculate Rolling Sharpe Ratio.", "warning")
+                                     st.markdown("</div>", unsafe_allow_html=True)
+                        else: display_custom_message("Could not calculate Rolling Sharpe.", "warning")
                     else: display_custom_message(f"Need {min_periods_sharpe} daily PnL points for rolling Sharpe.", "info")
+                st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
     except Exception as e:
-        logger.error(f"Error rendering rolling performance metrics: {e}", exc_info=True)
-        display_custom_message(f"An error occurred in the Rolling Performance section: {e}", "error")
-    st.markdown("</div>", unsafe_allow_html=True)
+        logger.error(f"Error in Rolling Performance: {e}", exc_info=True)
+        display_custom_message(f"Error in Rolling Performance: {e}", "error")
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
     st.markdown("---")
 
     # --- Performance by Trade Duration ---
@@ -304,11 +319,11 @@ def show_performance_page():
     st.markdown("Analyze how trade duration impacts profitability and win rates.")
     duration_col_numeric = EXPECTED_COLUMNS.get('duration_minutes_numeric', 'duration_minutes_numeric')
     
-    pnl_by_duration_agg_data, winrate_by_duration_agg_data = None, None # Initialize for view data
+    pnl_by_duration_agg_data, winrate_by_duration_agg_data = None, None 
 
     if duration_col_numeric in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[duration_col_numeric]):
         cols_for_duration = [duration_col_numeric, pnl_col]
-        if win_col in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[win_col]): # ensure win_col is numeric if present
+        if win_col in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[win_col]): 
             cols_for_duration.append(win_col)
         
         df_for_duration = filtered_df[cols_for_duration].copy()
@@ -321,15 +336,18 @@ def show_performance_page():
             df_for_duration.dropna(subset=['duration_bin'], inplace=True) 
 
             if not df_for_duration.empty:
+                st.markdown("<div class='charts-grid'>", unsafe_allow_html=True) # Apply class for plot area
                 col_dur1, col_dur2 = st.columns(2)
                 with col_dur1:
                     st.markdown("<h6>PnL Distribution by Duration</h6>", unsafe_allow_html=True)
                     pnl_by_duration_fig = plot_box_plot(df_for_duration, 'duration_bin', pnl_col, "PnL Distribution by Trade Duration", plot_theme)
                     if pnl_by_duration_fig: 
                         st.plotly_chart(pnl_by_duration_fig, use_container_width=True)
-                        pnl_by_duration_agg_data = df_for_duration.groupby('duration_bin')[pnl_col].agg(['sum', 'mean', 'median', 'std', 'count']).reset_index()
+                        pnl_by_duration_agg_data = df_for_duration.groupby('duration_bin', observed=False)[pnl_col].agg(['sum', 'mean', 'median', 'std', 'count']).reset_index()
                         with st.expander("👁️ View PnL by Duration Summary Data"):
+                            st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                             st.dataframe(pnl_by_duration_agg_data)
+                            st.markdown("</div>", unsafe_allow_html=True)
                     else: display_custom_message("Could not generate PnL by duration plot.", "warning")
                 
                 with col_dur2:
@@ -338,20 +356,23 @@ def show_performance_page():
                         winrate_duration_fig = plot_win_rate_analysis(df_for_duration, 'duration_bin', win_col, "Win Rate by Trade Duration", plot_theme)
                         if winrate_duration_fig: 
                             st.plotly_chart(winrate_duration_fig, use_container_width=True)
-                            winrate_by_duration_agg_data = df_for_duration.groupby('duration_bin')[win_col].agg(['mean', 'count']).reset_index()
-                            winrate_by_duration_agg_data['mean'] *= 100 # Convert to percentage
+                            winrate_by_duration_agg_data = df_for_duration.groupby('duration_bin', observed=False)[win_col].agg(['mean', 'count']).reset_index()
+                            winrate_by_duration_agg_data['mean'] *= 100 
                             with st.expander("👁️ View Win Rate by Duration Data"):
+                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                 st.dataframe(winrate_by_duration_agg_data)
+                                st.markdown("</div>", unsafe_allow_html=True)
                         else: display_custom_message("Could not generate Win Rate by duration plot.", "warning")
                     elif win_col not in df_for_duration.columns:
-                        display_custom_message(f"'{win_col}' column needed for Win Rate by Duration plot.", "info")
+                        display_custom_message(f"'{win_col}' column needed.", "info")
+                st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
             else:
                 display_custom_message("No trades with valid duration data after binning.", "info")
         else:
             display_custom_message("No trades with valid numeric duration and PnL data.", "info")
     else:
         display_custom_message(f"Numeric duration column ('{duration_col_numeric}') not found or not numeric.", "warning")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
     st.markdown("---")
 
     # --- Day & Hour Performance Matrix ---
@@ -363,17 +384,20 @@ def show_performance_page():
     dow_col = 'trade_day_of_week'  
     days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     
-    pnl_pivot_data, metric_pivot_data = None, None # Initialize for view data
+    pnl_pivot_data, metric_pivot_data = None, None 
 
     if hour_col in filtered_df.columns and dow_col in filtered_df.columns:
         with st.expander("⚙️ Customize Heatmaps"):
+            st.markdown("<div class='controls-expander-content'>", unsafe_allow_html=True) # Apply class
             heatmap_controls_col1, heatmap_controls_col2 = st.columns(2)
             with heatmap_controls_col1:
-                pnl_agg_option = st.selectbox("PnL Aggregation for Heatmap:", ["Total PnL", "Average PnL"], key="heatmap_pnl_aggregation_select")
+                pnl_agg_option = st.selectbox("PnL Aggregation:", ["Total PnL", "Average PnL"], key="heatmap_pnl_aggregation_select")
                 pnl_agg_func = 'sum' if pnl_agg_option == "Total PnL" else 'mean'
             with heatmap_controls_col2:
-                other_metric_option = st.selectbox("Second Heatmap Metric:", ["Win Rate %", "Trade Count"], key="heatmap_other_metric_select")
+                other_metric_option = st.selectbox("Second Metric:", ["Win Rate %", "Trade Count"], key="heatmap_other_metric_select")
+            st.markdown("</div>", unsafe_allow_html=True) # Close controls-expander-content
 
+        st.markdown("<div class='charts-grid'>", unsafe_allow_html=True) # Apply class for plot area
         heatmap_plot_col1, heatmap_plot_col2 = st.columns(2)
         try:
             with heatmap_plot_col1:
@@ -390,7 +414,9 @@ def show_performance_page():
                     if pnl_heatmap_fig: 
                         st.plotly_chart(pnl_heatmap_fig, use_container_width=True)
                         with st.expander(f"👁️ View {pnl_agg_option} Heatmap Data"):
+                            st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                             st.dataframe(pnl_pivot_data)
+                            st.markdown("</div>", unsafe_allow_html=True)
                     else: display_custom_message(f"Could not generate {pnl_agg_option} heatmap.", "warning")
                 else: display_custom_message(f"Not enough data for {pnl_agg_option} heatmap.", "info")
 
@@ -406,9 +432,11 @@ def show_performance_page():
                             if metric_heatmap_fig: 
                                 st.plotly_chart(metric_heatmap_fig, use_container_width=True)
                                 with st.expander(f"👁️ View {other_metric_option} Heatmap Data"):
+                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                     st.dataframe(metric_pivot_data)
+                                    st.markdown("</div>", unsafe_allow_html=True)
                         else: display_custom_message("Not enough data for Win Rate heatmap.", "info")
-                    else: display_custom_message(f"'{win_col}' column (numeric) needed for Win Rate heatmap.", "warning")
+                    else: display_custom_message(f"'{win_col}' column (numeric) needed.", "warning")
                 
                 elif other_metric_option == "Trade Count":
                     st.markdown("<h6>Trade Count by Hour & Day</h6>", unsafe_allow_html=True)
@@ -420,15 +448,18 @@ def show_performance_page():
                         if metric_heatmap_fig: 
                             st.plotly_chart(metric_heatmap_fig, use_container_width=True)
                             with st.expander(f"👁️ View {other_metric_option} Heatmap Data"):
+                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                                 st.dataframe(metric_pivot_data)
+                                st.markdown("</div>", unsafe_allow_html=True)
                     else: display_custom_message("Not enough data for Trade Count heatmap.", "info")
         except Exception as e_heatmap:
-            logger.error(f"Error generating Day/Hour heatmaps: {e_heatmap}", exc_info=True)
-            display_custom_message(f"An error occurred while generating Day/Hour heatmaps: {e_heatmap}", "error")
+            logger.error(f"Error in Day/Hour heatmaps: {e_heatmap}", exc_info=True)
+            display_custom_message(f"Error in Day/Hour heatmaps: {e_heatmap}", "error")
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
     else:
         missing_cols = [col for col in [hour_col, dow_col] if col not in filtered_df.columns]
-        display_custom_message(f"Engineered columns {', '.join(missing_cols)} not found. Cannot generate Day/Hour heatmaps.", "warning")
-    st.markdown("</div>", unsafe_allow_html=True)
+        display_custom_message(f"Engineered columns {', '.join(missing_cols)} not found.", "warning")
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
     st.markdown("---")
 
     # --- P&L Calendar View ---
@@ -436,15 +467,16 @@ def show_performance_page():
     st.subheader("🗓️ P&L Calendar View") 
     st.markdown("Visualize daily Profit & Loss in a familiar calendar format.")
     
-    daily_pnl_df_agg_for_view = None # Initialize for view data
+    daily_pnl_df_agg_for_view = None 
 
     if date_col_main in filtered_df.columns and pnl_col in filtered_df.columns:
+        st.markdown("<div class='calendar-display-area'>", unsafe_allow_html=True) # Apply class
         try:
             if not pd.api.types.is_datetime64_any_dtype(filtered_df[date_col_main]):
                 filtered_df[date_col_main] = pd.to_datetime(filtered_df[date_col_main], errors='coerce')
                 if filtered_df[date_col_main].isnull().all(): 
-                     display_custom_message(f"Could not convert '{date_col_main}' to datetime for P&L Calendar.", "error")
-                     st.markdown("</div>", unsafe_allow_html=True) 
+                     display_custom_message(f"Could not convert '{date_col_main}' to datetime.", "error")
+                     st.markdown("</div></div>", unsafe_allow_html=True) # Close calendar-display and section
                      return 
 
             daily_pnl_df_agg_for_view = filtered_df.groupby(filtered_df[date_col_main].dt.normalize())[pnl_col].sum().reset_index()
@@ -458,18 +490,21 @@ def show_performance_page():
                     calendar_component.render() 
                     if daily_pnl_df_agg_for_view is not None and not daily_pnl_df_agg_for_view.empty:
                         with st.expander("👁️ View Daily PnL Data (Calendar)"):
+                            st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                             st.dataframe(daily_pnl_df_agg_for_view[daily_pnl_df_agg_for_view['date'].dt.year == selected_year])
+                            st.markdown("</div>", unsafe_allow_html=True)
             else:
-                display_custom_message("No yearly data available to display the P&L calendar.", "info")
+                display_custom_message("No yearly data for P&L calendar.", "info")
         except Exception as e_cal:
-            logger.error(f"Error generating P&L Calendar View: {e_cal}", exc_info=True)
-            display_custom_message(f"An error occurred while generating the P&L Calendar: {e_cal}", "error")
+            logger.error(f"Error in P&L Calendar: {e_cal}", exc_info=True)
+            display_custom_message(f"Error in P&L Calendar: {e_cal}", "error")
+        st.markdown("</div>", unsafe_allow_html=True) # Close calendar-display-area
     else:
         missing_cols_cal = [col for col in [date_col_main, pnl_col] if col not in filtered_df.columns]
-        display_custom_message(f"Required columns ({', '.join(missing_cols_cal)}) not found for P&L Calendar.", "warning")
-    st.markdown("</div>", unsafe_allow_html=True)
+        display_custom_message(f"Required columns ({', '.join(missing_cols_cal)}) not found.", "warning")
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state:
-        st.warning("This page is part of a multi-page app. For full functionality, please run the main `app.py` script.")
+        st.warning("This page is part of a multi-page app. Run main `app.py` script.")
     show_performance_page()
