@@ -12,6 +12,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from typing import List, Dict, Optional, Any, Union
+from scipy import stats as scipy_stats # For distribution fitting plots
+
 
 # Assuming config.py and utils.common_utils are in a path accessible by Python
 try:
@@ -583,10 +585,12 @@ def plot_win_rate_analysis(
             return None
         if not pd.api.types.is_bool_dtype(df[win_col]) and not pd.api.types.is_numeric_dtype(df[win_col]):
             logger.warning(f"Win Rate Analysis (Raw): Win column '{win_col}' must be boolean or numeric (0 or 1).")
-            return None
+            # Attempt conversion if possible, or return None if strict typing is required
+            # For now, proceed assuming it can be cast to int for sum
+            # return None 
         try:
             df_calc = df.copy()
-            df_calc[win_col] = df_calc[win_col].astype(int)
+            df_calc[win_col] = df_calc[win_col].astype(int) # Ensure it's int for sum
             category_counts = df_calc.groupby(category_col, observed=False).size().rename('total_trades_in_cat')
             category_wins = df_calc.groupby(category_col, observed=False)[win_col].sum().rename('wins_in_cat')
         except Exception as e:
@@ -594,7 +598,7 @@ def plot_win_rate_analysis(
             return None
 
         win_rate_df = pd.concat([category_counts, category_wins], axis=1).fillna(0)
-        win_rate_df['win_rate_pct'] = 0.0
+        win_rate_df['win_rate_pct'] = 0.0 # Initialize column
         non_zero_trades_mask = win_rate_df['total_trades_in_cat'] > 0
         win_rate_df.loc[non_zero_trades_mask, 'win_rate_pct'] = \
             (win_rate_df.loc[non_zero_trades_mask, 'wins_in_cat'] / win_rate_df.loc[non_zero_trades_mask, 'total_trades_in_cat'] * 100)
@@ -647,19 +651,24 @@ def plot_rolling_performance(
         if len(df[date_col]) == len(metric_series):
             try:
                 plot_x_data_candidate = pd.to_datetime(df[date_col])
+                # Check if metric_series.index is already DatetimeIndex and matches
                 if isinstance(metric_series.index, pd.DatetimeIndex) and metric_series.index.equals(plot_x_data_candidate):
-                    plot_x_data = plot_x_data_candidate
+                    plot_x_data = plot_x_data_candidate # or metric_series.index, they are same
                     x_axis_title_text = "Date"
+                # If metric_series.index is not DatetimeIndex, but df[date_col] is convertible and matches length
                 elif not isinstance(metric_series.index, pd.DatetimeIndex): 
                     plot_x_data = plot_x_data_candidate
                     x_axis_title_text = "Date"
+                # If metric_series.index is DatetimeIndex but doesn't match (e.g. resampled), prefer original metric_series.index
                 elif isinstance(metric_series.index, pd.DatetimeIndex):
                      plot_x_data = metric_series.index 
                      x_axis_title_text = "Date"
+
             except Exception:
                 logger.warning(f"Rolling Performance ('{metric_name}'): Could not convert '{date_col}' to datetime or align. Using metric series index.")
         else:
              logger.info(f"Rolling Performance ('{metric_name}'): Length mismatch between df['{date_col}'] and metric_series. Using metric_series index.")
+    # If df/date_col not provided, but metric_series.index is already DatetimeIndex
     elif isinstance(metric_series.index, pd.DatetimeIndex): 
         plot_x_data = metric_series.index
         x_axis_title_text = "Date"
@@ -710,7 +719,7 @@ def plot_correlation_matrix(
         x=corr_matrix.columns,
         y=corr_matrix.columns,
         colorscale='RdBu', zmin=-1, zmax=1,
-        text=corr_matrix.round(2).astype(str),
+        text=corr_matrix.round(2).astype(str), # Show text on heatmap cells
         texttemplate="%{text}",
         hoverongaps=False
     ))
@@ -733,31 +742,34 @@ def plot_bootstrap_distribution_and_ci(
         return None
 
     fig = go.Figure()
+    # Plot histogram of bootstrap statistics
     fig.add_trace(go.Histogram(
         x=bootstrap_statistics, name='Bootstrap<br>Distribution',
-        marker_color=COLORS.get('royal_blue', '#4169E1'),
-        opacity=0.75, histnorm='probability density'
+        marker_color=COLORS.get('royal_blue', '#4169E1'), # Use a theme color
+        opacity=0.75, histnorm='probability density' # Normalize to density for comparison with PDF if needed
     ))
+    # Add vertical line for observed statistic
     fig.add_vline(
         x=observed_statistic, line_width=2, line_dash="dash",
-        line_color=COLORS.get('green', '#00FF00'),
-        name=f'Observed<br>{statistic_name}<br>({observed_statistic:.4f})'
+        line_color=COLORS.get('green', '#00FF00'), # Use a theme color
+        name=f'Observed<br>{statistic_name}<br>({observed_statistic:.4f})' # Include value in legend
     )
+    # Add vertical lines for CI bounds
     fig.add_vline(
         x=lower_bound, line_width=2, line_dash="dot",
-        line_color=COLORS.get('orange', '#FFA500'),
-        name=f'Lower 95% CI<br>({lower_bound:.4f})'
+        line_color=COLORS.get('orange', '#FFA500'), # Use a theme color
+        name=f'Lower CI<br>({lower_bound:.4f})' # Shortened name, include value
     )
     fig.add_vline(
         x=upper_bound, line_width=2, line_dash="dot",
-        line_color=COLORS.get('orange', '#FFA500'),
-        name=f'Upper 95% CI<br>({upper_bound:.4f})'
+        line_color=COLORS.get('orange', '#FFA500'), # Use a theme color
+        name=f'Upper CI<br>({upper_bound:.4f})' # Shortened name, include value
     )
     fig.update_layout(
         title_text=f'Bootstrap Distribution for {statistic_name}',
         xaxis_title=statistic_name,
         yaxis_title='Density',
-        bargap=0.1,
+        bargap=0.1, # Adjust gap between bars if needed
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
@@ -787,6 +799,8 @@ def plot_stacked_bar_chart(
     y_values_col_name = 'count' # Default for non-aggregated counts
     y_axis_title_text = "Count"
     plot_df = df # Use df directly if aggregated, otherwise it will be replaced by grouped_df
+    color_arg_for_px = None # Let Plotly infer if not set
+    legend_title_text = "Metric" # Default legend title
 
     if is_data_aggregated:
         if not stack_cols and not (stack_col and value_col): # Need columns for y-axis if aggregated
@@ -794,15 +808,12 @@ def plot_stacked_bar_chart(
              return None
         # If stack_cols are provided, these are the y-values for px.bar
         # If stack_col and value_col are provided, it means df has category_col, stack_col (for color), value_col (for y)
-        # This case is simpler: px.bar(df, x=category_col, y=value_col, color=stack_col)
         if stack_cols: # df is like: category | stack_val1 | stack_val2 | ...
             y_values_for_plot = stack_cols
             # color argument for px.bar will be handled by plotly if y is a list.
-            # Legend title should ideally be generic or based on stack_cols.
             # We'd need to melt the df to use a single color column if that's desired.
             # For now, let px.bar handle multiple y values.
             color_arg_for_px = None # Let Plotly handle colors for multiple y columns
-            legend_title_text = "Metric" # Generic legend title
         elif stack_col and value_col: # df is like: category | stack_group (for color) | value (for y)
             y_values_for_plot = value_col
             color_arg_for_px = stack_col
@@ -819,17 +830,18 @@ def plot_stacked_bar_chart(
             return None
         if value_col and value_col not in df.columns:
             logger.warning(f"Stacked Bar Chart (Raw): Value column '{value_col}' not found. Will use counts.")
-            value_col = None
+            value_col = None # Fallback to counts
         try:
             if value_col:
                 grouped_df = df.groupby([category_col, stack_col], observed=False, as_index=False)[value_col].sum()
-                y_values_col_name = value_col
+                y_values_col_name = value_col # Use the actual value column name for y
                 y_axis_title_text = f"Sum of {value_col.replace('_', ' ').title()}"
-            else:
+            else: # Counting occurrences
                 grouped_df = df.groupby([category_col, stack_col], observed=False, as_index=False).size()
+                # Ensure the count column is named consistently, e.g., 'count'
                 if 'size' in grouped_df.columns and 'count' not in grouped_df.columns:
                      grouped_df = grouped_df.rename(columns={'size': 'count'})
-                elif 0 in grouped_df.columns and 'count' not in grouped_df.columns:
+                elif 0 in grouped_df.columns and 'count' not in grouped_df.columns: # Handle unnamed size column
                      grouped_df = grouped_df.rename(columns={0: 'count'})
                 y_values_col_name = 'count' # Already set as default
             plot_df = grouped_df
@@ -903,7 +915,7 @@ def plot_grouped_bar_chart(
                 grouped_df = df.groupby([category_col, group_col], observed=False, as_index=False).size()
                 if 'size' in grouped_df.columns and 'count' not in grouped_df.columns:
                     grouped_df = grouped_df.rename(columns={'size': 'count'})
-                elif 0 in grouped_df.columns and 'count' not in grouped_df.columns:
+                elif 0 in grouped_df.columns and 'count' not in grouped_df.columns: # Handle unnamed size column
                     grouped_df = grouped_df.rename(columns={0: 'count'})
                 y_col_for_plot = 'count'
                 y_axis_title_text = "Count"
@@ -960,7 +972,7 @@ def plot_box_plot(
         df, x=category_col, y=value_col,
         color=category_col if color_discrete_map or theme == 'dark' else None, # Apply color by category if map provided or dark theme
         title=fig_title,
-        points="outliers",
+        points="outliers", # Show outliers
         color_discrete_map=color_discrete_map
     )
     fig.update_layout(
@@ -988,6 +1000,7 @@ def plot_donut_chart(
         return None
 
     plot_df = df
+    val_col_name_for_plot = value_col # Use provided value_col if aggregated
 
     if is_data_aggregated:
         if value_col not in df.columns:
@@ -999,7 +1012,7 @@ def plot_donut_chart(
         except ValueError:
             logger.error(f"Donut Chart (Aggregated): Value column '{value_col}' could not be converted to numeric.")
             return None
-    else:
+    else: # Perform aggregation (counts)
         counts = df[category_col].value_counts().reset_index()
         # Pandas < 2.0 might name the columns differently after reset_index if original was Series.name
         if len(counts.columns) == 2: # Common case
@@ -1014,17 +1027,17 @@ def plot_donut_chart(
                  return None
 
         plot_df = counts
-        value_col = 'count' # Ensure value_col is 'count' for non-aggregated data
+        val_col_name_for_plot = 'count' # Ensure value_col is 'count' for non-aggregated data
 
-    if plot_df.empty or value_col not in plot_df.columns:
+    if plot_df.empty or val_col_name_for_plot not in plot_df.columns:
         logger.warning("Donut Chart: No data to plot or value column missing after processing.")
         return None
 
     fig_title = title if title else f"Distribution of {category_col.replace('_', ' ').title()}"
 
     fig = px.pie(
-        plot_df, names=category_col, values=value_col,
-        title=fig_title, hole=0.4,
+        plot_df, names=category_col, values=val_col_name_for_plot,
+        title=fig_title, hole=0.4, # Creates the donut effect
         color_discrete_map=color_discrete_map
     )
     fig.update_traces(textposition='inside', textinfo='percent+label')
@@ -1036,9 +1049,9 @@ def plot_radar_chart(
     categories_col: str,
     value_cols: List[str],
     title: Optional[str] = None,
-    fill: str = 'toself',
+    fill: str = 'toself', # 'toself' fills area under trace, 'tonext' fills area between traces
     theme: str = 'dark',
-    color_discrete_sequence: Optional[List[str]] = None
+    color_discrete_sequence: Optional[List[str]] = None # For custom colors per trace
 ) -> Optional[go.Figure]:
     """
     Generates a radar chart (spider chart).
@@ -1051,7 +1064,7 @@ def plot_radar_chart(
     fig = go.Figure()
     category_labels = df_radar[categories_col].tolist()
 
-    if not category_labels:
+    if not category_labels: # Should not happen if categories_col exists and df_radar not empty, but good check
         logger.warning("Radar Chart: Category labels are empty.")
         return None
 
@@ -1059,18 +1072,19 @@ def plot_radar_chart(
         trace_color = None
         if color_discrete_sequence and i < len(color_discrete_sequence):
             trace_color = color_discrete_sequence[i]
-
+        
         fig.add_trace(go.Scatterpolar(
             r=df_radar[val_col].tolist(),
             theta=category_labels,
             fill=fill,
-            name=val_col.replace('_', ' ').title(),
-            line_color=trace_color
+            name=val_col.replace('_', ' ').title(), # Use column name as trace name
+            line_color=trace_color # Apply custom color if provided
         ))
 
     fig_title = title if title else "Radar Chart Comparison"
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True,)),
+        polar=dict(radialaxis=dict(visible=True, # range=[0, 5] # Optionally set range
+        )),
         showlegend=True,
         title=fig_title
     )
@@ -1099,9 +1113,11 @@ def plot_scatter_plot(
         logger.warning(f"Scatter Plot: Size column '{size_col}' not found. Ignoring.")
         size_col = None
     
+    # Ensure x and y columns are numeric
     if not pd.api.types.is_numeric_dtype(df[x_col]) or not pd.api.types.is_numeric_dtype(df[y_col]):
         logger.warning(f"Scatter Plot: X column '{x_col}' and Y column '{y_col}' must be numeric.")
         return None
+    # Ensure size column is numeric if provided
     if size_col and not pd.api.types.is_numeric_dtype(df[size_col]):
         logger.warning(f"Scatter Plot: Size column '{size_col}' must be numeric. Ignoring.")
         size_col = None
@@ -1140,6 +1156,7 @@ def plot_efficient_frontier(
         return None
 
     fig = go.Figure()
+    # Efficient Frontier line
     fig.add_trace(go.Scatter(
         x=frontier_vols, y=frontier_returns,
         mode='lines', name='Efficient Frontier',
@@ -1147,6 +1164,7 @@ def plot_efficient_frontier(
         hovertemplate='Volatility: %{x:.2%}<br>Return: %{y:.2%}<extra></extra>'
     ))
 
+    # Max Sharpe Ratio Portfolio point
     if max_sharpe_vol is not None and max_sharpe_ret is not None:
         fig.add_trace(go.Scatter(
             x=[max_sharpe_vol], y=[max_sharpe_ret],
@@ -1155,12 +1173,14 @@ def plot_efficient_frontier(
             hovertemplate='Max Sharpe<br>Volatility: %{x:.2%}<br>Return: %{y:.2%}<extra></extra>'
         ))
 
+    # Minimum Volatility Portfolio point
     if min_vol_vol is not None and min_vol_ret is not None:
+        # Check if it's distinct from Max Sharpe to avoid overlaying identical points
         is_distinct_from_max_sharpe = True
         if max_sharpe_vol is not None and max_sharpe_ret is not None:
-            if abs(min_vol_vol - max_sharpe_vol) < 1e-6 and abs(min_vol_ret - max_sharpe_ret) < 1e-6:
+            if abs(min_vol_vol - max_sharpe_vol) < 1e-6 and abs(min_vol_ret - max_sharpe_ret) < 1e-6: # Tolerance for float comparison
                 is_distinct_from_max_sharpe = False
-
+        
         if is_distinct_from_max_sharpe:
             fig.add_trace(go.Scatter(
                 x=[min_vol_vol], y=[min_vol_ret],
@@ -1173,9 +1193,208 @@ def plot_efficient_frontier(
         title_text=title,
         xaxis_title="Annualized Volatility (Standard Deviation)",
         yaxis_title="Annualized Expected Return",
-        xaxis_tickformat=".2%", yaxis_tickformat=".2%",
+        xaxis_tickformat=".2%", yaxis_tickformat=".2%", # Format axes as percentages
         hovermode="closest",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    return _apply_custom_theme(fig, theme)
+
+
+# --- NEW PLOTTING FUNCTIONS ---
+
+def plot_distribution_fit(
+    pnl_series: pd.Series,
+    dist_name: str,
+    fit_params: tuple,
+    gof_stats: Dict[str, float], # e.g., {"ks_statistic": D, "ks_p_value": p_value}
+    theme: str = 'dark',
+    nbins: int = 50
+) -> Optional[go.Figure]:
+    """
+    Plots the histogram of PnL data overlaid with the PDF of a fitted distribution,
+    and includes a Q-Q plot for visual goodness-of-fit assessment.
+
+    Args:
+        pnl_series (pd.Series): The PnL data.
+        dist_name (str): The name of the distribution (e.g., 'norm', 't').
+        fit_params (tuple): Parameters of the fitted distribution from scipy.stats.fit().
+        gof_stats (Dict[str, float]): Goodness-of-fit statistics, like KS p-value.
+        theme (str): Plotting theme ('light' or 'dark').
+        nbins (int): Number of bins for the histogram.
+
+    Returns:
+        Optional[go.Figure]: A Plotly figure object or None if an error occurs.
+    """
+    if pnl_series.empty:
+        logger.warning(f"Distribution Fit Plot for '{dist_name}': PnL series is empty.")
+        return None
+    if not hasattr(scipy_stats, dist_name):
+        logger.error(f"Distribution Fit Plot: Distribution '{dist_name}' not found in scipy.stats.")
+        return None
+
+    dist_obj = getattr(scipy_stats, dist_name)
+    
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=(f"Histogram vs. Fitted {dist_name.capitalize()} PDF", f"Q-Q Plot vs. {dist_name.capitalize()}"),
+        column_widths=[0.6, 0.4]
+    )
+
+    # 1. Histogram and PDF overlay
+    fig.add_trace(
+        go.Histogram(
+            x=pnl_series, nbinsx=nbins, name='PnL Data', histnorm='probability density',
+            marker_color=PLOT_LINE_COLOR, opacity=0.7
+        ), row=1, col=1
+    )
+    x_pdf = np.linspace(pnl_series.min(), pnl_series.max(), 500)
+    try:
+        y_pdf = dist_obj.pdf(x_pdf, *fit_params)
+    except Exception as e:
+        logger.error(f"Error calculating PDF for {dist_name} with params {fit_params}: {e}")
+        y_pdf = np.zeros_like(x_pdf) 
+    fig.add_trace(
+        go.Scatter(
+            x=x_pdf, y=y_pdf, mode='lines', name=f'Fitted {dist_name.capitalize()} PDF',
+            line=dict(color=COLORS.get('green', 'green'), width=2)
+        ), row=1, col=1
+    )
+
+    # 2. Q-Q Plot
+    try:
+        # For probplot, sparams are shape parameters. loc and scale are handled by fit=False if already in fit_params.
+        # The parameters from dist.fit() are usually (shape_params..., loc, scale).
+        # So, if dist_obj.shapes is not None, fit_params[:-2] are the shape parameters.
+        shape_params_for_probplot = ()
+        if dist_obj.shapes: # If the distribution has shape parameters
+            num_shape_params = len(dist_obj.shapes.split(','))
+            if len(fit_params) >= num_shape_params + 2: # loc and scale are last two
+                 shape_params_for_probplot = fit_params[:num_shape_params]
+            else: # Fallback if param count doesn't match expectation (e.g. fixed shape params)
+                 logger.warning(f"Q-Q Plot for {dist_name}: Parameter count mismatch for shape params. Expected {num_shape_params} shape params, got {len(fit_params)-2}. Proceeding without explicit sparams for probplot.")
+        
+        # Using stats.probplot which expects data and a distribution object.
+        # If `fit=True` (default), it fits loc and scale. If `fit=False`, it uses provided loc/scale from `sparams` or defaults.
+        # Since we already have all params from `dist.fit()`, we want to use them.
+        # `scipy.stats.probplot` with `dist=dist_obj` and `sparams=fit_params` (if dist takes them)
+        # or `dist=dist_obj(*fit_params)` if we want to create a frozen distribution.
+        # For simplicity and to use the `fit_params` directly as understood by the `dist_obj` methods:
+        
+        # Create a frozen distribution with the fitted parameters
+        frozen_dist = dist_obj(*fit_params)
+        qq_results = scipy_stats.probplot(pnl_series, dist=frozen_dist, plot=None) # plot=None returns arrays
+
+        osm, osr = qq_results[0] 
+        slope, intercept, r_value = qq_results[1] 
+
+        fig.add_trace(
+            go.Scatter(x=osm, y=osr, mode='markers', name='Data Quantiles', marker=dict(color=PLOT_LINE_COLOR)),
+            row=1, col=2
+        )
+        # For the theoretical line, it's y = x for a perfect fit if quantiles are directly comparable
+        # or use the regression line from probplot.
+        fig.add_trace(
+            go.Scatter(x=osm, y=slope * osm + intercept, mode='lines', name='Fit Line (OLS)', line=dict(color=COLORS.get('red', 'red'), dash='dash')),
+            row=1, col=2
+        )
+        fig.update_xaxes(title_text="Theoretical Quantiles", row=1, col=2)
+        fig.update_yaxes(title_text="Sample Quantiles", row=1, col=2)
+        fig.layout.annotations += (dict(
+            text=f"R-squared: {r_value**2:.4f}", 
+            align='left', showarrow=False, xref='paper', yref='paper', 
+            x=0.98, y=0.02, # Position in the Q-Q subplot
+            xanchor='right', yanchor='bottom',
+            font=dict(size=10), row=1, col=2
+        ),)
+
+
+    except Exception as e:
+        logger.error(f"Error generating Q-Q plot for {dist_name}: {e}", exc_info=True)
+        fig.add_annotation(text="Q-Q plot generation failed.", xref="paper", yref="paper",
+                           x=0.8, y=0.5, showarrow=False, row=1, col=2)
+
+
+    ks_p_value = gof_stats.get('ks_p_value', np.nan)
+    title_text = f"PnL vs. Fitted {dist_name.capitalize()} (KS p-value: {ks_p_value:.4f})"
+    
+    fig.update_layout(
+        title_text=title_text,
+        xaxis_title="PnL Value", yaxis_title="Density", # For subplot 1,1
+        bargap=0.1, showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+    )
+    return _apply_custom_theme(fig, theme)
+
+def plot_change_points(
+    time_series_data: pd.Series,
+    change_points_locations: List[Any], # List of actual index values (timestamps or numbers)
+    series_name: str = "Time Series",
+    title: str = "Time Series with Detected Change Points",
+    theme: str = 'dark'
+) -> Optional[go.Figure]:
+    """
+    Plots a time series with vertical lines indicating detected change points.
+
+    Args:
+        time_series_data (pd.Series): The original time series data.
+        change_points_locations (List[Any]): A list of actual index values
+            (timestamps or numeric indices from the original series)
+            where change points are detected.
+        series_name (str): Name of the time series for the legend.
+        title (str): Title of the plot.
+        theme (str): Plotting theme ('light' or 'dark').
+
+    Returns:
+        Optional[go.Figure]: A Plotly figure object or None if an error occurs.
+    """
+    if time_series_data.empty:
+        logger.warning("Change Point Plot: Time series data is empty.")
+        return None
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=time_series_data.index, y=time_series_data.values, mode='lines',
+            name=series_name, line=dict(color=PLOT_LINE_COLOR)
+        )
+    )
+    for i, cp_loc in enumerate(change_points_locations):
+        try:
+            # cp_loc should already be a valid index value from the original series
+            if cp_loc not in time_series_data.index:
+                 # This might happen if indices are slightly off due to float precision or if they are from a resampled series.
+                 # Attempt to find the nearest valid index if it's a DatetimeIndex.
+                if isinstance(time_series_data.index, pd.DatetimeIndex):
+                    try:
+                        # Ensure cp_loc is a timestamp if it's not already
+                        cp_timestamp = pd.to_datetime(cp_loc)
+                        # Find the closest index in the series
+                        nearest_idx_pos = time_series_data.index.get_indexer([cp_timestamp], method='nearest')[0]
+                        actual_cp_loc_for_plot = time_series_data.index[nearest_idx_pos]
+                        logger.warning(f"Change Point Plot: Location {cp_loc} not found exactly in index. Using nearest: {actual_cp_loc_for_plot}.")
+                    except Exception as date_err:
+                        logger.warning(f"Change Point Plot: Could not interpret or find nearest for location {cp_loc}: {date_err}. Skipping.")
+                        continue
+                else:
+                    logger.warning(f"Change Point Plot: Location {cp_loc} not in series index. Skipping.")
+                    continue
+            else:
+                actual_cp_loc_for_plot = cp_loc
+
+            fig.add_vline(
+                x=actual_cp_loc_for_plot, line_width=2, line_dash="dash",
+                line_color=COLORS.get('red', 'red'),
+                name=f'Change Point {i+1}' if i == 0 else None, 
+                showlegend= i == 0 
+            )
+        except Exception as e:
+            logger.error(f"Error adding vline for change point {cp_loc}: {e}", exc_info=True)
+
+    fig.update_layout(
+        title_text=title,
+        xaxis_title="Time / Index",
+        yaxis_title=series_name if series_name != "Time Series" else "Value",
+        hovermode="x unified", showlegend=True
     )
     return _apply_custom_theme(fig, theme)
 
