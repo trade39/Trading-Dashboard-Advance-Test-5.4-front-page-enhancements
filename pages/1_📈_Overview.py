@@ -12,7 +12,8 @@ and Collapsible KPI groups.
 
 Enhanced for a sleeker and more professional layout using containers and improved sectioning.
 Fixed TypeError for KPIClusterDisplay instantiation.
-Fixed TypeError for plot_equity_curve_and_drawdown instantiation.
+Fixed TypeError for plot_equity_curve_and_drawdown instantiation (initial_capital).
+Fixed TypeError for plot_equity_curve_and_drawdown instantiation (currency_symbol).
 """
 import streamlit as st
 import pandas as pd
@@ -45,7 +46,7 @@ except ImportError as e:
         def render(self): st.warning("KPI Display Component failed to load.")
     class AnalysisService:
         def get_core_kpis(self, *args, **kwargs): return {"error": "Analysis Service not loaded"}
-    def plot_equity_curve_and_drawdown(**kwargs): return None # Modified fallback to accept **kwargs
+    def plot_equity_curve_and_drawdown(**kwargs): return None 
     def _apply_custom_theme(fig, theme): return fig
     def display_custom_message(msg, type="error"): st.error(msg)
     def format_currency(val, currency_symbol="$", **kwargs): return f"{currency_symbol}{val:,.2f}" if pd.notna(val) else "N/A"
@@ -70,21 +71,20 @@ def get_timeframe_filtered_df(df: pd.DataFrame, date_col: str, timeframe_option:
     max_date_in_data = df[date_col].max()
     if pd.isna(max_date_in_data):
         logger.warning("Timeframe filter: Max date in data is NaT. Returning original DataFrame.")
-        return df # Return original df if no valid max date
+        return df 
 
-    # Use max_date_in_data as 'today' for calculations
     today = max_date_in_data
 
     if timeframe_option == "All Time":
         return df
     elif timeframe_option == "Last 30 Days":
-        start_date = today - pd.Timedelta(days=29) # Inclusive of the start day
+        start_date = today - pd.Timedelta(days=29) 
     elif timeframe_option == "Last 90 Days":
         start_date = today - pd.Timedelta(days=89)
     elif timeframe_option == "Year to Date (YTD)":
         start_date = pd.Timestamp(year=today.year, month=1, day=1)
     elif timeframe_option == "Last 1 Year":
-        start_date = today - pd.Timedelta(days=364) # Approx 1 year
+        start_date = today - pd.Timedelta(days=364) 
     else:
         logger.warning(f"Timeframe filter: Unknown timeframe option '{timeframe_option}'. Returning original DataFrame.")
         return df
@@ -96,7 +96,6 @@ def show_overview_page():
     """Renders the Performance Overview page."""
     st.title("📈 Performance Overview")
 
-    # Initial checks for necessary data in session state
     if 'filtered_data' not in st.session_state or st.session_state.filtered_data is None or st.session_state.filtered_data.empty:
         display_custom_message(
             "No data loaded or processed. Please upload and process your trading data on the 'Data Upload' page.",
@@ -110,29 +109,26 @@ def show_overview_page():
         display_custom_message(f"KPI calculation error: {st.session_state.kpi_results['error']}", "error")
         return
 
-    # Retrieve data from session state
     filtered_df_global = st.session_state.filtered_data
     kpi_results_global = st.session_state.kpi_results
     kpi_confidence_intervals = st.session_state.get('kpi_confidence_intervals', {})
-    plot_theme = st.session_state.get('current_theme', 'dark') # Default to dark if not set
+    plot_theme = st.session_state.get('current_theme', 'dark') 
     benchmark_daily_returns = st.session_state.get('benchmark_daily_returns')
     selected_benchmark_display_name = st.session_state.get('selected_benchmark_display_name', "Benchmark")
-    initial_capital = st.session_state.get('initial_capital', 100000.0) # Default initial capital
+    initial_capital = st.session_state.get('initial_capital', 100000.0) 
     currency_symbol = st.session_state.get("currency_symbol", "$")
 
 
-    # Define column names from config or defaults
     date_col = EXPECTED_COLUMNS.get('date', 'date')
     pnl_col = EXPECTED_COLUMNS.get('pnl', 'pnl')
-    cum_pnl_col = 'cumulative_pnl' # Standardized name used internally
-    drawdown_pct_col_name = 'drawdown_pct' # Standardized name used internally
+    cum_pnl_col = 'cumulative_pnl' 
+    drawdown_pct_col_name = 'drawdown_pct' 
     max_dd_details_from_state = st.session_state.get('max_drawdown_period_details')
 
     if filtered_df_global.empty:
         display_custom_message("No data available after applying global filters. Please adjust filters or upload new data.", "info")
         return
 
-    # Display last trade date information
     if date_col in filtered_df_global.columns and not filtered_df_global[date_col].dropna().empty:
         try:
             last_trade_date = pd.to_datetime(filtered_df_global[date_col]).max()
@@ -143,9 +139,8 @@ def show_overview_page():
     else:
         st.caption("Date column not found or empty; cannot determine the last trade date.")
 
-    st.markdown("---") # Visual separator
+    st.markdown("---") 
 
-    # --- Current Snapshot Section ---
     with st.container(border=True):
         st.subheader("📊 Current Status Snapshot")
         
@@ -153,10 +148,9 @@ def show_overview_page():
         latest_equity, current_dd, last_day_pnl, last_trading_day_str = np.nan, np.nan, np.nan, "N/A"
 
         if cum_pnl_col in filtered_df_global.columns and not filtered_df_global[cum_pnl_col].empty:
-            latest_equity = filtered_df_global[cum_pnl_col].iloc[-1] + initial_capital # Display equity based on initial capital
+            latest_equity = filtered_df_global[cum_pnl_col].iloc[-1] + initial_capital 
         
         if drawdown_pct_col_name in filtered_df_global.columns and not filtered_df_global[drawdown_pct_col_name].empty:
-            # Ensure current_dd is positive or zero; negative implies profit from trough, which is not typical DD display
             current_dd_raw = filtered_df_global[drawdown_pct_col_name].iloc[-1]
             current_dd = max(0, current_dd_raw) if pd.notna(current_dd_raw) else np.nan
 
@@ -169,7 +163,6 @@ def show_overview_page():
             last_trading_day_ts = df_temp_dates[date_col].max()
             if pd.notna(last_trading_day_ts):
                 last_trading_day_str = last_trading_day_ts.normalize().strftime('%Y-%m-%d')
-                # Sum PnL for all trades on the last trading day
                 last_day_pnl_val = df_temp_dates[df_temp_dates[date_col].dt.normalize() == last_trading_day_ts.normalize()][pnl_col].sum()
                 if pd.notna(last_day_pnl_val):
                     last_day_pnl = last_day_pnl_val
@@ -192,11 +185,10 @@ def show_overview_page():
                 format_currency(last_day_pnl, currency_symbol=currency_symbol),
                 help=f"Net profit or loss on {last_trading_day_str}."
             )
-        st.markdown("<br>", unsafe_allow_html=True) # Add a bit of space at the bottom of the container
+        st.markdown("<br>", unsafe_allow_html=True) 
 
     st.markdown("---")
 
-    # --- Key Performance Indicators Section ---
     st.header("🚀 Key Performance Indicators")
     if date_col in filtered_df_global.columns and not filtered_df_global[date_col].dropna().empty:
         try:
@@ -207,22 +199,19 @@ def show_overview_page():
             logger.error(f"Error formatting KPI date range caption: {e}")
             st.caption("Could not determine date range for global KPIs.")
     
-    cols_per_row_setting = st.session_state.get('kpi_cols_per_row', 4) # Use session state or default
+    cols_per_row_setting = st.session_state.get('kpi_cols_per_row', 4) 
 
     for group_name, kpi_keys_in_group in KPI_GROUPS_OVERVIEW.items():
         group_kpi_results = {key: kpi_results_global[key] for key in kpi_keys_in_group if key in kpi_results_global}
         
-        # Determine if expander should be open by default
-        default_expanded = True # Default to open for most groups
+        default_expanded = True 
         if group_name == "Benchmark Comparison":
             is_benchmark_active = benchmark_daily_returns is not None and not benchmark_daily_returns.empty
-            has_benchmark_kpis = any(pd.notna(group_kpi_results.get(key)) for key in ["alpha", "beta", "benchmark_sharpe_ratio"]) # Check for actual benchmark KPI values
+            has_benchmark_kpis = any(pd.notna(group_kpi_results.get(key)) for key in ["alpha", "beta", "benchmark_sharpe_ratio"]) 
             default_expanded = is_benchmark_active and has_benchmark_kpis
-            # Skip rendering benchmark expander if no benchmark is active and no relevant KPIs have values
             if not default_expanded and (not group_kpi_results or all(pd.isna(val) for val in group_kpi_results.values())):
                 continue
         
-        # Skip rendering other groups if all their KPI values are NaN (unless it's benchmark comparison, handled above)
         if not group_kpi_results or all(pd.isna(val) for val in group_kpi_results.values()):
             if group_name != "Benchmark Comparison":
                 logger.info(f"KPI group '{group_name}' has all NaN values and will be skipped.")
@@ -239,11 +228,10 @@ def show_overview_page():
             ).render()
     st.markdown("---")
     
-    # --- Strategy Performance Charts Section ---
     st.header("📈 Strategy Performance Charts")
     
-    df_for_plot_base_global_scope = pd.DataFrame() # To store the globally filtered data prepared for plotting
-    df_for_plot_time_filtered = pd.DataFrame() # To store the time-filtered data for plotting
+    df_for_plot_base_global_scope = pd.DataFrame() 
+    df_for_plot_time_filtered = pd.DataFrame() 
 
     with st.container(border=True):
         st.subheader("Equity Curve & Drawdown Analysis")
@@ -251,7 +239,7 @@ def show_overview_page():
         selected_timeframe = st.radio(
             "Select Timeframe for Equity Curve:",
             options=timeframe_options,
-            index=0, # Default to "All Time"
+            index=0, 
             horizontal=True,
             key="overview_equity_timeframe_radio"
         )
@@ -264,20 +252,19 @@ def show_overview_page():
                 if not pd.api.types.is_datetime64_any_dtype(df_for_plot_base_global_scope[date_col]):
                     df_for_plot_base_global_scope[date_col] = pd.to_datetime(df_for_plot_base_global_scope[date_col], errors='coerce')
                 
-                df_for_plot_base_global_scope.dropna(subset=[date_col], inplace=True) # Remove rows where date is NaT
+                df_for_plot_base_global_scope.dropna(subset=[date_col], inplace=True) 
 
                 if df_for_plot_base_global_scope.empty:
                     display_custom_message("No valid date entries found after processing. Cannot plot equity curve.", "error")
                 else:
                     df_for_plot_base_global_scope = df_for_plot_base_global_scope.sort_values(by=date_col)
                     
-                    # Ensure cumulative PnL and drawdown columns exist or are calculated
                     if cum_pnl_col not in df_for_plot_base_global_scope.columns:
                         if pnl_col in df_for_plot_base_global_scope.columns and pd.api.types.is_numeric_dtype(df_for_plot_base_global_scope[pnl_col]):
                             df_for_plot_base_global_scope[cum_pnl_col] = df_for_plot_base_global_scope[pnl_col].cumsum()
                         else:
                             display_custom_message(f"PnL column ('{pnl_col}') is missing or not numeric. Cannot calculate cumulative PnL.", "error")
-                            df_for_plot_base_global_scope = pd.DataFrame() # Invalidate if essential calc fails
+                            df_for_plot_base_global_scope = pd.DataFrame() 
                     
                     if not df_for_plot_base_global_scope.empty and drawdown_pct_col_name not in df_for_plot_base_global_scope.columns and cum_pnl_col in df_for_plot_base_global_scope.columns:
                         equity_with_initial = df_for_plot_base_global_scope[cum_pnl_col] + initial_capital
@@ -306,13 +293,12 @@ def show_overview_page():
                             df=df_for_plot_time_filtered,
                             date_col=date_col,
                             cumulative_pnl_col=cum_pnl_col,
-                            # initial_capital=initial_capital, # Removed this line
                             drawdown_pct_col=drawdown_pct_col_name if drawdown_pct_col_name in df_for_plot_time_filtered else None,
                             theme=plot_theme,
                             max_dd_peak_date=max_dd_peak_plot if selected_timeframe == "All Time" else None, 
                             max_dd_trough_date=max_dd_trough_plot if selected_timeframe == "All Time" else None,
-                            max_dd_recovery_date=max_dd_end_plot if selected_timeframe == "All Time" else None,
-                            currency_symbol=currency_symbol
+                            max_dd_recovery_date=max_dd_end_plot if selected_timeframe == "All Time" else None
+                            # currency_symbol=currency_symbol # Removed this line
                         )
                         if equity_fig:
                             st.plotly_chart(equity_fig, use_container_width=True)
@@ -324,7 +310,6 @@ def show_overview_page():
         st.markdown("<br>", unsafe_allow_html=True)
 
 
-    # --- Key Metrics for Selected Timeframe (Conditional) ---
     if not df_for_plot_time_filtered.empty and selected_timeframe != "All Time":
         st.markdown("---") 
         with st.container(border=True):
@@ -367,7 +352,6 @@ def show_overview_page():
 
     st.markdown("---")
 
-    # --- Benchmark Equity Curve Section (Conditional) ---
     benchmark_plot_equity = pd.Series(dtype=float) 
     if benchmark_daily_returns is not None and not benchmark_daily_returns.empty:
         bm_series = benchmark_daily_returns.squeeze() if isinstance(benchmark_daily_returns, pd.DataFrame) else benchmark_daily_returns
