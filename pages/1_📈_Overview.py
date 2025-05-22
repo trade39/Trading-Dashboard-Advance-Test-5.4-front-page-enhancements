@@ -11,6 +11,7 @@ Added Current Status Snapshot, Data Scope Indication, Last Updated Timestamp,
 and Collapsible KPI groups.
 
 Enhanced for a sleeker and more professional layout using containers and improved sectioning.
+Fixed TypeError for KPIClusterDisplay instantiation.
 """
 import streamlit as st
 import pandas as pd
@@ -46,7 +47,7 @@ except ImportError as e:
     def plot_equity_curve_and_drawdown(**kwargs): return None
     def _apply_custom_theme(fig, theme): return fig
     def display_custom_message(msg, type="error"): st.error(msg)
-    def format_currency(val, **kwargs): return f"${val:,.2f}" if pd.notna(val) else "N/A"
+    def format_currency(val, currency_symbol="$", **kwargs): return f"{currency_symbol}{val:,.2f}" if pd.notna(val) else "N/A" # Added currency_symbol here for fallback
     st.stop() # Stop execution if critical imports fail
 
 logger = logging.getLogger(APP_TITLE)
@@ -116,6 +117,8 @@ def show_overview_page():
     benchmark_daily_returns = st.session_state.get('benchmark_daily_returns')
     selected_benchmark_display_name = st.session_state.get('selected_benchmark_display_name', "Benchmark")
     initial_capital = st.session_state.get('initial_capital', 100000.0) # Default initial capital
+    currency_symbol = st.session_state.get("currency_symbol", "$")
+
 
     # Define column names from config or defaults
     date_col = EXPECTED_COLUMNS.get('date', 'date')
@@ -173,7 +176,7 @@ def show_overview_page():
         with snap_col1:
             st.metric(
                 "Latest Portfolio Equity",
-                format_currency(latest_equity, currency_symbol=st.session_state.get("currency_symbol", "$")),
+                format_currency(latest_equity, currency_symbol=currency_symbol),
                 help="Total value of the portfolio including initial capital and cumulative P&L."
             )
         with snap_col2:
@@ -185,7 +188,7 @@ def show_overview_page():
         with snap_col3:
             st.metric(
                 f"Last Day P&L ({last_trading_day_str})",
-                format_currency(last_day_pnl, currency_symbol=st.session_state.get("currency_symbol", "$")),
+                format_currency(last_day_pnl, currency_symbol=currency_symbol),
                 help=f"Net profit or loss on {last_trading_day_str}."
             )
         st.markdown("<br>", unsafe_allow_html=True) # Add a bit of space at the bottom of the container
@@ -222,20 +225,16 @@ def show_overview_page():
         if not group_kpi_results or all(pd.isna(val) for val in group_kpi_results.values()):
             if group_name != "Benchmark Comparison":
                 logger.info(f"KPI group '{group_name}' has all NaN values and will be skipped.")
-                # Optionally, display a message or just skip:
-                # with st.expander(group_name, expanded=False):
-                # display_custom_message(f"No data available for KPIs in '{group_name}'.", "info")
                 continue
 
         with st.expander(group_name, expanded=default_expanded):
-            KPIClusterDisplay(
+            KPIClusterDisplay( # Removed currency_symbol from here
                 kpi_results=group_kpi_results,
                 kpi_definitions=KPI_CONFIG,
                 kpi_order=kpi_keys_in_group,
                 kpi_confidence_intervals=kpi_confidence_intervals,
                 cols_per_row=cols_per_row_setting,
-                benchmark_context_name=(selected_benchmark_display_name if group_name == "Benchmark Comparison" and selected_benchmark_display_name not in [None, "None", ""] else None),
-                currency_symbol=st.session_state.get("currency_symbol", "$")
+                benchmark_context_name=(selected_benchmark_display_name if group_name == "Benchmark Comparison" and selected_benchmark_display_name not in [None, "None", ""] else None)
             ).render()
     st.markdown("---")
     
@@ -280,19 +279,10 @@ def show_overview_page():
                             df_for_plot_base_global_scope = pd.DataFrame() # Invalidate if essential calc fails
                     
                     if not df_for_plot_base_global_scope.empty and drawdown_pct_col_name not in df_for_plot_base_global_scope.columns and cum_pnl_col in df_for_plot_base_global_scope.columns:
-                        # Calculate drawdown if not present
                         equity_with_initial = df_for_plot_base_global_scope[cum_pnl_col] + initial_capital
                         hwm_equity = equity_with_initial.cummax()
                         dd_abs_equity = hwm_equity - equity_with_initial
-                        # Avoid division by zero if HWM is zero (e.g., if initial capital is 0 and PnL starts negative)
                         df_for_plot_base_global_scope[drawdown_pct_col_name] = (dd_abs_equity / hwm_equity.replace(0, np.nan)).fillna(0) * 100
-                        # Handle edge case: if HWM is 0 and there's a loss, drawdown is 100% of the loss relative to 0 initial effective equity.
-                        # This usually means initial capital was 0 and first trades were losses.
-                        # For simplicity, if HWM is 0, drawdown is absolute loss / initial_capital (if initial_capital > 0)
-                        # Or simply 100% if initial_capital is 0 and any loss occurs.
-                        # The current calculation (dd_abs_equity / hwm_equity) is standard for equity curve based DD.
-                        # If hwm_equity (peak equity) is 0 or negative, the percentage DD can be tricky.
-                        # Assuming initial_capital > 0, hwm_equity should generally be > 0.
 
                     if not df_for_plot_base_global_scope.empty:
                          df_for_plot_time_filtered = get_timeframe_filtered_df(df_for_plot_base_global_scope, date_col, selected_timeframe)
@@ -304,14 +294,11 @@ def show_overview_page():
                         max_dd_end_plot = max_dd_details_from_state.get('End Date')
                         logger.info(f"Using global max DD details for 'All Time' plot: P:{max_dd_peak_plot}, T:{max_dd_trough_plot}, E:{max_dd_end_plot}")
                     elif not df_for_plot_time_filtered.empty and selected_timeframe != "All Time":
-                        # For specific timeframes, max DD highlighting might need recalculation for that period
-                        # Or, we only show global max DD highlight when "All Time" is selected.
-                        # For now, we only pass the global max DD details if "All Time" is selected.
                         logger.info(f"Max DD period highlight is based on global data, shown when 'All Time' is selected.")
                         pass
                     
                     if df_for_plot_time_filtered.empty:
-                        if not df_for_plot_base_global_scope.empty: # Check if base had data
+                        if not df_for_plot_base_global_scope.empty: 
                             display_custom_message(f"No data available for the selected timeframe: '{selected_timeframe}'.", "info")
                     else:
                         equity_fig = plot_equity_curve_and_drawdown(
@@ -321,10 +308,10 @@ def show_overview_page():
                             initial_capital=initial_capital,
                             drawdown_pct_col=drawdown_pct_col_name if drawdown_pct_col_name in df_for_plot_time_filtered else None,
                             theme=plot_theme,
-                            max_dd_peak_date=max_dd_peak_plot if selected_timeframe == "All Time" else None, # Only show for "All Time"
+                            max_dd_peak_date=max_dd_peak_plot if selected_timeframe == "All Time" else None, 
                             max_dd_trough_date=max_dd_trough_plot if selected_timeframe == "All Time" else None,
                             max_dd_recovery_date=max_dd_end_plot if selected_timeframe == "All Time" else None,
-                            currency_symbol=st.session_state.get("currency_symbol", "$")
+                            currency_symbol=currency_symbol
                         )
                         if equity_fig:
                             st.plotly_chart(equity_fig, use_container_width=True)
@@ -338,30 +325,24 @@ def show_overview_page():
 
     # --- Key Metrics for Selected Timeframe (Conditional) ---
     if not df_for_plot_time_filtered.empty and selected_timeframe != "All Time":
-        st.markdown("---") # Separator before timeframe-specific KPIs
+        st.markdown("---") 
         with st.container(border=True):
             st.subheader(f"Key Metrics for Selected Timeframe: {selected_timeframe}")
             with st.spinner(f"Calculating metrics for {selected_timeframe}..."):
-                # Prepare DataFrame for timeframe-specific KPI calculation
-                # Ensure necessary columns are present
                 cols_for_timeframe_kpi = [date_col, pnl_col]
                 if drawdown_pct_col_name in df_for_plot_time_filtered.columns:
                     cols_for_timeframe_kpi.append(drawdown_pct_col_name)
                 
                 kpis_timeframe_df = df_for_plot_time_filtered[cols_for_timeframe_kpi].copy()
                 
-                # Calculate timeframe-specific KPIs
-                # Note: The AnalysisService might need adjustment if it expects global df structure
-                # For simplicity, assuming get_core_kpis can handle a pre-filtered df
                 timeframe_kpis_results = analysis_service_instance.get_core_kpis(
                     kpis_timeframe_df,
-                    st.session_state.get('risk_free_rate', 0.0), # Use session state risk-free rate
-                    None, # Benchmark returns not typically passed for sub-period core KPIs here
-                    st.session_state.get('initial_capital', 100000.0) # Use session state initial capital
+                    st.session_state.get('risk_free_rate', 0.0), 
+                    None, 
+                    st.session_state.get('initial_capital', 100000.0) 
                 )
 
                 if timeframe_kpis_results and 'error' not in timeframe_kpis_results:
-                    # Define which KPIs to show for the timeframe snapshot
                     timeframe_kpi_keys_to_show = [
                         "total_pnl", "win_rate", "avg_trade_pnl", 
                         "max_drawdown_pct", "total_trades", "sharpe_ratio", "sortino_ratio"
@@ -370,12 +351,11 @@ def show_overview_page():
                         key: timeframe_kpis_results[key] for key in timeframe_kpi_keys_to_show if key in timeframe_kpis_results
                     }
                     if focused_kpis and not all(pd.isna(v) for v in focused_kpis.values()):
-                        KPIClusterDisplay(
+                        KPIClusterDisplay( # Removed currency_symbol from here
                             kpi_results=focused_kpis,
-                            kpi_definitions=KPI_CONFIG, # Assuming KPI_CONFIG has definitions for these
+                            kpi_definitions=KPI_CONFIG, 
                             kpi_order=timeframe_kpi_keys_to_show,
-                            cols_per_row=3, # Fixed 3 columns for this focused display
-                            currency_symbol=st.session_state.get("currency_symbol", "$")
+                            cols_per_row=3
                         ).render()
                     else:
                         display_custom_message(f"No focused KPI data available for the timeframe '{selected_timeframe}'.", "info")
@@ -387,16 +367,14 @@ def show_overview_page():
     st.markdown("---")
 
     # --- Benchmark Equity Curve Section (Conditional) ---
-    benchmark_plot_equity = pd.Series(dtype=float) # Initialize as empty Series
+    benchmark_plot_equity = pd.Series(dtype=float) 
     if benchmark_daily_returns is not None and not benchmark_daily_returns.empty:
         bm_series = benchmark_daily_returns.squeeze() if isinstance(benchmark_daily_returns, pd.DataFrame) else benchmark_daily_returns
         if isinstance(bm_series, pd.Series) and not bm_series.empty:
-            # Ensure the benchmark series starts with a 0 return if the first value is NaN (common for daily returns)
             bm_series_for_plot = bm_series.copy()
             if pd.isna(bm_series_for_plot.iloc[0]):
                 bm_series_for_plot.iloc[0] = 0.0
             
-            # Calculate cumulative growth factor and scale by initial capital
             benchmark_cumulative_growth_factor = (1 + bm_series_for_plot).cumprod()
             if not benchmark_cumulative_growth_factor.empty:
                 benchmark_plot_equity = benchmark_cumulative_growth_factor * initial_capital
@@ -419,13 +397,12 @@ def show_overview_page():
             fig_benchmark_only.update_layout(
                 title_text=f"{selected_benchmark_display_name} Equity Curve (Scaled to Initial Capital)",
                 xaxis_title="Date",
-                yaxis_title=f"Benchmark Value ({st.session_state.get('currency_symbol', '$')})",
+                yaxis_title=f"Benchmark Value ({currency_symbol})",
                 hovermode="x unified"
             )
             st.plotly_chart(_apply_custom_theme(fig_benchmark_only, plot_theme), use_container_width=True)
             st.markdown("<br>", unsafe_allow_html=True)
     elif st.session_state.get('selected_benchmark_ticker') and st.session_state.get('selected_benchmark_ticker') != "":
-        # If a benchmark was selected but data isn't available for plotting
         with st.container(border=True):
             st.subheader(f"Benchmark Performance: {selected_benchmark_display_name}")
             display_custom_message(f"Equity curve data is not available for the selected benchmark: '{selected_benchmark_display_name}'. Ensure benchmark data was loaded correctly.", "info")
@@ -435,9 +412,7 @@ def show_overview_page():
 
 
 if __name__ == "__main__":
-    # This is a page module, usually run via the main app.py
-    # Add a check for direct execution if needed, or assume it's part of a multipage app
-    if 'app_initialized' not in st.session_state: # A simple check
+    if 'app_initialized' not in st.session_state: 
         st.warning("This page is part of a multi-page Streamlit application. Please run the main application script (e.g., app.py) to view this page correctly with all initializations.")
         st.info("If you are developing this page, ensure necessary session state variables (like 'filtered_data', 'kpi_results', 'initial_capital', 'current_theme') are mocked or set for testing.")
     else:
