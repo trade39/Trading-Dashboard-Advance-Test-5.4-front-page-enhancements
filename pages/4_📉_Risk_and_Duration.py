@@ -8,6 +8,7 @@ Survival analysis now uses AIModelService.
 Advanced drawdown analysis is added.
 Icons and "View Data" options added for enhanced UX.
 Ensured _apply_custom_theme is called for all plots.
+Contextual help and explanations added for charts and data sections.
 """
 import streamlit as st
 import pandas as pd
@@ -46,6 +47,63 @@ logger = logging.getLogger(APP_TITLE)
 ai_model_service = AIModelService()
 analysis_service_instance = AnalysisService()
 
+# --- Help Text Dictionary ---
+RISK_PAGE_HELP_TEXT = {
+    "equity_curve": """
+    **Equity Curve with Drawdown Periods:**
+    - **Equity Curve (Main Plot):** Tracks the cumulative profit and loss (P&L) of the strategy over time. An upward trend generally indicates profitability.
+    - **Drawdown Periods (Shaded Areas/Lower Plot):** Represent periods where the strategy's equity declined from a previous peak. The lower plot typically shows the percentage drawdown from the peak.
+    - **Interpretation:** This chart is crucial for visualizing the growth of capital and understanding the magnitude and duration of losses. Key aspects to observe are:
+        - The overall slope and smoothness of the equity curve (consistency of growth).
+        - The depth of drawdowns (maximum percentage loss from a peak).
+        - The duration of drawdowns (how long it takes to reach a new peak after a drawdown).
+        - The frequency of drawdowns.
+    """,
+    "underwater_plot": """
+    **Underwater Plot (Equity vs. High Water Mark):**
+    - **Equity Value (Blue Line):** Shows the strategy's cumulative P&L over time.
+    - **High Water Mark (Green Dashes/Line, if shown):** Represents the highest peak the equity has reached up to that point in time.
+    - **Interpretation:** This plot specifically highlights how long and how far the strategy's equity remains below its previous all-time high (i.e., when it's "underwater").
+        - The area between the high water mark (or the zero line if drawdowns are plotted directly) and the equity curve visually represents the drawdown percentage or absolute amount.
+        - It helps assess the severity and duration of losing periods and the time it takes for the strategy to recover to new equity highs.
+    """,
+    "correlation_matrix": """
+    **Feature Correlation Matrix:**
+    - **What it shows:** This heatmap displays the Pearson correlation coefficients between various selected numeric features from your trading data (e.g., P&L, trade duration, risk per trade, signal confidence).
+    - **Correlation Coefficient:** A value between -1 and +1 that measures the linear relationship between two variables.
+        - `+1`: Perfect positive linear correlation (as one feature increases, the other tends to increase).
+        - `-1`: Perfect negative linear correlation (as one feature increases, the other tends to decrease).
+        - `0`: No linear correlation (features do not have a clear linear tendency to move together).
+    - **Interpretation:**
+        - Helps understand interdependencies between different aspects of your trading strategy and outcomes. For example, is higher P&L correlated with longer trade durations or higher initial risk?
+        - Strong correlations (values close to +1 or -1) can indicate multicollinearity if these features are used in a predictive model, or they might reveal important trading dynamics.
+        - Weak correlations (values close to 0) suggest that the features are largely linearly independent.
+        - *Caution:* Correlation does not imply causation.
+    """,
+    "drawdown_periods_table": """
+    **Individual Drawdown Periods Table:**
+    This table lists significant drawdown periods experienced by the strategy. Each row details:
+    - **Peak Date & Value:** The date and equity value when the drawdown began (the preceding high point).
+    - **Trough Date & Value:** The date and equity value at the lowest point of the drawdown.
+    - **End Date:** The date when the equity recovered to surpass the Peak Value (if recovered).
+    - **Depth (Abs & Pct):** The maximum loss during the drawdown, in absolute currency and as a percentage of the Peak Value.
+    - **Duration Days:** The number of days from the Peak Date to the Trough Date.
+    - **Recovery Days:** The number of days from the Trough Date to the End Date. "Ongoing" indicates the drawdown has not yet fully recovered.
+    - **Total Days:** The total time from Peak Date to End Date (or current date if ongoing).
+    """,
+    "drawdown_summary_stats": """
+    **Drawdown Summary Statistics:**
+    These metrics provide an overview of the strategy's drawdown characteristics:
+    - **Total Time in Drawdown:** The cumulative number of days the strategy spent below a previous equity peak.
+    - **Avg. Drawdown Duration:** The average length of time from the start of a drawdown to its lowest point.
+    - **Avg. Recovery Duration:** The average length of time from the lowest point of a drawdown to when the equity recovers to its previous peak.
+    """,
+    "view_equity_data": "This table shows the daily time series data used for the 'Equity Curve with Drawdown Periods' plot. It typically includes the date, the cumulative profit and loss (equity value), and the calculated percentage drawdown from the peak equity.",
+    "view_underwater_data": "This table displays the time series of the strategy's equity value. This data is used to construct the 'Underwater Plot', illustrating periods and magnitudes where the equity is below its previous peak.",
+    "view_correlation_data": "This table presents the raw numeric feature values used to calculate the Pearson correlation coefficients displayed in the 'Feature Correlation Matrix' heatmap above. Each row typically represents a trade or an observation period, and columns are the selected numeric features."
+}
+
+
 def show_risk_duration_page():
     # --- Page Title and Initial Checks ---
     st.title("📉 Risk, Duration & Drawdown Analysis")
@@ -64,7 +122,7 @@ def show_risk_duration_page():
     filtered_df = st.session_state.filtered_data
     kpi_results = st.session_state.kpi_results
     kpi_confidence_intervals = st.session_state.get('kpi_confidence_intervals', {})
-    plot_theme = st.session_state.get('current_theme', 'dark') # Ensure this session_state var is set in main app
+    plot_theme = st.session_state.get('current_theme', 'dark')
     benchmark_daily_returns = st.session_state.get('benchmark_daily_returns')
 
     if filtered_df.empty:
@@ -73,6 +131,13 @@ def show_risk_duration_page():
 
     # --- Key Risk Metrics Section ---
     st.header("🔑 Key Risk Metrics")
+    # Consider adding an expander here for a general overview of this section if desired.
+    # For individual KPI explanations, this should ideally be handled within the KPIClusterDisplay component,
+    # possibly by passing KPI_CONFIG (which should contain definitions) to it.
+    # Example:
+    # with st.expander("ℹ️ About Key Risk Metrics"):
+    #     st.markdown("This section displays critical metrics related to portfolio risk, market exposure, and performance relative to benchmarks...")
+
     cols_per_row_setting = 3
     for group_name, kpi_keys_in_group in KPI_GROUPS_RISK_DURATION.items():
         group_kpi_results = {key: kpi_results[key] for key in kpi_keys_in_group if key in kpi_results}
@@ -88,10 +153,13 @@ def show_risk_duration_page():
         
         if group_kpi_results:
             st.subheader(f"{group_name}")
+            # Placeholder for KPI group explanation - could be sourced from a dictionary
+            # with st.expander(f"ℹ️ About {group_name}", expanded=False):
+            #    st.markdown(RISK_PAGE_HELP_TEXT.get(group_name.lower().replace(' ', '_'), "Details about this KPI group."))
             try:
                 kpi_cluster_risk = KPIClusterDisplay(
                     kpi_results=group_kpi_results,
-                    kpi_definitions=KPI_CONFIG,
+                    kpi_definitions=KPI_CONFIG, # KPI_CONFIG should contain definitions for individual KPIs
                     kpi_order=kpi_keys_in_group,
                     kpi_confidence_intervals=kpi_confidence_intervals,
                     cols_per_row=cols_per_row_setting
@@ -118,6 +186,9 @@ def show_risk_duration_page():
 
             if adv_dd_results and 'error' not in adv_dd_results:
                 st.subheader("📉 Individual Drawdown Periods")
+                with st.expander("ℹ️ Learn more about this table", expanded=False):
+                    st.markdown(RISK_PAGE_HELP_TEXT.get('drawdown_periods_table', "Explanation unavailable."))
+
                 drawdown_periods_table = adv_dd_results.get("drawdown_periods")
                 if drawdown_periods_table is not None and not drawdown_periods_table.empty:
                     display_dd_table = drawdown_periods_table.copy()
@@ -139,6 +210,8 @@ def show_risk_duration_page():
                     display_custom_message("ℹ️ No distinct drawdown periods identified or data was insufficient.", "info")
 
                 st.subheader("📊 Drawdown Summary Statistics")
+                with st.expander("ℹ️ Learn more about these statistics", expanded=False):
+                    st.markdown(RISK_PAGE_HELP_TEXT.get('drawdown_summary_stats', "Explanation unavailable."))
                 dd_summary_cols = st.columns(3)
                 with dd_summary_cols[0]:
                     st.metric("⏱️ Total Time in Drawdown", f"{adv_dd_results.get('total_time_in_drawdown_days', 0):.0f} days")
@@ -148,6 +221,9 @@ def show_risk_duration_page():
                     st.metric("📈 Avg. Recovery Duration", f"{adv_dd_results.get('average_recovery_duration_days', np.nan):.1f} days")
                 
                 st.subheader("💹 Equity Curve with Drawdown Periods")
+                with st.expander("ℹ️ Learn more about this chart", expanded=False):
+                    st.markdown(RISK_PAGE_HELP_TEXT.get('equity_curve', "Explanation unavailable."))
+
                 drawdown_pct_col_name = 'drawdown_pct'
                 equity_fig_shaded = plot_equity_curve_and_drawdown(
                     filtered_df,
@@ -155,12 +231,12 @@ def show_risk_duration_page():
                     cumulative_pnl_col=cum_pnl_col,
                     drawdown_pct_col=drawdown_pct_col_name if drawdown_pct_col_name in filtered_df.columns else None,
                     drawdown_periods_df=drawdown_periods_table,
-                    theme=plot_theme # Pass theme to plotting function
+                    theme=plot_theme
                 )
                 if equity_fig_shaded:
-                    # Apply the custom theme wrapper consistently
                     st.plotly_chart(_apply_custom_theme(equity_fig_shaded, plot_theme), use_container_width=True)
                     with st.expander("👁️ View Underlying Equity Curve Data"):
+                        st.caption(RISK_PAGE_HELP_TEXT.get('view_equity_data', "Data for the equity curve plot."))
                         data_for_equity_plot = filtered_df[[date_col, cum_pnl_col]]
                         if drawdown_pct_col_name in filtered_df.columns:
                             data_for_equity_plot = pd.concat([data_for_equity_plot, filtered_df[[drawdown_pct_col_name]]], axis=1)
@@ -172,11 +248,13 @@ def show_risk_duration_page():
                     display_custom_message("⚠️ Could not generate equity curve with shaded drawdowns.", "warning")
 
                 st.subheader("💧 Underwater Plot")
-                underwater_fig = plot_underwater_analysis(equity_series_for_dd_prep, theme=plot_theme) # Pass theme
+                with st.expander("ℹ️ Learn more about this chart", expanded=False):
+                    st.markdown(RISK_PAGE_HELP_TEXT.get('underwater_plot', "Explanation unavailable."))
+                underwater_fig = plot_underwater_analysis(equity_series_for_dd_prep, theme=plot_theme)
                 if underwater_fig:
-                    # Apply the custom theme wrapper consistently
                     st.plotly_chart(_apply_custom_theme(underwater_fig, plot_theme), use_container_width=True)
                     with st.expander("👁️ View Underlying Underwater Plot Data"):
+                        st.caption(RISK_PAGE_HELP_TEXT.get('view_underwater_data', "Data for the underwater plot."))
                         st.dataframe(equity_series_for_dd_prep.reset_index().rename(columns={'index': date_col, cum_pnl_col: 'Equity Value'}), use_container_width=True)
                 else:
                     display_custom_message("⚠️ Could not generate underwater plot.", "warning")
@@ -193,6 +271,8 @@ def show_risk_duration_page():
 
     st.header("🔗 Other Risk Visualizations")
     st.subheader("🔢 Feature Correlation Matrix")
+    with st.expander("ℹ️ Learn more about this chart", expanded=False):
+        st.markdown(RISK_PAGE_HELP_TEXT.get('correlation_matrix', "Explanation unavailable."))
     try:
         pnl_col_name = EXPECTED_COLUMNS.get('pnl')
         numeric_cols_for_corr = []
@@ -219,18 +299,18 @@ def show_risk_duration_page():
         signal_conf_col_conceptual = 'signal_confidence'
         signal_conf_col_actual = EXPECTED_COLUMNS.get(signal_conf_col_conceptual)
         if signal_conf_col_actual and signal_conf_col_actual in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[signal_conf_col_actual]):
-            numeric_cols_for_corr.append(signal_conf_col_actual)
+            numeric_csols_for_corr.append(signal_conf_col_actual)
 
         numeric_cols_for_corr = list(set(numeric_cols_for_corr))
 
         if len(numeric_cols_for_corr) >= 2:
             correlation_fig = plot_correlation_matrix(
-                filtered_df, numeric_cols=numeric_cols_for_corr, theme=plot_theme # Pass theme
+                filtered_df, numeric_cols=numeric_cols_for_corr, theme=plot_theme
             )
             if correlation_fig:
-                # Apply the custom theme wrapper consistently
                 st.plotly_chart(_apply_custom_theme(correlation_fig, plot_theme), use_container_width=True)
                 with st.expander("👁️ View Underlying Correlation Data"):
+                    st.caption(RISK_PAGE_HELP_TEXT.get('view_correlation_data', "Data for the correlation matrix."))
                     st.dataframe(filtered_df[numeric_cols_for_corr].reset_index(drop=True), use_container_width=True)
             else:
                 display_custom_message("⚠️ Could not generate the correlation matrix.", "warning")
@@ -242,7 +322,7 @@ def show_risk_duration_page():
 
     st.markdown("---")
     # --- Trade Duration Analysis (Survival Curve) - Currently Commented Out ---
-    # ... (rest of the survival curve code, if uncommented, ensure _apply_custom_theme is used for its plot too)
+    # ... (If uncommented, add similar st.expander for explanation and st.caption for view data)
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state:
