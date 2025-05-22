@@ -1,40 +1,58 @@
 import streamlit as st
 import pandas as pd
+import numpy as np # Added for potential calculations like std dev
 import logging
 import plotly.graph_objects as go
+import plotly.figure_factory as ff # For distribution plots
 
 # --- Imports for app config and utilities ---
 try:
     from config import APP_TITLE, EXPECTED_COLUMNS, DEFAULT_KPI_DISPLAY_ORDER, COLORS
-    from utils.common_utils import display_custom_message #, format_currency, format_percentage # format_currency and format_percentage not used directly here
-    from services.analysis_service import AnalysisService
-    from plotting import _apply_custom_theme
+    from utils.common_utils import display_custom_message
+    from services.analysis_service import AnalysisService # Assuming this will have new methods
+    from plotting import _apply_custom_theme # Assuming this can be reused or adapted
+    # Placeholder for new plotting functions if they were in plotting.py
+    # from plotting import plot_return_distributions, plot_risk_reward_scatter
 except ImportError as e:
-    # Fallback for critical import errors to allow the page to at least load an error message
     st.error(f"Strategy Comparison Page Error: Critical module import failed: {e}. Ensure app structure is correct and all dependencies are available.")
-    # Define minimal fallbacks so the rest of the script doesn't immediately crash
     APP_TITLE = "TradingDashboard_Error"
     EXPECTED_COLUMNS = {"strategy": "strategy_fallback", "date": "date_fallback", "pnl": "pnl_fallback"}
     DEFAULT_KPI_DISPLAY_ORDER = []
-    COLORS = {} # Ensure COLORS is defined, even if empty
-    # Define dummy functions if they are essential for the script to parse
+    COLORS = {}
     def display_custom_message(message, type): st.text(f"{type.upper()}: {message}")
     class AnalysisService:
         def get_core_kpis(self, df, rate): return {"error": "AnalysisService not loaded"}
-    def _apply_custom_theme(fig, theme): return fig # No-op
-    # It's generally better to st.stop() after a critical error, but for completeness:
-    # st.stop() # Uncomment if you want the app to halt here on critical import failure
+        def calculate_daily_returns(self, strategy_df, pnl_col): # Mock implementation
+            if pnl_col in strategy_df:
+                return strategy_df[pnl_col].pct_change().fillna(0) # Example, assumes pnl is like equity
+            return pd.Series(dtype='float64')
+        # Mock methods for scatter plot KPIs if not in get_core_kpis
+        def get_scatter_plot_kpis(self, strategy_df, risk_free_rate):
+             # These would ideally come from a more robust calculation
+            pnl_col = EXPECTED_COLUMNS.get('pnl', 'pnl')
+            if pnl_col not in strategy_df or strategy_df[pnl_col].empty:
+                return {'Annualized Return': 0, 'Annualized Volatility': 0, 'Sharpe Ratio': 0}
 
-# Initialize logger, ensuring APP_TITLE is defined
+            daily_returns = strategy_df[pnl_col].pct_change().fillna(0) # Simplified
+            annualized_return = daily_returns.mean() * 252
+            annualized_volatility = daily_returns.std() * np.sqrt(252)
+            sharpe = (annualized_return - risk_free_rate) / annualized_volatility if annualized_volatility != 0 else 0
+            return {
+                'Annualized Return': annualized_return,
+                'Annualized Volatility': annualized_volatility,
+                'Sharpe Ratio': sharpe # Example
+            }
+
+    def _apply_custom_theme(fig, theme): return fig
+
 logger = logging.getLogger(APP_TITLE if 'APP_TITLE' in locals() else "TradingDashboard_Default")
-analysis_service = AnalysisService() if 'AnalysisService' in locals() else None # Ensure service is available or None
+analysis_service = AnalysisService() if 'AnalysisService' in locals() else None
 
 def get_st_theme():
-    """Detect Streamlit theme dynamically."""
     try:
         theme_base = st.get_option("theme.base")
     except Exception:
-        theme_base = st.session_state.get("current_theme", "dark") # Fallback
+        theme_base = st.session_state.get("current_theme", "dark")
     return theme_base if theme_base in {"dark", "light"} else "dark"
 
 def show_strategy_comparison_page():
@@ -42,259 +60,275 @@ def show_strategy_comparison_page():
     st.markdown('<p class="page-subtitle">Easily compare performance, risk, and equity curves between your strategies side-by-side.</p>', unsafe_allow_html=True)
     theme = get_st_theme()
 
-    # --- Data Check Section ---
-    # This container is for logic, not necessarily for visual card styling
-    with st.container():
-        if 'filtered_data' not in st.session_state or st.session_state.filtered_data is None:
-            display_custom_message("Please upload and process data in the main application to compare strategies.", "info")
-            logger.info("StrategyComparisonPage: No filtered_data in session_state.")
-            return
+    if 'filtered_data' not in st.session_state or st.session_state.filtered_data is None:
+        display_custom_message("Please upload and process data in the main application to compare strategies.", "info")
+        return
+    filtered_df = st.session_state.filtered_data
+    risk_free_rate = st.session_state.get('risk_free_rate', 0.02)
+    strategy_col = EXPECTED_COLUMNS.get('strategy')
+    date_col = EXPECTED_COLUMNS.get('date')
+    pnl_col = EXPECTED_COLUMNS.get('pnl')
 
-        filtered_df = st.session_state.filtered_data
-        risk_free_rate = st.session_state.get('risk_free_rate', 0.02)
-        strategy_col_from_config = EXPECTED_COLUMNS.get('strategy')
+    if filtered_df.empty or not strategy_col or not date_col or not pnl_col:
+        display_custom_message("Data is missing or key columns (Strategy, Date, PnL) are not configured. Cannot proceed.", "warning")
+        return
+    if strategy_col not in filtered_df.columns:
+        display_custom_message(f"Strategy column '{strategy_col}' not found in data.", "error")
+        return
+    if date_col not in filtered_df.columns:
+        display_custom_message(f"Date column '{date_col}' not found in data.", "error")
+        return
+    if pnl_col not in filtered_df.columns:
+        display_custom_message(f"PnL column '{pnl_col}' not found in data.", "error")
+        return
+    
+    # Ensure PnL column is numeric
+    try:
+        filtered_df[pnl_col] = pd.to_numeric(filtered_df[pnl_col], errors='coerce')
+        # Optional: Handle NaNs if appropriate, e.g., filtered_df.dropna(subset=[pnl_col], inplace=True)
+    except Exception as e:
+        display_custom_message(f"Could not convert PnL column '{pnl_col}' to numeric: {e}", "error")
+        logger.error(f"Error converting PnL column to numeric: {e}", exc_info=True)
+        return
 
-        if filtered_df.empty:
-            display_custom_message("No data matches the current filters. Cannot perform strategy comparison.", "info")
-            logger.info("StrategyComparisonPage: filtered_df is empty.")
-            return
 
-        actual_strategy_col_name = strategy_col_from_config
-
-        if not actual_strategy_col_name or actual_strategy_col_name not in filtered_df.columns:
-            err_msg = (
-                f"Strategy column ('{actual_strategy_col_name}') not found in the data. Comparison is not possible. "
-                f"Available columns in the filtered data: {filtered_df.columns.tolist()}"
-            )
-            display_custom_message(err_msg, "warning")
-            logger.warning(err_msg)
-            return
-
-    # --- Strategy Selection Section ---
     st.subheader("⚙️ Strategy Selection")
     st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
-    try:
-        available_strategies = sorted(filtered_df[actual_strategy_col_name].astype(str).dropna().unique())
-        if not available_strategies:
-            display_custom_message("No distinct strategies found in the data to compare.", "info")
-            logger.info("StrategyComparisonPage: No distinct strategies found.")
-            st.markdown('</div>', unsafe_allow_html=True) # Close container
-            return
-        if len(available_strategies) < 2:
-            display_custom_message(f"Only one strategy ('{available_strategies[0]}') found. At least two strategies are needed for comparison.", "info")
-            logger.info(f"StrategyComparisonPage: Only one strategy found: {available_strategies[0]}")
-            # Still allow selection for single strategy view if desired
-            # If you strictly require 2+ for this section to proceed, you might return or disable multiselect here.
-
-        default_selection = available_strategies[:2] if len(available_strategies) >= 2 else available_strategies
-        selected_strategies = st.multiselect(
-            "Choose strategies to compare:",
-            options=available_strategies,
-            default=default_selection,
-            key="strategy_comp_select_v2" # Changed key to ensure it's unique if old version existed
-        )
-
-        if not selected_strategies:
-            display_custom_message("Please select at least one strategy to view its performance, or two or more to compare.", "info")
-            st.markdown('</div>', unsafe_allow_html=True) # Close container
-            return
-
-        if len(selected_strategies) == 1:
-            st.info(f"Displaying performance for strategy: **{selected_strategies[0]}**. Select more strategies for comparison.")
-    except Exception as e:
-        logger.error(f"Error during strategy selection setup using column '{actual_strategy_col_name}': {e}", exc_info=True)
-        display_custom_message(f"An error occurred setting up strategy selection: {e}", "error")
-        st.markdown('</div>', unsafe_allow_html=True) # Close container
+    available_strategies = sorted(filtered_df[strategy_col].astype(str).dropna().unique())
+    if not available_strategies:
+        display_custom_message("No distinct strategies found.", "info")
+        st.markdown('</div>', unsafe_allow_html=True)
         return
-    st.markdown('</div>', unsafe_allow_html=True) # Close performance-section-container for Strategy Selection
 
-    # Add a divider for better visual separation if desired
+    default_selection = available_strategies[:2] if len(available_strategies) >= 2 else available_strategies
+    selected_strategies = st.multiselect(
+        "Choose strategies to compare:",
+        options=available_strategies,
+        default=default_selection,
+        key="strategy_comp_select_v3" # Incremented key
+    )
+    if not selected_strategies:
+        display_custom_message("Please select strategies.", "info")
+        st.markdown('</div>', unsafe_allow_html=True)
+        return
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown("---")
-
 
     # --- KPI Comparison Table Section ---
     st.subheader("📊 Key Performance Indicator Comparison")
     st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
-    comparison_kpi_data = []
-    try:
-        if not analysis_service: # Check if analysis_service was loaded
-            display_custom_message("Analysis service is not available. Cannot calculate KPIs.", "error")
-            st.markdown('</div>', unsafe_allow_html=True)
-            return
+    kpi_data_for_table = []
+    all_kpis_for_scatter = [] # To store KPIs for the scatter plot
 
+    if not analysis_service:
+        display_custom_message("Analysis service is not available.", "error")
+    else:
         for strat_name in selected_strategies:
-            strat_df = filtered_df[filtered_df[actual_strategy_col_name].astype(str) == str(strat_name)]
+            strat_df = filtered_df[filtered_df[strategy_col].astype(str) == str(strat_name)]
             if not strat_df.empty:
-                kpis = analysis_service.get_core_kpis(strat_df, risk_free_rate)
+                kpis = analysis_service.get_core_kpis(strat_df, risk_free_rate) # Assumes this returns all needed KPIs
                 if kpis and 'error' not in kpis:
-                    comparison_kpi_data.append({"Strategy": strat_name, **kpis})
+                    kpi_data_for_table.append({"Strategy": strat_name, **kpis})
+                    # For scatter plot, ensure 'Annualized Return' and 'Annualized Volatility' are present
+                    # These might come from get_core_kpis or a dedicated method
+                    scatter_kpis = {
+                        'Strategy': strat_name,
+                        'Annualized Return': kpis.get('Annualized Return', kpis.get('annualized_return', 0)), # Check common naming
+                        'Annualized Volatility': kpis.get('Annualized Volatility', kpis.get('annualized_volatility', 0)),
+                        'Sharpe Ratio': kpis.get('Sharpe Ratio', kpis.get('sharpe_ratio',0)) # For text on scatter
+                    }
+                    all_kpis_for_scatter.append(scatter_kpis)
                 else:
-                    error_detail = kpis.get('error') if isinstance(kpis, dict) else 'Unknown or service unavailable'
-                    logger.warning(f"Could not calculate KPIs for strategy '{strat_name}'. Error: {error_detail}")
-            else:
-                logger.info(f"No data found for strategy '{strat_name}' within the current filters.")
-
-        if comparison_kpi_data:
-            comp_df = pd.DataFrame(comparison_kpi_data).set_index("Strategy")
-            
-            # Ensure DEFAULT_KPI_DISPLAY_ORDER is available and is a list
+                    logger.warning(f"KPI calculation failed for strategy '{strat_name}'.")
+        
+        if kpi_data_for_table:
+            comp_df = pd.DataFrame(kpi_data_for_table).set_index("Strategy")
             kpi_order = DEFAULT_KPI_DISPLAY_ORDER if isinstance(DEFAULT_KPI_DISPLAY_ORDER, list) else []
+            kpis_to_show = [k for k in kpi_order if k in comp_df.columns and k not in ['trading_days', 'risk_free_rate_used']]
+            if not kpis_to_show and comp_df.columns.any():
+                kpis_to_show = [c for c in comp_df.columns if c not in ['trading_days', 'risk_free_rate_used']]
 
-            kpis_to_show_in_table = [
-                kpi for kpi in kpi_order # Use the kpi_order
-                if kpi in comp_df.columns and kpi not in ['trading_days', 'risk_free_rate_used']
-            ]
-            if not kpis_to_show_in_table and comp_df.columns.any(): # Fallback if order is empty or doesn't match
-                kpis_to_show_in_table = [
-                    col for col in comp_df.columns 
-                    if col not in ['trading_days', 'risk_free_rate_used']
-                ]
-
-            # Define explicit highlight background and text colors based on theme
-            if theme == "dark":
-                max_bg_color = "#3BA55D"   # Dark theme green background for max values
-                min_bg_color = "#FF776B"   # Dark theme red background for min values
-                highlight_text_color = "#F0F1F6" # Light text for dark theme highlights (contrasts with bg)
-            else: # Light theme
-                max_bg_color = "#B2F2BB" # Light theme green background for max values
-                min_bg_color = "#FFD6D6" # Light theme red background for min values
-                highlight_text_color = "#121416" # Dark text for light theme highlights (contrasts with bg)
+            if theme == "dark": max_bg, min_bg, text_hl = "#3BA55D", "#FF776B", "#F0F1F6"
+            else: max_bg, min_bg, text_hl = "#B2F2BB", "#FFD6D6", "#121416"
             
-
-            if kpis_to_show_in_table:
-                styled = (
-                    comp_df[kpis_to_show_in_table]
-                    .style
-                    .format("{:,.2f}", na_rep="-")
-                    .highlight_max(axis=0, props=f"background-color: {max_bg_color}; color: {highlight_text_color}; font-weight:bold;")
-                    .highlight_min(axis=0, props=f"background-color: {min_bg_color}; color: {highlight_text_color}; font-weight:bold;")
-                )
-                # The st.dataframe should inherit text color for non-highlighted cells from style.css
-                # For highlighted cells, the 'color' in props above will take precedence.
-                st.dataframe(styled, use_container_width=True)
-            else:
-                display_custom_message("No common KPIs found to display for selected strategies.", "warning")
-        elif selected_strategies: # Only show this if strategies were selected but no data was processed
-            display_custom_message(
-                f"No performance data could be calculated for the selected strategies: {', '.join(selected_strategies)}.",
-                "warning"
-            )
-    except Exception as e:
-        logger.error(f"Error generating KPI comparison table: {e}", exc_info=True)
-        display_custom_message(f"An error occurred generating the KPI comparison: {e}", "error")
-    st.markdown('</div>', unsafe_allow_html=True) # Close performance-section-container for KPI table
-
-    # Add another divider
+            if kpis_to_show:
+                styled_df = comp_df[kpis_to_show].style.format("{:,.2f}", na_rep="-") \
+                    .highlight_max(axis=0, props=f"background-color: {max_bg}; color: {text_hl}; font-weight:bold;") \
+                    .highlight_min(axis=0, props=f"background-color: {min_bg}; color: {text_hl}; font-weight:bold;")
+                st.dataframe(styled_df, use_container_width=True)
+            else: display_custom_message("No common KPIs to display.", "warning")
+        elif selected_strategies: display_custom_message("No KPI data for selected strategies.", "warning")
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown("---")
 
-    # --- Comparative Visualizations Section ---
+    # --- Comparative Equity Curves ---
     st.subheader("📈 Comparative Equity Curves")
     st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
-    if len(selected_strategies) > 0:
-        equity_comp_fig = go.Figure()
-        has_data_for_plot = False
+    # ... (Equity curve logic remains largely the same as previous version)
+    equity_fig = go.Figure()
+    has_equity_data = False
+    for strat_name in selected_strategies:
+        strat_df = filtered_df[filtered_df[strategy_col].astype(str) == str(strat_name)].copy()
+        if not strat_df.empty and date_col in strat_df.columns and pnl_col in strat_df.columns:
+            try:
+                strat_df[date_col] = pd.to_datetime(strat_df[date_col])
+                strat_df.sort_values(by=date_col, inplace=True)
+                strat_df['cumulative_pnl'] = strat_df[pnl_col].cumsum()
+                
+                line_color = COLORS.get(strat_name) if isinstance(COLORS, dict) else None
+                trace_params = {"x": strat_df[date_col], "y": strat_df['cumulative_pnl'], "mode": 'lines', "name": strat_name}
+                if line_color: trace_params["line"] = dict(color=line_color)
+                
+                equity_fig.add_trace(go.Scatter(**trace_params))
+                has_equity_data = True
+            except Exception as e:
+                logger.error(f"Error processing equity curve for {strat_name}: {e}", exc_info=True)
+    if has_equity_data:
+        equity_fig.update_layout(xaxis_title="Date", yaxis_title="Cumulative PnL", hovermode="x unified", legend_title_text='Strategy')
+        st.plotly_chart(_apply_custom_theme(equity_fig, theme), use_container_width=True)
+    else:
+        display_custom_message("Not enough data for equity curves.", "info")
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("---")
 
-        date_col_name = EXPECTED_COLUMNS.get('date')
-        pnl_col_name = EXPECTED_COLUMNS.get('pnl')
+    # --- Return Distribution Comparison ---
+    st.subheader("🎛️ Return Distribution Comparison (Daily PnL)")
+    st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
+    # For simplicity, using daily PnL values directly for distribution.
+    # For percentage returns, analysis_service.calculate_daily_returns would be used.
+    hist_data = []
+    group_labels = []
+    has_dist_data = False
 
-        if not date_col_name or not pnl_col_name:
-            display_custom_message("Date or PnL column configuration is missing. Cannot plot equity curves.", "error")
-            logger.error("StrategyComparisonPage: Date or PnL column not found in EXPECTED_COLUMNS for equity plot.")
+    for strat_name in selected_strategies:
+        strat_df = filtered_df[filtered_df[strategy_col].astype(str) == str(strat_name)]
+        if not strat_df.empty and pnl_col in strat_df.columns:
+            # Using PnL directly for distribution. Ensure it's numeric and clean.
+            daily_pnl_values = strat_df[pnl_col].dropna()
+            if not daily_pnl_values.empty:
+                hist_data.append(daily_pnl_values.tolist())
+                group_labels.append(strat_name)
+                has_dist_data = True
         else:
-            for i, strat_name in enumerate(selected_strategies):
-                strat_df = filtered_df[filtered_df[actual_strategy_col_name].astype(str) == str(strat_name)]
-                if not strat_df.empty and date_col_name in strat_df.columns and pnl_col_name in strat_df.columns:
-                    # Ensure date column is datetime
-                    try:
-                        strat_df[date_col_name] = pd.to_datetime(strat_df[date_col_name])
-                    except Exception as e:
-                        logger.warning(f"Could not convert date column '{date_col_name}' to datetime for strategy '{strat_name}': {e}")
-                        continue # Skip this strategy if date conversion fails
+            logger.info(f"No PnL data for distribution plot for strategy '{strat_name}'.")
 
-                    strat_df = strat_df.sort_values(by=date_col_name)
-                    
-                    # Ensure PnL column is numeric
-                    try:
-                        strat_df[pnl_col_name] = pd.to_numeric(strat_df[pnl_col_name], errors='coerce')
-                        strat_df.dropna(subset=[pnl_col_name], inplace=True) # Remove rows where PnL became NaN
-                    except Exception as e:
-                        logger.warning(f"Could not convert PnL column '{pnl_col_name}' to numeric for strategy '{strat_name}': {e}")
-                        continue
+    if has_dist_data:
+        # Create distplot with custom bin_size
+        # Note: ff.create_distplot is somewhat legacy. For more control, use go.Histogram directly.
+        try:
+            dist_fig = ff.create_distplot(hist_data, group_labels, bin_size=.2, show_hist=True, show_rug=False) # Adjust bin_size as needed
+            dist_fig.update_layout(
+                title_text='Distribution of Daily PnL',
+                xaxis_title='Daily PnL',
+                yaxis_title='Density',
+                legend_title_text='Strategy'
+            )
+            st.plotly_chart(_apply_custom_theme(dist_fig, theme), use_container_width=True)
+        except Exception as e:
+            logger.error(f"Error creating distribution plot: {e}", exc_info=True)
+            display_custom_message(f"Could not generate return distribution plot: {e}", "error")
+            # Fallback to individual histograms if create_distplot fails (e.g., due to data issues)
+            # This is a simplified fallback.
+            # for i, data in enumerate(hist_data):
+            #     fallback_fig = go.Figure(data=[go.Histogram(x=data, name=group_labels[i])])
+            #     fallback_fig.update_layout(title_text=f"PnL Distribution for {group_labels[i]}")
+            #     st.plotly_chart(_apply_custom_theme(fallback_fig, theme), use_container_width=True)
 
-                    if not strat_df.empty:
-                        strat_df['cumulative_pnl'] = strat_df[pnl_col_name].cumsum()
-                        # Use COLORS from config if available and strategy name matches
-                        line_color = COLORS.get(strat_name, None) if isinstance(COLORS, dict) else None
+    elif selected_strategies:
+        display_custom_message("Not enough PnL data to plot return distributions for selected strategies.", "info")
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("---")
 
-                        trace_params = {
-                            "x": strat_df[date_col_name],
-                            "y": strat_df['cumulative_pnl'],
-                            "mode": 'lines',
-                            "name": strat_name
-                        }
-                        if line_color:
-                            trace_params["line"] = dict(color=line_color)
-                        
-                        equity_comp_fig.add_trace(go.Scatter(**trace_params))
-                        has_data_for_plot = True
-                    else:
-                        logger.info(f"Strategy '{strat_name}' became empty after PnL processing. Skipping for equity curve.")
-                else:
-                    logger.info(f"StrategyComparisonPage: No data or missing PnL/Date columns for strategy '{strat_name}' for equity plot after initial filter.")
 
-            if has_data_for_plot:
-                equity_comp_fig.update_layout(
-                    # title="Equity Curve Comparison by Strategy", # Title is now part of st.subheader
-                    xaxis_title="Date",
-                    yaxis_title="Cumulative PnL",
-                    hovermode="x unified",
-                    legend_title_text='Strategy'
-                )
-                st.plotly_chart(_apply_custom_theme(equity_comp_fig, theme), use_container_width=True)
-            elif selected_strategies: # Only show if strategies were selected but no plot generated
-                display_custom_message("Not enough valid data to plot comparative equity curves for the selected strategies.", "info")
+    # --- Risk-Reward Scatter Plot ---
+    st.subheader("🎯 Risk-Reward Scatter Plot")
+    st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
+    if all_kpis_for_scatter:
+        scatter_df = pd.DataFrame(all_kpis_for_scatter)
+        
+        # Check if necessary columns are present and numeric
+        required_scatter_cols = ['Annualized Return', 'Annualized Volatility', 'Strategy']
+        missing_cols = [col for col in required_scatter_cols if col not in scatter_df.columns]
 
-    else: # No strategies selected, or an earlier return happened
-        if not selected_strategies: # Explicitly state if no strategies are selected
-             display_custom_message("Select strategies to view equity curves.", "info")
+        if not missing_cols and pd.api.types.is_numeric_dtype(scatter_df['Annualized Return']) and pd.api.types.is_numeric_dtype(scatter_df['Annualized Volatility']):
+            scatter_fig = go.Figure()
+            
+            # Add a trace for each strategy for better legend handling and individual styling if needed
+            for i, row in scatter_df.iterrows():
+                strat_name = row['Strategy']
+                ann_return = row['Annualized Return']
+                ann_vol = row['Annualized Volatility']
+                sharpe_ratio = row.get('Sharpe Ratio', 'N/A') # Get Sharpe if available for hover
+                
+                # Determine color
+                point_color = COLORS.get(strat_name) if isinstance(COLORS, dict) and COLORS.get(strat_name) else None
 
-    st.markdown('</div>', unsafe_allow_html=True) # Close performance-section-container for Equity Curves
+                scatter_fig.add_trace(go.Scatter(
+                    x=[ann_vol],
+                    y=[ann_return],
+                    mode='markers+text', # Show markers and text
+                    name=strat_name,
+                    text=[strat_name], # Text label next to the marker
+                    textposition="top right",
+                    marker=dict(size=12, color=point_color, line=dict(width=1, color='DarkSlateGrey')),
+                    hovertemplate=
+                        f"<b>{strat_name}</b><br><br>" +
+                        "Annualized Volatility: %{x:.2%}<br>" +
+                        "Annualized Return: %{y:.2%}<br>" +
+                        f"Sharpe Ratio: {sharpe_ratio:.2f if isinstance(sharpe_ratio, (int,float)) else sharpe_ratio}"+
+                        "<extra></extra>" # Hides trace info
+                ))
+
+            scatter_fig.update_layout(
+                # title_text="Risk-Reward Profile by Strategy", # Subheader serves as title
+                xaxis_title="Annualized Volatility (Risk)",
+                yaxis_title="Annualized Return (Reward)",
+                legend_title_text='Strategy',
+                hovermode="closest"
+            )
+            scatter_fig.update_xaxes(tickformat=".1%")
+            scatter_fig.update_yaxes(tickformat=".1%")
+            st.plotly_chart(_apply_custom_theme(scatter_fig, theme), use_container_width=True)
+        else:
+            display_custom_message(f"Missing or non-numeric data for Risk-Reward scatter plot. Required: {', '.join(required_scatter_cols)}. Check KPI calculations.", "warning")
+            logger.warning(f"Scatter plot data issue. Missing columns: {missing_cols}. Data: {scatter_df.head()}")
+
+    elif selected_strategies:
+        display_custom_message("Not enough KPI data (Annualized Return, Annualized Volatility) for Risk-Reward scatter plot.", "info")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
-    # This is primarily for direct execution testing, actual app runs through a main app.py
     st.set_page_config(layout="wide", page_title="Strategy Comparison")
-    if 'app_initialized' not in st.session_state: # A simple check
-        st.warning("This page is part of a multi-page app. For full functionality, run the main application script (e.g., app.py). Some features or session data might be missing.")
-        # You might want to initialize some mock session state data for testing
-        # st.session_state.filtered_data = pd.DataFrame(...) 
-        # st.session_state.risk_free_rate = 0.02
-        # st.session_state.current_theme = "dark" # or "light"
-        
-    # Ensure critical variables for the page are at least nominally defined for standalone run
+    if 'app_initialized' not in st.session_state:
+        st.warning("This page is part of a multi-page app. For full functionality, run the main application script. Mock data may be used for standalone testing.")
+        # Mock session state for standalone testing
+        mock_dates = pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'] * 2)
+        st.session_state.filtered_data = pd.DataFrame({
+            EXPECTED_COLUMNS.get('date', 'Date'): mock_dates,
+            EXPECTED_COLUMNS.get('strategy', 'Strategy'): ['Alpha'] * 5 + ['Beta'] * 5,
+            EXPECTED_COLUMNS.get('pnl', 'PnL'): np.random.randn(10).cumsum() + np.random.randint(-5, 5, 10)
+        })
+        st.session_state.risk_free_rate = 0.02
+        st.session_state.current_theme = "dark"
+
     if 'EXPECTED_COLUMNS' not in globals(): EXPECTED_COLUMNS = {"strategy":"Strategy", "date":"Date", "pnl":"PnL"}
-    if 'DEFAULT_KPI_DISPLAY_ORDER' not in globals(): DEFAULT_KPI_DISPLAY_ORDER = ['Total Return', 'Sharpe Ratio'] # Example
-    if 'COLORS' not in globals(): COLORS = {}
+    if 'DEFAULT_KPI_DISPLAY_ORDER' not in globals(): DEFAULT_KPI_DISPLAY_ORDER = ['Annualized Return', 'Annualized Volatility', 'Sharpe Ratio']
+    if 'COLORS' not in globals(): COLORS = {"Alpha": "blue", "Beta": "green"}
     if 'analysis_service' not in globals() or analysis_service is None:
         class MockAnalysisService:
-            def get_core_kpis(self, df, rate): 
-                # Simulate some data for KPIs
-                import random
+            def get_core_kpis(self, df, rate):
+                pnl_col_name = EXPECTED_COLUMNS.get('pnl','PnL')
+                daily_returns = df[pnl_col_name].pct_change().fillna(0) if pnl_col_name in df else pd.Series([0]*len(df))
+                ann_ret = daily_returns.mean() * 252
+                ann_vol = daily_returns.std() * np.sqrt(252)
+                sharpe = (ann_ret - rate) / ann_vol if ann_vol != 0 else 0
                 return {
-                    "Total Return": random.uniform(-0.5, 2.0), 
-                    "Sharpe Ratio": random.uniform(0.1, 3.0),
-                    "Win Rate": random.uniform(0.3, 0.7),
-                    "Profit Factor": random.uniform(0.5, 5.0),
-                    "error": None
+                    "Annualized Return": ann_ret,
+                    "Annualized Volatility": ann_vol,
+                    "Sharpe Ratio": sharpe,
+                    # Add other KPIs as needed by DEFAULT_KPI_DISPLAY_ORDER
                 }
         analysis_service = MockAnalysisService()
-    if 'display_custom_message' not in globals():
-        def display_custom_message(msg, type):
-            if type == "error": st.error(msg)
-            elif type == "warning": st.warning(msg)
-            else: st.info(msg)
-    if '_apply_custom_theme' not in globals():
-        def _apply_custom_theme(fig, theme): return fig
-
 
     show_strategy_comparison_page()
-
