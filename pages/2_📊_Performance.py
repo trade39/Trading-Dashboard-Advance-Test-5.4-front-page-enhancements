@@ -49,7 +49,7 @@ def calculate_rolling_sharpe(pnl_series: pd.Series, window: int, min_periods: in
     if pnl_series.empty or len(pnl_series) < min_periods:
         return pd.Series(dtype=float)
     rolling_mean_pnl = pnl_series.rolling(window=window, min_periods=min_periods).mean()
-    rolling_std_pnl = pnl_series.rolling(window=window, min_periods=min_periods).std().replace(0, np.nan) # Avoid division by zero
+    rolling_std_pnl = pnl_series.rolling(window=window, min_periods=min_periods).std().replace(0, np.nan) 
     
     excess_returns = rolling_mean_pnl - risk_free_rate_daily
     sharpe_like_ratio = excess_returns / rolling_std_pnl
@@ -84,10 +84,9 @@ def show_performance_page():
     if win_col not in filtered_df.columns:
         display_custom_message(f"Warning: Win column ('{win_col}') not found. Win rate related metrics will not be available.", "warning")
 
-
     # --- Key Performance Indicators (KPIs) ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🚀 Key Performance Indicators") # Icon already present
+    st.subheader("🚀 Key Performance Indicators") 
     
     total_pnl = filtered_df[pnl_col].sum()
     total_trades = len(filtered_df)
@@ -119,10 +118,9 @@ def show_performance_page():
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-
     # --- Performance Breakdown Section ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("📈 Performance Breakdown") # Icon already present
+    st.subheader("📈 Performance Breakdown") 
     st.markdown("Visualizing Profit & Loss distributions and categorical performance.")
     try:
         col1, col2 = st.columns(2)
@@ -162,22 +160,40 @@ def show_performance_page():
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-
     # --- Rolling Performance Metrics ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🔄 Rolling Performance Metrics") # Icon already present
+    st.subheader("🔄 Rolling Performance Metrics") 
     st.markdown("Track performance consistency over time with rolling window calculations. These metrics can highlight trends or changes in strategy effectiveness.")
     
     try:
         if date_col_main not in filtered_df.columns:
             display_custom_message(f"Date column ('{date_col_main}') is required for rolling metrics. Please ensure it's mapped correctly.", "warning")
-        elif len(filtered_df) < 10:
+        elif len(filtered_df) < 10: # Check if there's enough data for rolling calculations
             display_custom_message("Not enough data points (less than 10) for meaningful rolling metrics.", "info")
         else:
+            # Controls for rolling metrics
             controls_col1, controls_col2, controls_col3 = st.columns(3)
-            with controls_col1: rolling_pnl_window = st.slider("Rolling PnL Sum Window (Periods):", min_value=5, max_value=min(100, len(filtered_df)//2 if len(filtered_df)>10 else 10), value=30, step=5, key="roll_pnl_win_slider")
-            with controls_col2: rolling_win_rate_window = st.slider("Rolling Win Rate Window (Periods):", min_value=10, max_value=min(200, len(filtered_df)//2 if len(filtered_df)>20 else 20), value=50, step=10, key="roll_wr_win_slider")
-            with controls_col3: rolling_sharpe_window = st.slider("Rolling Sharpe Window (Days):", min_value=10, max_value=min(200, len(filtered_df[date_col_main].dt.normalize().unique())//2 if len(filtered_df[date_col_main].dt.normalize().unique()) > 20 else 20), value=50, step=10, key="roll_sharpe_win_slider")
+            max_slider_val_periods = min(100, len(filtered_df) // 2 if len(filtered_df) > 20 else 10) # Ensure max slider value is reasonable
+            max_slider_val_days = min(200, len(filtered_df[date_col_main].dt.normalize().unique()) // 2 if len(filtered_df[date_col_main].dt.normalize().unique()) > 20 else 20)
+
+            with controls_col1: 
+                rolling_pnl_window = st.slider("Rolling PnL Sum Window (Periods):", 
+                                               min_value=5, 
+                                               max_value=max_slider_val_periods if max_slider_val_periods >=5 else 5, # handle very small datasets
+                                               value=min(30, max_slider_val_periods if max_slider_val_periods >=5 else 5), 
+                                               step=5, key="roll_pnl_win_slider")
+            with controls_col2: 
+                rolling_win_rate_window = st.slider("Rolling Win Rate Window (Periods):", 
+                                                    min_value=10, 
+                                                    max_value=max_slider_val_periods if max_slider_val_periods >=10 else 10, 
+                                                    value=min(50, max_slider_val_periods if max_slider_val_periods >=10 else 10), 
+                                                    step=10, key="roll_wr_win_slider")
+            with controls_col3: 
+                rolling_sharpe_window = st.slider("Rolling Sharpe Window (Days):", 
+                                                  min_value=10, 
+                                                  max_value=max_slider_val_days if max_slider_val_days >=10 else 10, 
+                                                  value=min(50, max_slider_val_days if max_slider_val_days >=10 else 10), 
+                                                  step=10, key="roll_sharpe_win_slider")
             
             min_periods_pnl = max(5, rolling_pnl_window // 3)
             min_periods_win_rate = max(10, rolling_win_rate_window // 3)
@@ -191,6 +207,7 @@ def show_performance_page():
             if df_for_rolling.empty:
                 display_custom_message("No valid numeric PnL data available for rolling metrics after conversion.", "warning")
             else:
+                # Plots for rolling metrics
                 plot_col1, plot_col2, plot_col3 = st.columns([1,1,1]) 
                 with plot_col1:
                     if len(df_for_rolling) >= min_periods_pnl:
@@ -199,7 +216,7 @@ def show_performance_page():
                         rolling_pnl_metric_name = f"{rolling_pnl_window}-Period Rolling PnL Sum"
                         rolling_pnl_fig = plot_rolling_performance(df_for_rolling, date_col_main, rolling_pnl_sum, rolling_pnl_metric_name, rolling_pnl_metric_name, plot_theme)
                         if rolling_pnl_fig: st.plotly_chart(rolling_pnl_fig, use_container_width=True)
-                    else: display_custom_message(f"Not enough data for {rolling_pnl_window}-period rolling PnL.", "info")
+                    else: display_custom_message(f"Not enough data for {rolling_pnl_window}-period rolling PnL (need at least {min_periods_pnl}).", "info")
                 
                 with plot_col2:
                     if win_col in df_for_rolling.columns and pd.api.types.is_numeric_dtype(df_for_rolling[win_col]) and len(df_for_rolling) >= min_periods_win_rate:
@@ -209,7 +226,7 @@ def show_performance_page():
                         rolling_wr_fig = plot_rolling_performance(df_for_rolling, date_col_main, rolling_win_rate, rolling_wr_metric_name, rolling_wr_metric_name, plot_theme)
                         if rolling_wr_fig: st.plotly_chart(rolling_wr_fig, use_container_width=True)
                     elif win_col not in df_for_rolling.columns: display_custom_message(f"'{win_col}' column needed for Rolling Win Rate.", "info")
-                    else: display_custom_message(f"Not enough data for {rolling_win_rate_window}-period rolling Win Rate.", "info")
+                    else: display_custom_message(f"Not enough data for {rolling_win_rate_window}-period rolling Win Rate (need at least {min_periods_win_rate}).", "info")
 
                 with plot_col3:
                     st.markdown("<h6>Rolling Sharpe Ratio (Annualized)</h6>", unsafe_allow_html=True)
@@ -222,22 +239,25 @@ def show_performance_page():
                              rolling_sharpe_fig = plot_rolling_performance(sharpe_df_to_plot, date_col_main, sharpe_df_to_plot['sharpe'], rolling_sharpe_metric_name, rolling_sharpe_metric_name, plot_theme)
                              if rolling_sharpe_fig: st.plotly_chart(rolling_sharpe_fig, use_container_width=True)
                         else: display_custom_message("Could not calculate Rolling Sharpe Ratio.", "warning")
-                    else: display_custom_message(f"Not enough daily PnL data points ({len(daily_pnl_for_sharpe)}) for {rolling_sharpe_window}-day rolling Sharpe.", "info")
+                    else: display_custom_message(f"Not enough daily PnL data points ({len(daily_pnl_for_sharpe)}) for {rolling_sharpe_window}-day rolling Sharpe (need at least {min_periods_sharpe}).", "info")
     except Exception as e:
         logger.error(f"Error rendering rolling performance metrics: {e}", exc_info=True)
         display_custom_message(f"An error occurred in the Rolling Performance section: {e}", "error")
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-
     # --- Performance by Trade Duration ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("⏱️ Performance by Trade Duration") # Icon already present
+    st.subheader("⏱️ Performance by Trade Duration") 
     st.markdown("Analyze how trade duration impacts profitability and win rates.")
     duration_col_numeric = EXPECTED_COLUMNS.get('duration_minutes_numeric', 'duration_minutes_numeric')
 
     if duration_col_numeric in filtered_df.columns and pd.api.types.is_numeric_dtype(filtered_df[duration_col_numeric]):
-        df_for_duration = filtered_df[[duration_col_numeric, pnl_col, win_col]].copy() if win_col in filtered_df.columns else filtered_df[[duration_col_numeric, pnl_col]].copy()
+        # Prepare dataframe for duration analysis
+        cols_for_duration = [duration_col_numeric, pnl_col]
+        if win_col in filtered_df.columns:
+            cols_for_duration.append(win_col)
+        df_for_duration = filtered_df[cols_for_duration].copy()
         df_for_duration.dropna(subset=[duration_col_numeric, pnl_col], inplace=True)
 
         if not df_for_duration.empty:
@@ -271,10 +291,9 @@ def show_performance_page():
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-
     # --- Day & Hour Performance Matrix ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("📅 Day & Hour Performance Matrix") # Icon already present
+    st.subheader("📅 Day & Hour Performance Matrix") 
     st.markdown("Identify profitable trading times using heatmaps for PnL, win rates, and trade counts by day of the week and hour.")
     
     hour_col = 'trade_hour'        
@@ -344,7 +363,7 @@ def show_performance_page():
 
     # --- P&L Calendar View ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🗓️ P&L Calendar View") # Icon already present
+    st.subheader("🗓️ P&L Calendar View") 
     st.markdown("Visualize daily Profit & Loss in a familiar calendar format.")
 
     if date_col_main in filtered_df.columns and pnl_col in filtered_df.columns:
@@ -376,7 +395,7 @@ def show_performance_page():
         if pnl_col not in filtered_df.columns: missing_cols_cal.append(f"'{pnl_col}'")
         display_custom_message(f"Required columns ({', '.join(missing_cols_cal)}) not found for P&L Calendar.", "warning")
     st.markdown("</div>", unsafe_allow_html=True)
-
+    # No st.markdown("---") after the last section typically.
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state:
