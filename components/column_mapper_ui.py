@@ -65,7 +65,7 @@ class ColumnMapperUI:
         uploaded_file_name: str,
         uploaded_file_bytes: Optional[BytesIO],
         csv_headers: List[str],
-        conceptual_columns_map: Dict[str, str],
+        conceptual_columns_map: Dict[str, str], # Should be OrderedDict if order matters for auto-map prio
         conceptual_column_types: Dict[str, str],
         conceptual_column_synonyms: Dict[str, List[str]],
         critical_conceptual_cols: List[str],
@@ -75,11 +75,11 @@ class ColumnMapperUI:
         self.uploaded_file_bytes = uploaded_file_bytes
         self.csv_headers = [""] + csv_headers  # Add an empty option for "Not Applicable"
         self.raw_csv_headers = csv_headers
-        self.conceptual_columns_map = conceptual_columns_map # This should be an OrderedDict if order matters for auto-map prio
+        self.conceptual_columns_map = conceptual_columns_map 
         self.conceptual_column_types = conceptual_column_types
         self.conceptual_column_synonyms = conceptual_column_synonyms
         self.critical_conceptual_cols = critical_conceptual_cols if critical_conceptual_cols else []
-        self.conceptual_column_categories = conceptual_column_categories # Store categories
+        self.conceptual_column_categories = conceptual_column_categories 
         self.mapping: Dict[str, Optional[str]] = {}
         self.preview_df: Optional[pd.DataFrame] = None
 
@@ -87,88 +87,74 @@ class ColumnMapperUI:
             try:
                 self.uploaded_file_bytes.seek(0)
                 self.preview_df = pd.read_csv(self.uploaded_file_bytes, nrows=5)
-                self.uploaded_file_bytes.seek(0) # Reset pointer for any subsequent reads
+                self.uploaded_file_bytes.seek(0) 
             except Exception as e:
                 logger.error(f"ColumnMapperUI: Error reading CSV for preview: {e}")
-                # We'll show a placeholder in the UI instead of st.warning here
                 self.preview_df = None
         
         logger.debug(f"ColumnMapperUI initialized for file: {self.uploaded_file_name}. Categories: {list(self.conceptual_column_categories.keys())}")
 
     def _normalize_header(self, header: str) -> str:
-        # Normalizes CSV headers for robust matching
         if not isinstance(header, str):
             header = str(header)
         normalized = header.strip().lower()
         normalized = normalized.replace(':', '_').replace('%', 'pct')
-        normalized = re.sub(r'[\s\-\./\(\)]+', '_', normalized) # Replace common separators with underscore
-        normalized = re.sub(r'_+', '_', normalized).strip('_') # Remove multiple and trailing/leading underscores
+        normalized = re.sub(r'[\s\-\./\(\)]+', '_', normalized) 
+        normalized = re.sub(r'_+', '_', normalized).strip('_') 
         return normalized
 
     def _attempt_automatic_mapping(self) -> Dict[str, Optional[str]]:
-        # Attempts to automatically map CSV headers to conceptual columns
         auto_mapping: Dict[str, Optional[str]] = {}
-        # Create a map of normalized CSV headers to their original form
         normalized_csv_headers_map = {self._normalize_header(h): h for h in self.raw_csv_headers}
-        used_csv_headers = set() # Keep track of CSV headers already mapped
+        used_csv_headers = set() 
 
-        # Prioritize specific, common CSV header variations for key conceptual columns
-        # This dictionary maps a normalized CSV header string to its target conceptual_key.
         specific_csv_header_targets = {
             "trade_model": "strategy", 
             "r_r": "r_r_csv_num", 
             "pnl": "pnl", 
             "date": "date",
-            "symbol_1": "symbol", # Example: if CSV often has "Symbol 1" for the main symbol
+            "symbol_1": "symbol", 
             "lesson_learned": "notes",
             "duration_mins": "duration_minutes",
             "risk_pct": "risk_pct", 
             "entry": "entry_price", 
             "exit": "exit_price", 
-            "size": "quantity"  # This rule maps a CSV header like "Size" to the "quantity" conceptual field
+            "size": "quantity"  
         }
 
         for norm_specific_csv, target_conceptual_key in specific_csv_header_targets.items():
             if norm_specific_csv in normalized_csv_headers_map:
                 original_csv_header = normalized_csv_headers_map[norm_specific_csv]
-                # Ensure CSV header isn't used and conceptual key isn't already mapped
                 if original_csv_header not in used_csv_headers and target_conceptual_key not in auto_mapping:
                     auto_mapping[target_conceptual_key] = original_csv_header
                     used_csv_headers.add(original_csv_header)
-                    # Enhanced logging for the "size" to "quantity" mapping
                     if norm_specific_csv == "size" and target_conceptual_key == "quantity":
                         logger.info(f"Auto-mapped (specific rule 'size' -> 'quantity'): CSV '{original_csv_header}' to conceptual '{target_conceptual_key}' ({self.conceptual_columns_map.get(target_conceptual_key, '')})")
                     else:
                         logger.info(f"Auto-mapped (specific rule '{norm_specific_csv}' -> '{target_conceptual_key}'): CSV '{original_csv_header}' to conceptual '{target_conceptual_key}' ({self.conceptual_columns_map.get(target_conceptual_key, '')})")
 
-        # General mapping strategy: exact normalized match, synonym match, fuzzy match
-        # Iterate through conceptual columns in their defined order (if conceptual_columns_map is OrderedDict)
         for conceptual_key in self.conceptual_columns_map.keys():
-            if conceptual_key in auto_mapping: continue # Already mapped by a specific rule
+            if conceptual_key in auto_mapping: continue 
 
             mapped_csv_header = None
-            norm_conceptual_key = self._normalize_header(conceptual_key) # Normalize the conceptual key itself for matching
+            norm_conceptual_key = self._normalize_header(conceptual_key) 
 
-            # 1. Exact match of normalized conceptual key to normalized CSV header
             if norm_conceptual_key in normalized_csv_headers_map and \
                normalized_csv_headers_map[norm_conceptual_key] not in used_csv_headers:
                 mapped_csv_header = normalized_csv_headers_map[norm_conceptual_key]
             
-            # 2. Synonym match
             if not mapped_csv_header and conceptual_key in self.conceptual_column_synonyms:
                 for synonym in self.conceptual_column_synonyms[conceptual_key]:
-                    norm_synonym = self._normalize_header(synonym) # Normalize synonyms from config
+                    norm_synonym = self._normalize_header(synonym) 
                     if norm_synonym in normalized_csv_headers_map and \
                        normalized_csv_headers_map[norm_synonym] not in used_csv_headers:
                         mapped_csv_header = normalized_csv_headers_map[norm_synonym]
-                        break # Take the first synonym match
+                        break 
             
-            # 3. Fuzzy match as a last resort
-            FUZZY_MATCH_THRESHOLD = 85 # Confidence threshold for fuzzy matching
+            FUZZY_MATCH_THRESHOLD = 85 
             if not mapped_csv_header:
                 best_match_score = 0
                 potential_header = None
-                # Iterate through available (not yet used) normalized CSV headers
                 for norm_csv_h, original_csv_h in normalized_csv_headers_map.items():
                     if original_csv_h in used_csv_headers: continue 
                     score = fuzz.ratio(norm_conceptual_key, norm_csv_h)
@@ -187,7 +173,6 @@ class ColumnMapperUI:
         return auto_mapping
 
     def _infer_column_data_type(self, csv_column_name: str) -> str:
-        # Infers data type from a sample of the CSV column
         if self.preview_df is None or csv_column_name not in self.preview_df.columns:
             return "unknown"
         
@@ -212,13 +197,11 @@ class ColumnMapperUI:
         return "text" 
 
     def render(self) -> Optional[Dict[str, Optional[str]]]:
-        # Main method to render the column mapping UI
         st.markdown("<div class='column-mapper-container'>", unsafe_allow_html=True)
         st.markdown(f"<h3 class='component-subheader'>Map Columns for '{self.uploaded_file_name}'</h3>", unsafe_allow_html=True)
         
         initial_mapping = self._attempt_automatic_mapping()
 
-        # --- Enhanced Data Preview Section ---
         st.markdown("<div class='data-preview-container'>", unsafe_allow_html=True)
         if self.preview_df is not None and not self.preview_df.empty:
             df_to_display = self.preview_df 
@@ -254,9 +237,7 @@ class ColumnMapperUI:
         else:
             st.markdown("<div class='data-preview-placeholder'>Data preview is not available or the file is empty.</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True) 
-        # --- End of Data Preview Section ---
-
-        # --- Enhanced Instructions Section ---
+        
         st.markdown(
             "<div class='mapper-instructions'>"
             "<span class='instruction-icon'>ℹ️</span> " 
@@ -264,13 +245,13 @@ class ColumnMapperUI:
             "Fields marked with a red asterisk (<strong>*</strong>) are critical. " 
             "A warning icon (⚠️) next to a selection indicates a potential data type mismatch."
             "</div>", unsafe_allow_html=True)
-        # --- End of Instructions Section ---
         
         form_key = f"column_mapping_form_{self.uploaded_file_name.replace('.', '_').replace(' ', '_')}"
         with st.form(key=form_key):
             cols_top_button = st.columns([0.75, 0.25]) 
             with cols_top_button[1]:
-                 submit_button_top = st.form_submit_button("Confirm Mapping", use_container_width=True, type="primary")
+                 # Removed type="primary" to allow CSS to fully control styling
+                 submit_button_top = st.form_submit_button("Confirm Mapping", use_container_width=True)
             
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
 
@@ -305,7 +286,8 @@ class ColumnMapperUI:
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
             _, col_btn_mid, _ = st.columns([0.3, 0.4, 0.3]) 
             with col_btn_mid:
-                submit_button_bottom = st.form_submit_button("Confirm Column Mapping", use_container_width=True, type="primary")
+                # Removed type="primary" to allow CSS to fully control styling
+                submit_button_bottom = st.form_submit_button("Confirm Column Mapping", use_container_width=True)
 
         if submit_button_top or submit_button_bottom:
             missing_critical = [
@@ -404,7 +386,6 @@ if __name__ == "__main__":
     st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="Column Mapper Test")
     
     try:
-        # Ensure style.css is in the same directory or adjust path as needed for local testing
         with open("style.css") as f: 
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
@@ -413,14 +394,12 @@ if __name__ == "__main__":
     st.title("Test Categorized Column Mapper UI")
     st.markdown("This page demonstrates the `ColumnMapperUI` component with categorized fields, styled instructions, and reordered data preview.")
 
-    # Using OrderedDict for _MOCK_CONCEPTUAL_COLUMNS to ensure stable key order,
-    # which influences the order of auto-mapped columns in the preview.
     _MOCK_CONCEPTUAL_COLUMNS = OrderedDict([
         ("date", "Trade Date/Time"), 
         ("symbol", "Trading Symbol"),
         ("entry_price", "Entry Price"), 
         ("exit_price", "Exit Price"), 
-        ("quantity", "Quantity/Size"), # Conceptual field for "Trade Size/Quantity"
+        ("quantity", "Quantity/Size"), 
         ("pnl", "Profit or Loss (PnL)"), 
         ("strategy", "Strategy Name"), 
         ("r_r_csv_num", "Risk:Reward Ratio"), 
@@ -434,7 +413,7 @@ if __name__ == "__main__":
     _MOCK_CONCEPTUAL_COLUMN_TYPES = {
         "date": "datetime", "pnl": "numeric", "strategy": "text", "symbol": "text",
         "r_r_csv_num": "numeric", "notes": "text", "duration_minutes": "numeric", "risk_pct": "numeric",
-        "entry_price": "numeric", "exit_price": "numeric", "quantity": "numeric", # quantity is numeric
+        "entry_price": "numeric", "exit_price": "numeric", "quantity": "numeric", 
         "commission": "numeric", "fees": "numeric", "tags": "text"
     }
     _MOCK_CONCEPTUAL_COLUMN_SYNONYMS = {
@@ -442,7 +421,7 @@ if __name__ == "__main__":
         "pnl": ["profit", "loss", "netpl"], "date": ["trade_date", "timestamp"],
         "notes": ["comment", "lessons", "journal"], "duration_minutes": ["holding_time", "duration_min"],
         "risk_pct": ["risk_percentage", "percent_risk"], "tags": ["label", "trade_category"],
-        "quantity": ["trade_size", "lot_size", "amount"] # Added synonyms for quantity
+        "quantity": ["trade_size", "lot_size", "amount"] 
     }
     _MOCK_CRITICAL_CONCEPTUAL_COLUMNS = ["date", "pnl", "symbol", "entry_price", "exit_price", "quantity"]
     
@@ -453,7 +432,6 @@ if __name__ == "__main__":
         ("Additional Information", ["notes", "tags"])
     ])
 
-    # Sample CSV data now includes a "Size" column, which should map to "quantity"
     sample_csv_content = """Trade ID,Date,Entry Time,Size,Entry,Take Profit,Stop Loss,Exit,Candle Count,Exit Type,Trade Model ,PnL,R:R,Duration (mins),Risk %,Symbol 1,Lesson Learned,Tags,Commission,Total Fees
 1,2023-01-01 10:00:00,10:00:00,10000,1.1000,1.1050,1.0950,1.1050,5,TP,Scalp V1,50.00,2.0,15,1,EURUSD,Good exit,News,2.50,0.50
 2,2023-01-02 11:30:00,11:30:00,5000,1.2500,1.2600,1.2400,1.2400,12,SL,Swing V2,-50.25,1.5,120,0.5,GBPUSD,Held too long,Trend,1.50,0.20
