@@ -35,7 +35,8 @@ except ImportError as e:
     def plot_rolling_performance(*args, **kwargs): return None
     def plot_box_plot(*args, **kwargs): return None
     def plot_heatmap(*args, **kwargs): return None
-    def format_currency(val, **kwargs): return f"${val:,.2f}" if isinstance(val, (int, float)) else str(val)
+    # Updated mock format_currency to not expect 'currency' kwarg, matching the fix.
+    def format_currency(val): return f"${val:,.2f}" if isinstance(val, (int, float)) else str(val)
     class PnLCalendarComponent:
         def __init__(self, *args, **kwargs): pass
         def render(self): st.warning("Calendar component failed to load due to import errors.")
@@ -116,7 +117,8 @@ def show_performance_page():
 
     kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
     with kpi_col1:
-        st.metric(label="Total PnL", value=format_currency(total_pnl, currency="USD"), delta_color="normal")
+        # FIX: Removed currency="USD" from the call to format_currency
+        st.metric(label="Total PnL", value=format_currency(total_pnl), delta_color="normal")
     with kpi_col2:
         if win_col in filtered_df.columns:
              st.metric(label="Overall Win Rate", value=f"{overall_win_rate:.2f}%" if overall_win_rate is not None else "N/A")
