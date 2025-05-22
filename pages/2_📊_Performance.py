@@ -35,7 +35,6 @@ except ImportError as e:
     def plot_rolling_performance(*args, **kwargs): return None
     def plot_box_plot(*args, **kwargs): return None
     def plot_heatmap(*args, **kwargs): return None
-    # Updated mock format_currency to not expect 'currency' kwarg, matching the fix.
     def format_currency(val): return f"${val:,.2f}" if isinstance(val, (int, float)) else str(val)
     class PnLCalendarComponent:
         def __init__(self, *args, **kwargs): pass
@@ -52,13 +51,8 @@ def calculate_rolling_sharpe(pnl_series: pd.Series, window: int, min_periods: in
     rolling_mean_pnl = pnl_series.rolling(window=window, min_periods=min_periods).mean()
     rolling_std_pnl = pnl_series.rolling(window=window, min_periods=min_periods).std().replace(0, np.nan) # Avoid division by zero
     
-    # Calculate excess returns
     excess_returns = rolling_mean_pnl - risk_free_rate_daily
-    
-    # Sharpe ratio calculation
     sharpe_like_ratio = excess_returns / rolling_std_pnl
-    
-    # Annualize and fill NaNs
     annualized_sharpe = (sharpe_like_ratio * np.sqrt(periods_per_year)).fillna(0)
     return annualized_sharpe
 
@@ -75,7 +69,7 @@ def show_performance_page():
     plot_theme = st.session_state.get('current_theme', 'dark')
     pnl_col = EXPECTED_COLUMNS.get('pnl', 'pnl')
     date_col_main = EXPECTED_COLUMNS.get('date', 'date')
-    win_col = EXPECTED_COLUMNS.get('win', 'win') # Get win column name
+    win_col = EXPECTED_COLUMNS.get('win', 'win') 
     risk_free_rate_annual = st.session_state.get('risk_free_rate', RISK_FREE_RATE)
     risk_free_rate_daily = (1 + risk_free_rate_annual)**(1/252) - 1
 
@@ -93,46 +87,42 @@ def show_performance_page():
 
     # --- Key Performance Indicators (KPIs) ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🚀 Key Performance Indicators")
+    st.subheader("🚀 Key Performance Indicators") # Icon already present
     
     total_pnl = filtered_df[pnl_col].sum()
     total_trades = len(filtered_df)
     
     overall_win_rate = 0.0
     if win_col in filtered_df.columns and not filtered_df[win_col].empty:
-        # Ensure 'win' column is numeric (0 or 1)
         if pd.api.types.is_numeric_dtype(filtered_df[win_col]):
             overall_win_rate = filtered_df[win_col].mean() * 100
         else:
-            # Attempt conversion if boolean or string 'True'/'False'
             try:
                 numeric_wins = pd.to_numeric(filtered_df[win_col].astype(str).str.lower().map({'true': 1, 'false': 0, '1': 1, '0': 0}), errors='coerce')
                 if not numeric_wins.isnull().all():
                     overall_win_rate = numeric_wins.mean() * 100
                 else:
-                    display_custom_message(f"Could not interpret '{win_col}' column for win rate calculation. Ensure it contains 0/1 or True/False.", "warning")
+                    display_custom_message(f"Could not interpret '{win_col}' column for win rate. Ensure it contains 0/1 or True/False.", "warning")
             except Exception:
                  display_custom_message(f"Error converting '{win_col}' column for win rate. Please check its format.", "warning")
 
-
     kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
     with kpi_col1:
-        # FIX: Removed currency="USD" from the call to format_currency
-        st.metric(label="Total PnL", value=format_currency(total_pnl), delta_color="normal")
+        st.metric(label="💰 Total PnL", value=format_currency(total_pnl), delta_color="normal")
     with kpi_col2:
         if win_col in filtered_df.columns:
-             st.metric(label="Overall Win Rate", value=f"{overall_win_rate:.2f}%" if overall_win_rate is not None else "N/A")
+             st.metric(label="🎯 Overall Win Rate", value=f"{overall_win_rate:.2f}%" if overall_win_rate is not None else "N/A")
         else:
-            st.metric(label="Overall Win Rate", value="N/A")
+            st.metric(label="🎯 Overall Win Rate", value="N/A")
     with kpi_col3:
-        st.metric(label="Total Trades", value=f"{total_trades:,}")
+        st.metric(label="🔢 Total Trades", value=f"{total_trades:,}")
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("---")
 
 
     # --- Performance Breakdown Section ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("📈 Performance Breakdown")
+    st.subheader("📈 Performance Breakdown") # Icon already present
     st.markdown("Visualizing Profit & Loss distributions and categorical performance.")
     try:
         col1, col2 = st.columns(2)
@@ -159,7 +149,7 @@ def show_performance_page():
             elif win_col not in filtered_df.columns:
                  display_custom_message(f"Column '{win_col}' not found for Win Rate by Hour plot.", "info")
             
-            month_col_for_plot = 'trade_month_name' # Assumes this is engineered
+            month_col_for_plot = 'trade_month_name' 
             if month_col_for_plot in filtered_df.columns:
                 st.markdown("<h6>PnL by Month</h6>", unsafe_allow_html=True)
                 pnl_month_fig = plot_pnl_by_category(filtered_df, month_col_for_plot, pnl_col=pnl_col, theme=plot_theme, title_prefix="Total PnL by")
@@ -175,7 +165,7 @@ def show_performance_page():
 
     # --- Rolling Performance Metrics ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🔄 Rolling Performance Metrics")
+    st.subheader("🔄 Rolling Performance Metrics") # Icon already present
     st.markdown("Track performance consistency over time with rolling window calculations. These metrics can highlight trends or changes in strategy effectiveness.")
     
     try:
@@ -201,7 +191,7 @@ def show_performance_page():
             if df_for_rolling.empty:
                 display_custom_message("No valid numeric PnL data available for rolling metrics after conversion.", "warning")
             else:
-                plot_col1, plot_col2, plot_col3 = st.columns([1,1,1]) # Adjust column ratios if needed
+                plot_col1, plot_col2, plot_col3 = st.columns([1,1,1]) 
                 with plot_col1:
                     if len(df_for_rolling) >= min_periods_pnl:
                         st.markdown("<h6>Rolling PnL Sum</h6>", unsafe_allow_html=True)
@@ -228,7 +218,6 @@ def show_performance_page():
                         rolling_sharpe = calculate_rolling_sharpe(daily_pnl_for_sharpe, rolling_sharpe_window, min_periods_sharpe, risk_free_rate_daily)
                         rolling_sharpe_metric_name = f"{rolling_sharpe_window}-Day Rolling Sharpe Ratio"
                         if not rolling_sharpe.empty:
-                             # Create a DataFrame for plotting as plot_rolling_performance expects a DataFrame with a date column
                              sharpe_df_to_plot = pd.DataFrame({date_col_main: rolling_sharpe.index, 'sharpe': rolling_sharpe.values})
                              rolling_sharpe_fig = plot_rolling_performance(sharpe_df_to_plot, date_col_main, sharpe_df_to_plot['sharpe'], rolling_sharpe_metric_name, rolling_sharpe_metric_name, plot_theme)
                              if rolling_sharpe_fig: st.plotly_chart(rolling_sharpe_fig, use_container_width=True)
@@ -243,7 +232,7 @@ def show_performance_page():
 
     # --- Performance by Trade Duration ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("⏱️ Performance by Trade Duration")
+    st.subheader("⏱️ Performance by Trade Duration") # Icon already present
     st.markdown("Analyze how trade duration impacts profitability and win rates.")
     duration_col_numeric = EXPECTED_COLUMNS.get('duration_minutes_numeric', 'duration_minutes_numeric')
 
@@ -252,11 +241,10 @@ def show_performance_page():
         df_for_duration.dropna(subset=[duration_col_numeric, pnl_col], inplace=True)
 
         if not df_for_duration.empty:
-            # Define bins and labels for duration categories
             bins = [-float('inf'), 30, 60, 120, 240, 480, float('inf')]
             labels = ["<30 min", "30-60 min", "1-2 hrs", "2-4 hrs", "4-8 hrs", ">8 hrs"]
             df_for_duration['duration_bin'] = pd.cut(df_for_duration[duration_col_numeric], bins=bins, labels=labels, right=False)
-            df_for_duration.dropna(subset=['duration_bin'], inplace=True) # Drop rows where binning failed
+            df_for_duration.dropna(subset=['duration_bin'], inplace=True) 
 
             if not df_for_duration.empty:
                 col_dur1, col_dur2 = st.columns(2)
@@ -286,11 +274,11 @@ def show_performance_page():
 
     # --- Day & Hour Performance Matrix ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("📅 Day & Hour Performance Matrix")
+    st.subheader("📅 Day & Hour Performance Matrix") # Icon already present
     st.markdown("Identify profitable trading times using heatmaps for PnL, win rates, and trade counts by day of the week and hour.")
     
-    hour_col = 'trade_hour'        # Expected to be engineered in data_processing.py
-    dow_col = 'trade_day_of_week'  # Expected to be engineered in data_processing.py
+    hour_col = 'trade_hour'        
+    dow_col = 'trade_day_of_week'  
     days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
     if hour_col in filtered_df.columns and dow_col in filtered_df.columns:
@@ -307,8 +295,8 @@ def show_performance_page():
                 st.markdown(f"<h6>{pnl_agg_option} by Hour & Day</h6>", unsafe_allow_html=True)
                 pnl_pivot = filtered_df.pivot_table(index=hour_col, columns=dow_col, values=pnl_col, aggfunc=pnl_agg_func, fill_value=0)
                 if not pnl_pivot.empty:
-                    pnl_pivot = pnl_pivot.reindex(columns=[day for day in days_order if day in pnl_pivot.columns], fill_value=0) # Order columns
-                    pnl_pivot = pnl_pivot.sort_index() # Sort rows by hour
+                    pnl_pivot = pnl_pivot.reindex(columns=[day for day in days_order if day in pnl_pivot.columns], fill_value=0) 
+                    pnl_pivot = pnl_pivot.sort_index() 
                     pnl_heatmap_fig = plot_heatmap(
                         pnl_pivot,
                         title=f"{pnl_agg_option} by Hour and Day of Week",
@@ -336,7 +324,7 @@ def show_performance_page():
                 
                 elif other_metric_option == "Trade Count":
                     st.markdown("<h6>Trade Count by Hour & Day</h6>", unsafe_allow_html=True)
-                    trade_count_pivot = filtered_df.pivot_table(index=hour_col, columns=dow_col, values=pnl_col, aggfunc='count', fill_value=0) # Use any column for count
+                    trade_count_pivot = filtered_df.pivot_table(index=hour_col, columns=dow_col, values=pnl_col, aggfunc='count', fill_value=0) 
                     if not trade_count_pivot.empty:
                         trade_count_pivot = trade_count_pivot.reindex(columns=[day for day in days_order if day in trade_count_pivot.columns], fill_value=0)
                         trade_count_pivot = trade_count_pivot.sort_index()
@@ -356,28 +344,27 @@ def show_performance_page():
 
     # --- P&L Calendar View ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    st.subheader("🗓️ P&L Calendar View")
+    st.subheader("🗓️ P&L Calendar View") # Icon already present
     st.markdown("Visualize daily Profit & Loss in a familiar calendar format.")
 
     if date_col_main in filtered_df.columns and pnl_col in filtered_df.columns:
         try:
-            # Ensure date column is datetime
             if not pd.api.types.is_datetime64_any_dtype(filtered_df[date_col_main]):
                 filtered_df[date_col_main] = pd.to_datetime(filtered_df[date_col_main], errors='coerce')
-                if filtered_df[date_col_main].isnull().all(): # if all conversion failed
+                if filtered_df[date_col_main].isnull().all(): 
                      display_custom_message(f"Could not convert '{date_col_main}' to datetime for P&L Calendar.", "error")
-                     st.markdown("</div>", unsafe_allow_html=True) # Close container
-                     return # Stop further processing for this section
+                     st.markdown("</div>", unsafe_allow_html=True) 
+                     return 
 
             daily_pnl_df_agg = filtered_df.groupby(filtered_df[date_col_main].dt.normalize())[pnl_col].sum().reset_index()
-            daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_main: 'date', pnl_col: 'pnl'}) # Calendar component expects 'date' and 'pnl'
+            daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_main: 'date', pnl_col: 'pnl'}) 
             
             available_years = sorted(daily_pnl_df_agg['date'].dt.year.unique(), reverse=True)
             if available_years:
                 selected_year = st.selectbox("Select Year for P&L Calendar:", options=available_years, index=0, key="perf_page_calendar_year_select_box")
                 if selected_year:
                     calendar_component = PnLCalendarComponent(daily_pnl_df=daily_pnl_df_agg, year=selected_year, plot_theme=plot_theme)
-                    calendar_component.render() # This will render the HTML for the calendar
+                    calendar_component.render() 
             else:
                 display_custom_message("No yearly data available to display the P&L calendar.", "info")
         except Exception as e_cal:
@@ -392,13 +379,6 @@ def show_performance_page():
 
 
 if __name__ == "__main__":
-    # This is primarily for direct execution testing, which is not the typical use case for a page file.
-    # In a real multi-page app, Streamlit handles the page loading.
-    # For testing, you might need to mock st.session_state or ensure the main app sets it up.
     if 'app_initialized' not in st.session_state:
         st.warning("This page is part of a multi-page app. For full functionality, please run the main `app.py` script. Some features may be limited or unavailable when run directly.")
-        # Basic mock for direct testing if needed
-        # st.session_state.filtered_data = pd.DataFrame() # Example: empty DataFrame
-        # st.session_state.current_theme = 'dark'
-        # st.session_state.risk_free_rate = 0.02
     show_performance_page()
