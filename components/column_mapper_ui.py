@@ -250,8 +250,8 @@ class ColumnMapperUI:
         with st.form(key=form_key):
             cols_top_button = st.columns([0.75, 0.25]) 
             with cols_top_button[1]:
-                 # Removed type="primary" to allow CSS to fully control styling
-                 submit_button_top = st.form_submit_button("Confirm Mapping", use_container_width=True)
+                 # Restored type="primary"
+                 submit_button_top = st.form_submit_button("Confirm Mapping", use_container_width=True, type="primary")
             
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
 
@@ -286,8 +286,8 @@ class ColumnMapperUI:
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
             _, col_btn_mid, _ = st.columns([0.3, 0.4, 0.3]) 
             with col_btn_mid:
-                # Removed type="primary" to allow CSS to fully control styling
-                submit_button_bottom = st.form_submit_button("Confirm Column Mapping", use_container_width=True)
+                # Restored type="primary"
+                submit_button_bottom = st.form_submit_button("Confirm Column Mapping", use_container_width=True, type="primary")
 
         if submit_button_top or submit_button_bottom:
             missing_critical = [
