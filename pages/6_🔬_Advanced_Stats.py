@@ -7,8 +7,8 @@ This module provides users with tools for more in-depth statistical examination 
 their PnL (Profit and Loss) data. Key analyses include:
 - Bootstrap Confidence Intervals: For robust estimation of uncertainty.
 - Time Series Decomposition: To identify trend, seasonal, and residual components.
-- Distribution Fitting (Placeholder): To analyze the underlying distribution of PnL data.
-- Change Point Detection (Placeholder): To identify significant structural breaks in time series.
+- Distribution Fitting: To analyze the underlying distribution of PnL data.
+- Change Point Detection: To identify significant structural breaks in time series.
 
 The page is structured using Streamlit tabs for each distinct analysis type.
 Each tab's content and logic are encapsulated in dedicated rendering functions
@@ -22,15 +22,20 @@ import pandas as pd
 import numpy as np
 import logging
 from statsmodels.tsa.seasonal import DecomposeResult # For type hint
+from typing import List, Dict, Any, Optional, Callable # For type hints
+import sys # For checking test mode if needed for specific conditions
+
 
 try:
-    from config import APP_TITLE, EXPECTED_COLUMNS, BOOTSTRAP_ITERATIONS, CONFIDENCE_LEVEL
+    from config import APP_TITLE, EXPECTED_COLUMNS, BOOTSTRAP_ITERATIONS, CONFIDENCE_LEVEL, DISTRIBUTIONS_TO_FIT
     from utils.common_utils import display_custom_message
     from services.statistical_analysis_service import StatisticalAnalysisService
-    from plotting import plot_time_series_decomposition, plot_bootstrap_distribution_and_ci
-    # For Distribution Fitting, you might need specific distributions from scipy.stats
-    # from scipy import stats as st_scipy # Alias to avoid conflict with streamlit as st
-    from statistical_methods import DISTRIBUTIONS_TO_FIT 
+    from plotting import (
+        plot_time_series_decomposition, 
+        plot_bootstrap_distribution_and_ci,
+        plot_distribution_fit, 
+        plot_change_points     
+    )
 except ImportError as e:
     st.error(f"Advanced Stats Page Error: Critical module import failed: {e}. Please ensure all dependencies and project files are correctly placed.")
     APP_TITLE = "TradingDashboard_Error"
@@ -39,23 +44,18 @@ except ImportError as e:
     EXPECTED_COLUMNS = {"pnl": "pnl", "date": "date"} 
     BOOTSTRAP_ITERATIONS = 1000
     CONFIDENCE_LEVEL = 0.95
-    DISTRIBUTIONS_TO_FIT = ['norm'] 
+    DISTRIBUTIONS_TO_FIT = ['norm', 't', 'laplace'] 
     
-    class StatisticalAnalysisService: # Dummy service
-        def get_time_series_decomposition(self, *args, **kwargs):
-            return {"error": "StatisticalAnalysisService not loaded due to import failure."}
-        def calculate_bootstrap_ci(self, *args, **kwargs):
-            return {"error": "StatisticalAnalysisService not loaded due to import failure.", "lower_bound": np.nan, "upper_bound": np.nan, "observed_statistic": np.nan, "bootstrap_statistics": []}
-        # Placeholder for new service methods
-        # def fit_distributions_to_data(self, *args, **kwargs):
-        #     return {"error": "Distribution fitting service not implemented."}
-        # def detect_change_points_in_series(self, *args, **kwargs):
-        #     return {"error": "Change point detection service not implemented."}
+    class StatisticalAnalysisService: 
+        def get_time_series_decomposition(self, *args, **kwargs): return {"error": "StatisticalAnalysisService not loaded"}
+        def calculate_bootstrap_ci(self, *args, **kwargs): return {"error": "StatisticalAnalysisService not loaded", "lower_bound": np.nan, "upper_bound": np.nan, "observed_statistic": np.nan, "bootstrap_statistics": []}
+        def analyze_pnl_distribution_fit(self, *args, **kwargs): return {"error": "Distribution fitting service not loaded."}
+        def find_change_points(self, *args, **kwargs): return {"error": "Change point detection service not loaded."}
             
     def plot_time_series_decomposition(*args, **kwargs): return None
     def plot_bootstrap_distribution_and_ci(*args, **kwargs): return None
-    # def plot_distribution_fit(*args, **kwargs): return None # Placeholder for new plot
-    # def plot_change_points(*args, **kwargs): return None # Placeholder for new plot
+    def plot_distribution_fit(*args, **kwargs): return None 
+    def plot_change_points(*args, **kwargs): return None
 
     def display_custom_message(message, type="error"): 
         if type == "error": st.error(message)
@@ -72,13 +72,13 @@ BOOTSTRAP_EXPLANATION = """
 *How it works:* Randomly samples data with replacement, calculates statistic for each, forms a distribution, then derives CI from percentiles.
 *Interpretation:* A 95% CI suggests 95% of such intervals would contain the true population parameter.
 *Why use it:* Good for small samples, no specific distribution assumption, applicable to complex statistics.
-""" # Condensed for brevity in example
+"""
 
 DECOMPOSITION_EXPLANATION = """
 **Time Series Decomposition** breaks a series into Trend ($T_t$), Seasonality ($S_t$), and Residuals ($R_t$).
 *Models:* Additive ($Y_t = T_t + S_t + R_t$) for constant seasonal variation; Multiplicative ($Y_t = T_t \cdot S_t \cdot R_t$) for proportional variation.
 *Why use it:* Understand patterns, aid forecasting, deseasonalize data, detect anomalies in residuals.
-""" # Condensed
+"""
 
 DISTRIBUTION_FITTING_EXPLANATION = """
 **Distribution Fitting** involves finding a mathematical function that best describes the probability distribution of a given dataset (e.g., your PnL returns).
@@ -87,36 +87,22 @@ DISTRIBUTION_FITTING_EXPLANATION = """
 -   **Risk Management:** Understanding the distribution helps in estimating Value at Risk (VaR), Expected Shortfall (ES), and other risk metrics.
 -   **Strategy Evaluation:** Comparing the PnL distribution to known theoretical distributions (e.g., Normal, Student's t, Skewed-t) can reveal characteristics like fat tails (leptokurtosis) or skewness, which are crucial for assessing strategy robustness.
 -   **Simulation:** A fitted distribution can be used to simulate future PnL scenarios for stress testing or Monte Carlo analysis.
--   **Parameter Estimation:** Provides estimates for distribution parameters (e.g., mean, standard deviation, degrees of freedom, skewness parameter).
-
-**Common Distributions for Financial Returns:**
--   Normal (Gaussian)
--   Student's t (captures fatter tails than normal)
--   Skewed Student's t (captures both skewness and fat tails)
--   Generalized Error Distribution (GED)
 
 **Process typically involves:**
-1.  Selecting a set of candidate distributions.
-2.  Estimating parameters for each candidate distribution using methods like Maximum Likelihood Estimation (MLE).
-3.  Evaluating goodness-of-fit using statistical tests (e.g., Kolmogorov-Smirnov, Anderson-Darling) and visual inspection (e.g., Q-Q plots, P-P plots, histograms with PDF overlay).
+1.  Selecting candidate distributions.
+2.  Estimating parameters (e.g., via Maximum Likelihood Estimation).
+3.  Evaluating goodness-of-fit (e.g., Kolmogorov-Smirnov test, Q-Q plots).
 """
 
 CHANGE_POINT_DETECTION_EXPLANATION = """
-**Change Point Detection (CPD)**, also known as structural break detection, aims to identify time points in a series where its statistical properties (e.g., mean, variance, trend, seasonality) change significantly.
+**Change Point Detection (CPD)** aims to identify time points in a series where its statistical properties (e.g., mean, variance, trend) change significantly.
 
 **Why it's important for trading PnL or Equity Curves:**
--   **Regime Shift Identification:** Detects if a trading strategy's performance characteristics have fundamentally changed, possibly due to evolving market conditions, model decay, or external shocks.
--   **Strategy Monitoring:** Helps in automatically flagging periods where a strategy might have stopped working as expected or started behaving differently.
--   **Performance Attribution:** Understanding when and how performance changed can aid in attributing those changes to specific market events or strategy adjustments.
--   **Adaptive Modeling:** Identified change points can be used to segment data for training adaptive models or to adjust strategy parameters.
+-   **Regime Shift Identification:** Detects if a trading strategy's performance characteristics have fundamentally changed.
+-   **Strategy Monitoring:** Helps flag periods where a strategy might have stopped working as expected.
+-   **Adaptive Modeling:** Identified change points can be used to segment data for training adaptive models.
 
-**Common Approaches:**
--   **Offline Methods:** Analyze the entire historical series at once (e.g., PELT, Binary Segmentation).
--   **Online Methods:** Process data sequentially and detect changes as new data arrives (e.g., CUSUM, Bayesian Online Change Point Detection).
-
-**Considerations:**
--   The choice of method depends on the type of change expected (e.g., change in mean, variance, or more complex model parameters).
--   Sensitivity of the detection algorithm (avoiding too many false positives or missing true change points).
+**Common Approaches:** PELT, Binary Segmentation, Dynamic Programming.
 """
 
 # --- Tab Rendering Functions ---
@@ -131,7 +117,6 @@ def render_bootstrap_tab(
         st.markdown(BOOTSTRAP_EXPLANATION)
     
     with st.expander("⚙️ Configure & Run Bootstrap Analysis", expanded=True):
-        # ... (existing bootstrap UI and logic remains here) ...
         stat_options_bs = {
             "Mean PnL": np.mean, "Median PnL": np.median, "PnL Standard Deviation": np.std,
             "PnL Skewness": pd.Series.skew, "PnL Kurtosis": pd.Series.kurtosis,
@@ -148,17 +133,18 @@ def render_bootstrap_tab(
             st.warning("Not enough data points to calculate any bootstrap statistics for the PnL series.")
             return
 
-        with st.form("bootstrap_form_tab_v3"): 
+        # Using a more unique form key
+        with st.form("bootstrap_form_adv_stats_v1"): 
             selected_stat_name_bs = st.selectbox(
-                "Select Statistic:", list(available_stat_options.keys()), key="bs_stat_select_tab_v3",
+                "Select Statistic:", list(available_stat_options.keys()), key="bs_stat_select_adv_stats_v1",
                 help="Choose the PnL metric for which to calculate the confidence interval."
             )
             n_iterations_bs = st.number_input(
-                "Iterations:", 100, 10000, default_iterations, 100, key="bs_iterations_tab_v3",
+                "Iterations:", 100, 10000, default_iterations, 100, key="bs_iterations_adv_stats_v1",
                 help="Number of resamples. More iterations yield more stable CIs but take longer."
             )
             conf_level_bs_percent = st.slider(
-                "Confidence Level (%):", 80.0, 99.9, default_confidence_level * 100, 0.1, "%.1f%%", key="bs_conf_level_tab_v3",
+                "Confidence Level (%):", 80.0, 99.9, default_confidence_level * 100, 0.1, "%.1f%%", key="bs_conf_level_adv_stats_v1",
                 help="The desired confidence level for the interval (e.g., 95%)."
             )
             run_bs_button = st.form_submit_button(f"Calculate CI for {selected_stat_name_bs}")
@@ -203,7 +189,7 @@ def render_decomposition_tab(
     st.header("Time Series Decomposition")
     with st.expander("What is Time Series Decomposition?", expanded=False):
         st.markdown(DECOMPOSITION_EXPLANATION)
-    # ... (existing decomposition UI and logic remains here) ...
+
     if not date_column_name or date_column_name not in input_df.columns:
         display_custom_message(f"The expected Date column ('{date_column_name}') is required for Time Series Decomposition and was not found in the data.", "error")
         return
@@ -236,9 +222,10 @@ def render_decomposition_tab(
         return
 
     with st.expander("⚙️ Configure & Run Decomposition", expanded=True):
-        with st.form("decomposition_form_tab_v3"): 
-            sel_series_name_dc = st.selectbox("Select Series for Decomposition:", list(series_options_decomp.keys()), key="dc_series_tab_v3", help="Choose the time series data to decompose.")
-            sel_model_dc = st.selectbox("Decomposition Model:", ["additive", "multiplicative"], key="dc_model_tab_v3", help="Choose 'additive' for constant seasonal variation, or 'multiplicative' if it scales with the series level.")
+        # Using a more unique form key
+        with st.form("decomposition_form_adv_stats_v1"): 
+            sel_series_name_dc = st.selectbox("Select Series for Decomposition:", list(series_options_decomp.keys()), key="dc_series_adv_stats_v1", help="Choose the time series data to decompose.")
+            sel_model_dc = st.selectbox("Decomposition Model:", ["additive", "multiplicative"], key="dc_model_adv_stats_v1", help="Choose 'additive' for constant seasonal variation, or 'multiplicative' if it scales with the series level.")
             
             data_dc = series_options_decomp[sel_series_name_dc]
             default_period = 7
@@ -254,7 +241,7 @@ def render_decomposition_tab(
 
             period_dc = st.number_input(
                 "Seasonal Period (Number of Observations):", 
-                min_value=min_p, max_value=max_p_input, value=current_val_p, step=1, key="dc_period_tab_v3",
+                min_value=min_p, max_value=max_p_input, value=current_val_p, step=1, key="dc_period_adv_stats_v1",
                 help=f"Specify the observations per seasonal cycle (e.g., 7 for daily data with weekly seasonality). Max allowed: {help_max_p}."
             )
             submit_decomp = st.form_submit_button(f"Decompose {sel_series_name_dc}")
@@ -298,108 +285,226 @@ def render_distribution_fitting_tab(
     pnl_series: pd.Series, 
     plot_theme: str, 
     service: StatisticalAnalysisService,
-    available_distributions: list # e.g., from statistical_methods.DISTRIBUTIONS_TO_FIT
+    configured_distributions: List[str] 
 ) -> None:
-    """
-    Renders the UI and logic for the Distribution Fitting tab. (Placeholder)
-
-    Args:
-        pnl_series (pd.Series): The PnL data (cleaned of NaNs) to be analyzed.
-        plot_theme (str): The current theme for plot styling.
-        service (StatisticalAnalysisService): Service for distribution fitting.
-        available_distributions (list): List of distribution names to offer for fitting.
-    """
+    """Renders the UI and logic for the Distribution Fitting tab."""
     st.header("Distribution Fitting")
     with st.expander("What is Distribution Fitting?", expanded=False):
         st.markdown(DISTRIBUTION_FITTING_EXPLANATION)
 
-    st.info("📊 **Distribution Fitting Analysis:** This section is under development. Future enhancements will allow you to fit various statistical distributions to your PnL data, helping to understand its underlying characteristics and for risk modeling.")
-    
     if pnl_series.empty:
         st.warning("PnL series is empty. Cannot perform distribution fitting.")
         return
 
-    # Placeholder for future UI and logic
-    # Example:
-    # with st.expander("⚙️ Configure & Run Distribution Fitting", expanded=True):
-    #     with st.form("dist_fit_form_tab_v1"):
-    #         selected_dists = st.multiselect(
-    #             "Select distributions to fit:",
-    #             options=available_distributions, # e.g., ['norm', 't', 'skewnorm']
-    #             default=[dist for dist in ['norm', 't'] if dist in available_distributions], # Sensible defaults
-    #             key="dist_fit_select_v1"
-    #         )
-    #         run_dist_fit_button = st.form_submit_button("Fit Selected Distributions")
+    with st.expander("⚙️ Configure & Run Distribution Fitting", expanded=True):
+        # Using a more unique form key
+        with st.form("dist_fit_form_adv_stats_v1"):
+            st.markdown("Select one or more statistical distributions to fit to your PnL data.")
+            distributions_to_attempt = st.multiselect(
+                "Select distributions to fit:",
+                options=configured_distributions,
+                default=[dist for dist in ['norm', 't'] if dist in configured_distributions], 
+                key="dist_fit_select_adv_stats_v1",
+                help="Choose distributions to model the PnL data. Results will include parameters and goodness-of-fit."
+            )
+            run_dist_fit_button = st.form_submit_button("Fit Selected Distributions")
         
-    #     if run_dist_fit_button and selected_dists:
-    #         with st.spinner(f"Fitting distributions: {', '.join(selected_dists)}..."):
-    #             # fit_results = service.fit_distributions_to_data(pnl_series, selected_dists)
-    #             # if fit_results and 'error' not in fit_results:
-    #             #     st.success("Distribution fitting complete!")
-    #             #     # Display results: parameters, goodness-of-fit stats, plots (histogram with PDF, Q-Q plot)
-    #             #     for dist_name, params in fit_results.get("fitted_params", {}).items():
-    #             #         st.subheader(f"Results for {dist_name}:")
-    #             #         st.write(f"Parameters: {params}")
-    #             #         # ... display GoF stats ...
-    #             #         # ... plot_distribution_fit(pnl_series, dist_name, params, plot_theme) ...
-    #             # else:
-    #             #     display_custom_message(f"Distribution fitting error: {fit_results.get('error', 'Unknown')}", "error")
-    #             display_custom_message("Distribution fitting logic not yet implemented.", "info")
+        if run_dist_fit_button and distributions_to_attempt:
+            with st.spinner(f"Fitting distributions: {', '.join(distributions_to_attempt)}..."):
+                # The service method `analyze_pnl_distribution_fit` already takes `distributions_to_try`
+                fit_results_dict = service.analyze_pnl_distribution_fit(pnl_series, distributions_to_attempt)
+            
+            if fit_results_dict and 'error' not in fit_results_dict:
+                st.success("Distribution fitting complete!")
+                results_data = []
+                valid_fits_for_plot_selection = []
+
+                for dist_name, result in fit_results_dict.items():
+                    if 'error' in result:
+                        results_data.append({
+                            "Distribution": dist_name, "Parameters": "Error", 
+                            "KS Statistic": "N/A", "KS p-value": "N/A", 
+                            "Interpretation": result['error']
+                        })
+                    else:
+                        # Ensure param_names are available, provide fallback if not
+                        param_names = result.get("param_names", [f'param_{i+1}' for i in range(len(result.get("params",[])))])
+                        params_str = ", ".join([f"{pn}={pv:.4f}" for pn, pv in zip(param_names, result.get("params", []))])
+                        
+                        results_data.append({
+                            "Distribution": dist_name,
+                            "Parameters": params_str,
+                            "KS Statistic": f"{result.get('ks_statistic', np.nan):.4f}",
+                            "KS p-value": f"{result.get('ks_p_value', np.nan):.4f}",
+                            "Interpretation": result.get("interpretation", "N/A")
+                        })
+                        valid_fits_for_plot_selection.append(dist_name)
+                
+                if results_data:
+                    st.subheader("Goodness-of-Fit Results")
+                    st.dataframe(pd.DataFrame(results_data), use_container_width=True)
+
+                if valid_fits_for_plot_selection:
+                    st.subheader("Visualize Fit")
+                    # Use a unique key for the selectbox
+                    dist_to_plot = st.selectbox(
+                        "Select a fitted distribution to visualize:",
+                        options=valid_fits_for_plot_selection,
+                        key="dist_plot_select_adv_stats_v1" 
+                    )
+                    if dist_to_plot and dist_to_plot in fit_results_dict and 'params' in fit_results_dict[dist_to_plot]:
+                        selected_fit_details = fit_results_dict[dist_to_plot]
+                        dist_plot_fig = plot_distribution_fit(
+                            pnl_series=pnl_series,
+                            dist_name=dist_to_plot,
+                            fit_params=tuple(selected_fit_details['params']), # Ensure params is a tuple
+                            gof_stats=selected_fit_details, 
+                            theme=plot_theme
+                        )
+                        if dist_plot_fig:
+                            st.plotly_chart(dist_plot_fig, use_container_width=True)
+                        else:
+                            display_custom_message(f"Could not generate plot for {dist_to_plot}.", "warning")
+                elif not results_data: # No results data at all
+                    st.info("No distribution fitting results to display.")
+                else: # Results data exists, but no valid fits for plotting
+                    st.warning("No distributions were successfully fitted to allow visualization.")
+
+
+            elif fit_results_dict and 'error' in fit_results_dict:
+                 display_custom_message(f"Distribution fitting service error: {fit_results_dict['error']}", "error")
+            else:
+                display_custom_message("Distribution fitting failed to return results or an unexpected error occurred.", "error")
+        elif run_dist_fit_button and not distributions_to_attempt:
+            st.warning("Please select at least one distribution to fit.")
 
 
 def render_change_point_detection_tab(
     input_df: pd.DataFrame, 
-    target_column_name: str, # Could be 'pnl' or 'cumulative_pnl'
+    pnl_column_name: str, 
     date_column_name: str,
     plot_theme: str, 
     service: StatisticalAnalysisService
 ) -> None:
-    """
-    Renders the UI and logic for the Change Point Detection tab. (Placeholder)
-
-    Args:
-        input_df (pd.DataFrame): DataFrame containing the series to analyze.
-        target_column_name (str): Name of the column for CPD (e.g., 'pnl', 'cumulative_pnl').
-        date_column_name (str): Name of the date column for time series context.
-        plot_theme (str): The current theme for plot styling.
-        service (StatisticalAnalysisService): Service for change point detection.
-    """
+    """Renders the UI and logic for the Change Point Detection tab."""
     st.header("Change Point Detection")
     with st.expander("What is Change Point Detection?", expanded=False):
         st.markdown(CHANGE_POINT_DETECTION_EXPLANATION)
 
-    st.info("⚠️ **Change Point Detection Analysis:** This feature is planned. It will help identify significant structural breaks or regime shifts in your selected time series data (e.g., PnL or Equity Curve).")
+    cpd_series_options = {}
+    df_for_cpd = input_df.copy()
+    
+    if date_column_name and date_column_name in df_for_cpd.columns:
+        if not pd.api.types.is_datetime64_any_dtype(df_for_cpd[date_column_name]):
+            try: df_for_cpd[date_column_name] = pd.to_datetime(df_for_cpd[date_column_name])
+            except Exception: df_for_cpd = None 
 
-    if input_df.empty or target_column_name not in input_df.columns:
-        st.warning(f"Required data ('{target_column_name}') not available for Change Point Detection.")
+        if df_for_cpd is not None:
+            if pnl_column_name and pnl_column_name in df_for_cpd.columns:
+                pnl_ts = df_for_cpd.set_index(date_column_name)[pnl_column_name].dropna()
+                if not pnl_ts.empty: cpd_series_options[f"PnL ('{pnl_column_name}')"] = pnl_ts
+            
+            if 'cumulative_pnl' in df_for_cpd.columns:
+                equity_ts = df_for_cpd.set_index(date_column_name)['cumulative_pnl'].dropna()
+                if not equity_ts.empty: cpd_series_options["Equity Curve (Cumulative PnL)"] = equity_ts
+    
+    if not cpd_series_options:
+        st.warning("No suitable time series (PnL or Equity Curve with valid dates) available for Change Point Detection.")
         return
-        
-    # Placeholder for future UI and logic
-    # Example:
-    # series_to_analyze = input_df.set_index(date_column_name)[target_column_name].dropna()
-    # if series_to_analyze.empty:
-    #     st.warning(f"The selected series '{target_column_name}' is empty after processing.")
-    #     return
 
-    # with st.expander("⚙️ Configure & Run Change Point Detection", expanded=True):
-    #     with st.form("cpd_form_tab_v1"):
-    #         # UI elements for selecting CPD method, parameters (e.g., penalty, number of change points)
-    #         cpd_method = st.selectbox("Select CPD Method:", ["PELT", "BinSeg", "DynamicProgramming"], key="cpd_method_v1") # Example methods
-    #         # ... other parameters ...
-    #         run_cpd_button = st.form_submit_button("Detect Change Points")
+    with st.expander("⚙️ Configure & Run Change Point Detection", expanded=True):
+        # Using a more unique form key
+        with st.form("cpd_form_adv_stats_v1"):
+            selected_series_name_cpd = st.selectbox(
+                "Select time series for analysis:",
+                options=list(cpd_series_options.keys()),
+                key="cpd_series_select_adv_stats_v1"
+            )
+            
+            cpd_model = st.selectbox(
+                "Detection Model (Cost Function):", 
+                options=["l1", "l2", "rbf", "linear", "normal", "ar"], 
+                index=1, key="cpd_model_adv_stats_v1",
+                help="The cost function to detect changes (e.g., 'l2' for changes in mean)."
+            )
+            
+            detection_method = st.radio(
+                "Breakpoint Specification:",
+                ("Automatic (Penalty-based)", "Fixed Number of Breakpoints"),
+                key="cpd_detection_method_adv_stats_v1"
+            )
 
-    #     if run_cpd_button:
-    #         with st.spinner(f"Detecting change points using {cpd_method}..."):
-    #             # cpd_results = service.detect_change_points_in_series(series_to_analyze, method=cpd_method, ...)
-    #             # if cpd_results and 'error' not in cpd_results:
-    #             #     st.success("Change point detection complete!")
-    #             #     change_points_indices = cpd_results.get("change_points", [])
-    #             #     st.write(f"Detected change points at indices: {change_points_indices}")
-    #             #     # Convert indices to dates if possible
-    #             #     # ... plot_change_points(series_to_analyze, change_points_indices, plot_theme) ...
-    #             # else:
-    #             #     display_custom_message(f"CPD error: {cpd_results.get('error', 'Unknown')}", "error")
-    #             display_custom_message("Change point detection logic not yet implemented.", "info")
+            penalty_value_cpd: Any = "bic" 
+            n_breakpoints_cpd: Optional[int] = None
+
+            if detection_method == "Automatic (Penalty-based)":
+                penalty_value_cpd = st.selectbox(
+                    "Penalty Method:", 
+                    options=["bic", "aic", "mbic", "custom_float"], 
+                    index=0, key="cpd_penalty_adv_stats_v1",
+                    help="BIC/AIC/MBIC are common. 'custom_float' allows manual float input."
+                )
+                if penalty_value_cpd == "custom_float":
+                    penalty_value_cpd = st.number_input("Custom Penalty Value (float):", min_value=0.1, value=10.0, step=0.1, key="cpd_custom_penalty_val_adv_stats")
+            else:
+                n_breakpoints_cpd = st.number_input(
+                    "Number of Change Points to Detect:", 
+                    min_value=1, value=3, step=1, key="cpd_n_bkps_adv_stats_v1"
+                )
+            
+            min_segment_size_cpd = st.number_input(
+                "Minimum Segment Size:",
+                min_value=2, value=5, step=1, key="cpd_min_size_adv_stats_v1",
+                help="Minimum number of data points between change points."
+            )
+            run_cpd_button = st.form_submit_button("Detect Change Points")
+
+        if run_cpd_button and selected_series_name_cpd:
+            series_to_analyze_cpd = cpd_series_options[selected_series_name_cpd]
+
+            if series_to_analyze_cpd.empty:
+                st.warning(f"The selected series '{selected_series_name_cpd}' is empty after processing.")
+                return
+
+            with st.spinner(f"Detecting change points in '{selected_series_name_cpd}'..."):
+                cpd_results = service.find_change_points(
+                    series=series_to_analyze_cpd,
+                    model=cpd_model,
+                    penalty=penalty_value_cpd if detection_method == "Automatic (Penalty-based)" else None,
+                    n_bkps=n_breakpoints_cpd if detection_method == "Fixed Number of Breakpoints" else None,
+                    min_size=min_segment_size_cpd
+                )
+            
+            if cpd_results and 'error' not in cpd_results:
+                st.success("Change point detection complete!")
+                # The service returns 'change_points_original_indices' which are actual index values
+                change_points_locations = cpd_results.get("change_points_original_indices", []) 
+                
+                if change_points_locations:
+                    st.write(f"Detected {len(change_points_locations)} change point(s) at:")
+                    # Display dates if index is DatetimeIndex, otherwise display the raw index values
+                    if isinstance(series_to_analyze_cpd.index, pd.DatetimeIndex):
+                        st.write([loc.strftime('%Y-%m-%d %H:%M:%S') if isinstance(loc, pd.Timestamp) else str(loc) for loc in change_points_locations])
+                    else:
+                        st.write(change_points_locations)
+                    
+                    cpd_plot_fig = plot_change_points(
+                        time_series_data=cpd_results.get('series_to_plot', series_to_analyze_cpd), # Use series from results if available
+                        change_points_locations=change_points_locations, # Pass the actual locations
+                        series_name=selected_series_name_cpd,
+                        title=f"Change Points in {selected_series_name_cpd}",
+                        theme=plot_theme
+                    )
+                    if cpd_plot_fig:
+                        st.plotly_chart(cpd_plot_fig, use_container_width=True)
+                    else:
+                        display_custom_message("Could not generate change point plot.", "warning")
+                else:
+                    st.info("No significant change points were detected with the current settings.")
+            elif cpd_results and 'error' in cpd_results:
+                display_custom_message(f"Change Point Detection Error: {cpd_results['error']}", "error")
+            else:
+                display_custom_message("Change point detection failed to return results or an unexpected error occurred.", "error")
 
 
 # --- Main Page Function ---
@@ -425,22 +530,17 @@ def show_advanced_stats_page() -> None:
         return
 
     pnl_series_for_adv = filtered_df[pnl_col].dropna()
-    if pnl_series_for_adv.empty and not (len(sys.argv) > 1 and sys.argv[1] == 'streamlit_test_mode'): # Allow empty for testing
-        display_custom_message("The PnL data series is empty after removing missing values. Cannot perform advanced statistical analysis.", "warning")
-        # For some tabs like CPD, we might still want to proceed if other series (e.g. equity curve) are available.
-        # The individual tab rendering functions will handle specific data needs.
     
-    # Create tabs - Add new analysis tabs here
     tab_titles = [
         "📊 Bootstrap CI", 
         "📉 Time Series Decomposition",
-        "⚙️ Distribution Fitting", # New Tab
-        "⚠️ Change Point Detection"  # New Tab
+        "⚙️ Distribution Fitting",
+        "⚠️ Change Point Detection"
     ]
     tab_bs_ci, tab_ts_decomp, tab_dist_fit, tab_cpd = st.tabs(tab_titles)
 
     with tab_bs_ci:
-        if pnl_series_for_adv.empty: # Specific check for this tab
+        if pnl_series_for_adv.empty:
              display_custom_message("PnL data is empty. Bootstrap CI cannot be calculated.", "warning")
         else:
             render_bootstrap_tab(
@@ -454,27 +554,25 @@ def show_advanced_stats_page() -> None:
             plot_theme=plot_theme, service=statistical_analysis_service
         )
 
-    with tab_dist_fit: # New Distribution Fitting Tab
-        if pnl_series_for_adv.empty: # Specific check for this tab
+    with tab_dist_fit:
+        if pnl_series_for_adv.empty:
              display_custom_message("PnL data is empty. Distribution Fitting cannot be performed.", "warning")
         else:
             render_distribution_fitting_tab(
                 pnl_series=pnl_series_for_adv, 
                 plot_theme=plot_theme, 
                 service=statistical_analysis_service,
-                available_distributions=DISTRIBUTIONS_TO_FIT # Pass configured distributions
+                configured_distributions=DISTRIBUTIONS_TO_FIT # Ensure this is correctly imported/defined
             )
 
-    with tab_cpd: # New Change Point Detection Tab
-        # CPD might analyze PnL or Equity Curve, so pass filtered_df
+    with tab_cpd:
         render_change_point_detection_tab(
             input_df=filtered_df,
-            target_column_name=pnl_col, # Default to PnL, could be selectable later
+            pnl_column_name=pnl_col, 
             date_column_name=date_col,
             plot_theme=plot_theme,
             service=statistical_analysis_service
         )
-import sys # For checking test mode if needed for specific conditions
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state:
