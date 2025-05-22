@@ -183,7 +183,6 @@ def show_portfolio_analysis_page():
     portfolio_df[date_col_actual] = pd.to_datetime(portfolio_df[date_col_actual], errors='coerce')
     portfolio_df_cleaned_dates = portfolio_df.dropna(subset=[date_col_actual, pnl_col_actual])
     
-    # Define portfolio_daily_trades_df here to ensure it's in scope for "View Data"
     portfolio_daily_trades_df = pd.DataFrame() 
 
     if portfolio_df_cleaned_dates.empty:
@@ -236,14 +235,13 @@ def show_portfolio_analysis_page():
                     st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                     st.dataframe(portfolio_daily_trades_df)
                     st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
+    st.markdown("</div>", unsafe_allow_html=True) 
     st.markdown("---")
 
     # --- Inter-Connections Section ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header(f"🔗 Inter-Connections (Selected Portfolio: {', '.join(selected_accounts_for_portfolio)})")
     
-    # Define correlation matrices here to ensure scope for "View Data"
     matrix_df_strat_corr = pd.DataFrame()
     matrix_df_acc_corr = pd.DataFrame()
 
@@ -328,7 +326,7 @@ def show_portfolio_analysis_page():
         except Exception as e_acc_corr:
             logger.error(f"Error in inter-account correlation section: {e_acc_corr}", exc_info=True)
             display_custom_message(f"Error during inter-account correlation: {e_acc_corr}", "error")
-    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
+    st.markdown("</div>", unsafe_allow_html=True) 
     st.markdown("---")
 
     # --- Account Performance Breakdown Section ---
@@ -336,8 +334,8 @@ def show_portfolio_analysis_page():
     st.header(f"📊 Account Performance Breakdown (within Selected Portfolio: {', '.join(selected_accounts_for_portfolio)})")
     
     account_metrics_data = []
-    summary_table_df = pd.DataFrame() # Define for "View Data" scope
-    pnl_contribution_df_filtered = pd.DataFrame() # Define for "View Data" scope
+    summary_table_df = pd.DataFrame() 
+    pnl_contribution_df_filtered = pd.DataFrame() 
 
     for acc_name_loop in selected_accounts_for_portfolio: 
         acc_df_original_trades = base_df[base_df[account_col_actual] == acc_name_loop].copy()
@@ -386,12 +384,23 @@ def show_portfolio_analysis_page():
                 st.markdown("</div>", unsafe_allow_html=True)
         else: st.info("No P&L contribution data to display (all selected accounts have zero or non-numeric P&L).")
     else: display_custom_message("Could not calculate performance metrics for individual accounts.", "warning")
-    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
+    st.markdown("</div>", unsafe_allow_html=True) 
     st.markdown("---")
 
     # --- Portfolio Optimization Section ---
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header("⚖️ Portfolio Optimization")
+
+    # Initialize variables that will be set inside the form and used outside
+    selected_strategies_for_opt = []
+    optimization_objective = ""
+    use_ledoit_wolf_covariance = True
+    target_return_input = None
+    lookback_days_opt = 252
+    num_frontier_points_input = 25
+    asset_bounds_input = []
+    current_weights_input_for_turnover = {}
+    submit_optimization_button = False # Will be set by the form
 
     with st.expander("⚙️ Configure Portfolio Optimization", expanded=True):
         if strategy_col_actual not in portfolio_df.columns:
@@ -430,7 +439,6 @@ def show_portfolio_analysis_page():
                     )
 
                     target_return_input_visibility = (optimization_objective == "Minimize Volatility")
-                    target_return_input = None
                     if target_return_input_visibility:
                         target_return_input = st.number_input(
                             "Target Annualized Return (e.g., 0.10 for 10%):",
@@ -449,7 +457,6 @@ def show_portfolio_analysis_page():
                         help="Number of recent trading days for calculating expected returns and covariance."
                     )
                     
-                    num_frontier_points_input = 25 
                     if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"]:
                         num_frontier_points_input = st.number_input(
                             "Number of Points for Efficient Frontier Plot:",
@@ -459,8 +466,9 @@ def show_portfolio_analysis_page():
                         )
                     
                     st.markdown("##### Per-Strategy Weight Constraints (Min/Max %)")
-                    asset_bounds_input = []
-                    current_weights_input_for_turnover = {} 
+                    # asset_bounds_input and current_weights_input_for_turnover are re-initialized here for the form
+                    asset_bounds_input = [] 
+                    current_weights_input_for_turnover = {}
 
                     if selected_strategies_for_opt:
                         st.markdown("###### Define Current and Min/Max Allocation % for Each Selected Strategy:")
@@ -485,181 +493,186 @@ def show_portfolio_analysis_page():
 
                     submit_optimization_button = st.form_submit_button("Optimize Portfolio")
 
-                if submit_optimization_button and selected_strategies_for_opt:
-                    min_strategies_needed = 1 if optimization_objective == "Risk Parity" else 2
-                    sum_current_weights = sum(current_weights_input_for_turnover.values())
-                    if not (0.999 < sum_current_weights < 1.001) and sum_current_weights != 0: 
-                         display_custom_message(f"Sum of 'Current Weight %' ({sum_current_weights*100:.1f}%) should be close to 100% for turnover calculation. Please adjust.", "warning")
-                    
-                    if len(selected_strategies_for_opt) < min_strategies_needed:
-                        display_custom_message(f"Please select at least {min_strategies_needed} strategies for '{optimization_objective}'.", "warning")
-                    elif asset_bounds_input and sum(b[0] for b in asset_bounds_input) > 1.0 + 1e-6 : 
-                        display_custom_message(f"Sum of minimum weight constraints ({sum(b[0]*100 for b in asset_bounds_input):.1f}%) exceeds 100%. Please adjust.", "error")
+    # --- This block is now OUTSIDE the "Configure Portfolio Optimization" expander ---
+    if submit_optimization_button and selected_strategies_for_opt:
+        min_strategies_needed = 1 if optimization_objective == "Risk Parity" else 2
+        sum_current_weights = sum(current_weights_input_for_turnover.values())
+        if not (0.999 < sum_current_weights < 1.001) and sum_current_weights != 0: 
+                display_custom_message(f"Sum of 'Current Weight %' ({sum_current_weights*100:.1f}%) should be close to 100% for turnover calculation. Please adjust.", "warning")
+        
+        if len(selected_strategies_for_opt) < min_strategies_needed:
+            display_custom_message(f"Please select at least {min_strategies_needed} strategies for '{optimization_objective}'.", "warning")
+        elif asset_bounds_input and sum(b[0] for b in asset_bounds_input) > 1.0 + 1e-6 : 
+            display_custom_message(f"Sum of minimum weight constraints ({sum(b[0]*100 for b in asset_bounds_input):.1f}%) exceeds 100%. Please adjust.", "error")
+        else:
+            with st.spinner("Preparing data and optimizing portfolio..."):
+                opt_df_filtered_strategies = portfolio_df[portfolio_df[strategy_col_actual].isin(selected_strategies_for_opt)].copy()
+                opt_df_filtered_strategies[date_col_actual] = pd.to_datetime(opt_df_filtered_strategies[date_col_actual])
+                opt_df_filtered_strategies.sort_values(by=date_col_actual, inplace=True)
+
+                latest_date_in_data = opt_df_filtered_strategies[date_col_actual].max() if not opt_df_filtered_strategies.empty else pd.Timestamp.now()
+                start_date_lookback = latest_date_in_data - pd.Timedelta(days=lookback_days_opt -1) 
+                opt_df_lookback = opt_df_filtered_strategies[opt_df_filtered_strategies[date_col_actual] >= start_date_lookback]
+                
+                if opt_df_lookback.empty:
+                    display_custom_message("No data available for the selected strategies within the lookback period.", "warning")
+                else:
+                    daily_pnl_pivot = opt_df_lookback.groupby(
+                        [opt_df_lookback[date_col_actual].dt.normalize(), strategy_col_actual]
+                    )[pnl_col_actual].sum().unstack(fill_value=0)
+                    daily_pnl_pivot = daily_pnl_pivot.reindex(columns=selected_strategies_for_opt, fill_value=0.0)
+
+                    if global_initial_capital <= 0:
+                        display_custom_message("Initial capital must be positive to calculate returns for optimization.", "error")
                     else:
-                        with st.spinner("Preparing data and optimizing portfolio..."):
-                            opt_df_filtered_strategies = portfolio_df[portfolio_df[strategy_col_actual].isin(selected_strategies_for_opt)].copy()
-                            opt_df_filtered_strategies[date_col_actual] = pd.to_datetime(opt_df_filtered_strategies[date_col_actual])
-                            opt_df_filtered_strategies.sort_values(by=date_col_actual, inplace=True)
+                        daily_returns_for_opt = daily_pnl_pivot / global_initial_capital
+                        daily_returns_for_opt = daily_returns_for_opt.fillna(0) 
 
-                            latest_date_in_data = opt_df_filtered_strategies[date_col_actual].max() if not opt_df_filtered_strategies.empty else pd.Timestamp.now()
-                            start_date_lookback = latest_date_in_data - pd.Timedelta(days=lookback_days_opt -1) 
-                            opt_df_lookback = opt_df_filtered_strategies[opt_df_filtered_strategies[date_col_actual] >= start_date_lookback]
-                            
-                            if opt_df_lookback.empty:
-                                display_custom_message("No data available for the selected strategies within the lookback period.", "warning")
-                            else:
-                                daily_pnl_pivot = opt_df_lookback.groupby(
-                                    [opt_df_lookback[date_col_actual].dt.normalize(), strategy_col_actual]
-                                )[pnl_col_actual].sum().unstack(fill_value=0)
-                                daily_pnl_pivot = daily_pnl_pivot.reindex(columns=selected_strategies_for_opt, fill_value=0.0)
+                        min_hist_points = 20 if optimization_objective != "Risk Parity" or len(selected_strategies_for_opt) > 1 else 2
+                        if daily_returns_for_opt.empty or daily_returns_for_opt.shape[0] < min_hist_points : 
+                            display_custom_message(f"Not enough historical daily return data points ({daily_returns_for_opt.shape[0]}) for reliable optimization. Need at least {min_hist_points}.", "warning")
+                        else:
+                            opt_results = portfolio_specific_service.prepare_and_run_optimization(
+                                daily_returns_df=daily_returns_for_opt,
+                                objective=optimization_objective.lower().replace(" ", "_"),
+                                risk_free_rate=risk_free_rate,
+                                target_return_level=target_return_input if (optimization_objective == "Minimize Volatility") else None,
+                                trading_days=252,
+                                num_frontier_points=num_frontier_points_input if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"] else 0,
+                                use_ledoit_wolf=use_ledoit_wolf_covariance,
+                                asset_bounds=asset_bounds_input if asset_bounds_input else None
+                            )
 
-                                if global_initial_capital <= 0:
-                                    display_custom_message("Initial capital must be positive to calculate returns for optimization.", "error")
-                                else:
-                                    daily_returns_for_opt = daily_pnl_pivot / global_initial_capital
-                                    daily_returns_for_opt = daily_returns_for_opt.fillna(0) 
-
-                                    min_hist_points = 20 if optimization_objective != "Risk Parity" or len(selected_strategies_for_opt) > 1 else 2
-                                    if daily_returns_for_opt.empty or daily_returns_for_opt.shape[0] < min_hist_points : 
-                                        display_custom_message(f"Not enough historical daily return data points ({daily_returns_for_opt.shape[0]}) for reliable optimization. Need at least {min_hist_points}.", "warning")
-                                    else:
-                                        opt_results = portfolio_specific_service.prepare_and_run_optimization(
-                                            daily_returns_df=daily_returns_for_opt,
-                                            objective=optimization_objective.lower().replace(" ", "_"),
-                                            risk_free_rate=risk_free_rate,
-                                            target_return_level=target_return_input if target_return_input_visibility else None,
-                                            trading_days=252,
-                                            num_frontier_points=num_frontier_points_input if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"] else 0,
-                                            use_ledoit_wolf=use_ledoit_wolf_covariance,
-                                            asset_bounds=asset_bounds_input if asset_bounds_input else None
-                                        )
-
-                                        if opt_results and 'error' not in opt_results:
-                                            st.success(f"Portfolio Optimization ({optimization_objective}) Complete!")
-                                            
-                                            st.subheader("⚖️ Optimal Portfolio Weights")
-                                            optimal_weights_dict = opt_results['optimal_weights']
-                                            weights_df = pd.DataFrame.from_dict(optimal_weights_dict, orient='index', columns=['Weight'])
-                                            weights_df.index.name = "Strategy"
-                                            weights_df["Weight %"] = (weights_df["Weight"] * 100) 
-                                            
-                                            st.dataframe(weights_df[["Weight %"]].style.format("{:.2f}%", subset=["Weight %"]))
-                                            with st.expander("View Optimal Weights Data"):
-                                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
-                                                st.dataframe(weights_df)
-                                                st.markdown("</div>", unsafe_allow_html=True)
+                            if opt_results and 'error' not in opt_results:
+                                st.success(f"Portfolio Optimization ({optimization_objective}) Complete!")
+                                
+                                st.subheader("⚖️ Optimal Portfolio Weights")
+                                optimal_weights_dict = opt_results['optimal_weights']
+                                weights_df = pd.DataFrame.from_dict(optimal_weights_dict, orient='index', columns=['Weight'])
+                                weights_df.index.name = "Strategy"
+                                weights_df["Weight %"] = (weights_df["Weight"] * 100) 
+                                
+                                st.dataframe(weights_df[["Weight %"]].style.format("{:.2f}%", subset=["Weight %"]))
+                                # This expander is now OUTSIDE the configuration expander
+                                with st.expander("View Optimal Weights Data"):
+                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                    st.dataframe(weights_df)
+                                    st.markdown("</div>", unsafe_allow_html=True)
 
 
-                                            fig_weights_pie = px.pie(
-                                                weights_df[weights_df['Weight'] > 0.0001], 
-                                                values='Weight', names=weights_df[weights_df['Weight'] > 0.0001].index, 
-                                                title=f'Optimal Allocation ({optimization_objective})', hole=0.3
-                                            )
-                                            fig_weights_pie.update_traces(textposition='inside', textinfo='percent+label')
-                                            st.plotly_chart(_apply_custom_theme(fig_weights_pie, plot_theme), use_container_width=True)
+                                fig_weights_pie = px.pie(
+                                    weights_df[weights_df['Weight'] > 0.0001], 
+                                    values='Weight', names=weights_df[weights_df['Weight'] > 0.0001].index, 
+                                    title=f'Optimal Allocation ({optimization_objective})', hole=0.3
+                                )
+                                fig_weights_pie.update_traces(textposition='inside', textinfo='percent+label')
+                                st.plotly_chart(_apply_custom_theme(fig_weights_pie, plot_theme), use_container_width=True)
 
-                                            if current_weights_input_for_turnover:
-                                                turnover = calculate_portfolio_turnover(current_weights_input_for_turnover, optimal_weights_dict)
-                                                st.metric(label="Portfolio Turnover", value=format_percentage(turnover))
-                                            else: 
-                                                 st.caption("Current weights not provided; turnover not calculated.")
+                                if current_weights_input_for_turnover:
+                                    turnover = calculate_portfolio_turnover(current_weights_input_for_turnover, optimal_weights_dict)
+                                    st.metric(label="Portfolio Turnover", value=format_percentage(turnover))
+                                else: 
+                                        st.caption("Current weights not provided; turnover not calculated.")
 
-                                            st.subheader(f"🚀 Optimized Portfolio Performance (Annualized) - {optimization_objective}")
-                                            optimized_kpis_data = opt_results['performance']
-                                            st.markdown("<div class='kpi-metrics-block'>", unsafe_allow_html=True)
-                                            optimized_kpi_order = ["expected_annual_return", "annual_volatility", "sharpe_ratio"]
-                                            KPIClusterDisplay(
-                                                kpi_results=optimized_kpis_data,
-                                                kpi_definitions=KPI_CONFIG, 
-                                                kpi_order=optimized_kpi_order,
-                                                cols_per_row=3
-                                            ).render()
+                                st.subheader(f"🚀 Optimized Portfolio Performance (Annualized) - {optimization_objective}")
+                                optimized_kpis_data = opt_results['performance']
+                                st.markdown("<div class='kpi-metrics-block'>", unsafe_allow_html=True)
+                                optimized_kpi_order = ["expected_annual_return", "annual_volatility", "sharpe_ratio"]
+                                KPIClusterDisplay(
+                                    kpi_results=optimized_kpis_data,
+                                    kpi_definitions=KPI_CONFIG, 
+                                    kpi_order=optimized_kpi_order,
+                                    cols_per_row=3
+                                ).render()
+                                st.markdown("</div>", unsafe_allow_html=True)
+                                
+                                if optimized_kpis_data:
+                                    # This expander is now OUTSIDE the configuration expander
+                                    with st.expander("View Optimized Performance Data"):
+                                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                        st.dataframe(pd.DataFrame.from_dict(optimized_kpis_data, orient='index', columns=['Value']))
+                                        st.markdown("</div>", unsafe_allow_html=True)
+                                
+                                if "risk_contributions" in opt_results and opt_results["risk_contributions"]:
+                                    st.subheader("🛡️ Risk Contributions to Portfolio Variance")
+                                    rc_df = pd.DataFrame.from_dict(opt_results["risk_contributions"], orient='index', columns=['Risk Contribution %'])
+                                    rc_df.index.name = "Strategy"
+                                    rc_df_sorted = rc_df.sort_values(by="Risk Contribution %", ascending=False)
+
+                                    fig_rc_bar = px.bar(
+                                        rc_df_sorted,
+                                        x=rc_df_sorted.index,
+                                        y="Risk Contribution %",
+                                        title="Percentage Risk Contribution by Strategy",
+                                        labels={"Risk Contribution %": "Risk Contribution (%)", "Strategy": "Strategy"},
+                                        color="Risk Contribution %",
+                                        color_continuous_scale=px.colors.sequential.Oranges_r 
+                                    )
+                                    fig_rc_bar.update_yaxes(ticksuffix="%")
+                                    st.plotly_chart(_apply_custom_theme(fig_rc_bar, plot_theme), use_container_width=True)
+                                    
+                                    if not rc_df_sorted.empty:
+                                        # This expander is now OUTSIDE the configuration expander
+                                        with st.expander("View Risk Contribution Data"):
+                                            st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                            st.dataframe(rc_df_sorted)
                                             st.markdown("</div>", unsafe_allow_html=True)
-                                            
-                                            if optimized_kpis_data:
-                                                with st.expander("View Optimized Performance Data"):
-                                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
-                                                    st.dataframe(pd.DataFrame.from_dict(optimized_kpis_data, orient='index', columns=['Value']))
-                                                    st.markdown("</div>", unsafe_allow_html=True)
-                                            
-                                            if "risk_contributions" in opt_results and opt_results["risk_contributions"]:
-                                                st.subheader("🛡️ Risk Contributions to Portfolio Variance")
-                                                rc_df = pd.DataFrame.from_dict(opt_results["risk_contributions"], orient='index', columns=['Risk Contribution %'])
-                                                rc_df.index.name = "Strategy"
-                                                rc_df_sorted = rc_df.sort_values(by="Risk Contribution %", ascending=False)
-
-                                                fig_rc_bar = px.bar(
-                                                    rc_df_sorted,
-                                                    x=rc_df_sorted.index,
-                                                    y="Risk Contribution %",
-                                                    title="Percentage Risk Contribution by Strategy",
-                                                    labels={"Risk Contribution %": "Risk Contribution (%)", "Strategy": "Strategy"},
-                                                    color="Risk Contribution %",
-                                                    color_continuous_scale=px.colors.sequential.Oranges_r 
-                                                )
-                                                fig_rc_bar.update_yaxes(ticksuffix="%")
-                                                st.plotly_chart(_apply_custom_theme(fig_rc_bar, plot_theme), use_container_width=True)
-                                                
-                                                if not rc_df_sorted.empty:
-                                                    with st.expander("View Risk Contribution Data"):
-                                                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
-                                                        st.dataframe(rc_df_sorted)
-                                                        st.markdown("</div>", unsafe_allow_html=True)
 
 
-                                            if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"]:
-                                                st.subheader("🎯 Efficient Frontier")
-                                                frontier_data = opt_results.get("efficient_frontier")
-                                                if frontier_data and frontier_data.get('volatility') and frontier_data.get('return'):
-                                                    max_sharpe_vol_plot, max_sharpe_ret_plot = None, None
-                                                    min_vol_portfolio_vol, min_vol_portfolio_ret = None, None
+                                if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"]:
+                                    st.subheader("🎯 Efficient Frontier")
+                                    frontier_data = opt_results.get("efficient_frontier")
+                                    if frontier_data and frontier_data.get('volatility') and frontier_data.get('return'):
+                                        max_sharpe_vol_plot, max_sharpe_ret_plot = None, None
+                                        min_vol_portfolio_vol, min_vol_portfolio_ret = None, None
 
-                                                    if optimization_objective == "Maximize Sharpe Ratio":
-                                                        max_sharpe_vol_plot = opt_results['performance']['annual_volatility']
-                                                        max_sharpe_ret_plot = opt_results['performance']['expected_annual_return']
-                                                    else: 
-                                                        temp_frontier_df = pd.DataFrame(frontier_data)
-                                                        if not temp_frontier_df.empty and 'volatility' in temp_frontier_df and temp_frontier_df['volatility'].gt(1e-9).any() : 
-                                                            temp_frontier_df['sharpe'] = (temp_frontier_df['return'] - risk_free_rate) / temp_frontier_df['volatility'].replace(0, np.nan) 
-                                                            if not temp_frontier_df['sharpe'].empty and not temp_frontier_df['sharpe'].isnull().all():
-                                                                max_s_idx = temp_frontier_df['sharpe'].idxmax()
-                                                                max_sharpe_vol_plot = temp_frontier_df.loc[max_s_idx, 'volatility']
-                                                                max_sharpe_ret_plot = temp_frontier_df.loc[max_s_idx, 'return']
-                                                    
-                                                    temp_frontier_df_for_min_vol = pd.DataFrame(frontier_data)
-                                                    if not temp_frontier_df_for_min_vol.empty:
-                                                        min_vol_idx = temp_frontier_df_for_min_vol['volatility'].idxmin()
-                                                        min_vol_portfolio_vol = temp_frontier_df_for_min_vol.loc[min_vol_idx, 'volatility']
-                                                        min_vol_portfolio_ret = temp_frontier_df_for_min_vol.loc[min_vol_idx, 'return']
-
-                                                    frontier_fig = plot_efficient_frontier(
-                                                        frontier_vols=frontier_data['volatility'],
-                                                        frontier_returns=frontier_data['return'],
-                                                        max_sharpe_vol=max_sharpe_vol_plot,
-                                                        max_sharpe_ret=max_sharpe_ret_plot,
-                                                        min_vol_vol=min_vol_portfolio_vol,
-                                                        min_vol_ret=min_vol_portfolio_ret,
-                                                        theme=plot_theme
-                                                    )
-                                                    if frontier_fig:
-                                                        st.plotly_chart(frontier_fig, use_container_width=True)
-                                                        
-                                                        frontier_df_display = pd.DataFrame(frontier_data)
-                                                        if not frontier_df_display.empty:
-                                                            with st.expander("View Efficient Frontier Data"):
-                                                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
-                                                                st.dataframe(frontier_df_display)
-                                                                st.markdown("</div>", unsafe_allow_html=True)
-                                                    else:
-                                                        display_custom_message("Could not generate the Efficient Frontier plot.", "warning")
-                                                else:
-                                                    display_custom_message("Efficient Frontier data not available or incomplete for plotting.", "info")
+                                        if optimization_objective == "Maximize Sharpe Ratio":
+                                            max_sharpe_vol_plot = opt_results['performance']['annual_volatility']
+                                            max_sharpe_ret_plot = opt_results['performance']['expected_annual_return']
+                                        else: 
+                                            temp_frontier_df = pd.DataFrame(frontier_data)
+                                            if not temp_frontier_df.empty and 'volatility' in temp_frontier_df and temp_frontier_df['volatility'].gt(1e-9).any() : 
+                                                temp_frontier_df['sharpe'] = (temp_frontier_df['return'] - risk_free_rate) / temp_frontier_df['volatility'].replace(0, np.nan) 
+                                                if not temp_frontier_df['sharpe'].empty and not temp_frontier_df['sharpe'].isnull().all():
+                                                    max_s_idx = temp_frontier_df['sharpe'].idxmax()
+                                                    max_sharpe_vol_plot = temp_frontier_df.loc[max_s_idx, 'volatility']
+                                                    max_sharpe_ret_plot = temp_frontier_df.loc[max_s_idx, 'return']
                                         
-                                        elif opt_results:
-                                            display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
+                                        temp_frontier_df_for_min_vol = pd.DataFrame(frontier_data)
+                                        if not temp_frontier_df_for_min_vol.empty:
+                                            min_vol_idx = temp_frontier_df_for_min_vol['volatility'].idxmin()
+                                            min_vol_portfolio_vol = temp_frontier_df_for_min_vol.loc[min_vol_idx, 'volatility']
+                                            min_vol_portfolio_ret = temp_frontier_df_for_min_vol.loc[min_vol_idx, 'return']
+
+                                        frontier_fig = plot_efficient_frontier(
+                                            frontier_vols=frontier_data['volatility'],
+                                            frontier_returns=frontier_data['return'],
+                                            max_sharpe_vol=max_sharpe_vol_plot,
+                                            max_sharpe_ret=max_sharpe_ret_plot,
+                                            min_vol_vol=min_vol_portfolio_vol,
+                                            min_vol_ret=min_vol_portfolio_ret,
+                                            theme=plot_theme
+                                        )
+                                        if frontier_fig:
+                                            st.plotly_chart(frontier_fig, use_container_width=True)
+                                            
+                                            frontier_df_display = pd.DataFrame(frontier_data)
+                                            if not frontier_df_display.empty:
+                                                # This expander is now OUTSIDE the configuration expander
+                                                with st.expander("View Efficient Frontier Data"):
+                                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                                    st.dataframe(frontier_df_display)
+                                                    st.markdown("</div>", unsafe_allow_html=True)
                                         else:
-                                            display_custom_message("Portfolio optimization failed to return results.", "error")
-    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
+                                            display_custom_message("Could not generate the Efficient Frontier plot.", "warning")
+                                    else:
+                                        display_custom_message("Efficient Frontier data not available or incomplete for plotting.", "info")
+                            
+                            elif opt_results:
+                                display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
+                            else:
+                                display_custom_message("Portfolio optimization failed to return results.", "error")
+    st.markdown("</div>", unsafe_allow_html=True) 
     st.markdown("---")
     
     # --- Compare Equity Curves Section ---
@@ -679,7 +692,6 @@ def show_portfolio_analysis_page():
             df_acc1_comp = base_df[base_df[account_col_actual] == selected_account_1_comp].copy()
             df_acc2_comp = base_df[base_df[account_col_actual] == selected_account_2_comp].copy()
             
-            # Initialize for "View Data" expander
             combined_equity_comp_df = pd.DataFrame()
 
             for df_comp_loop, acc_name_comp in zip([df_acc1_comp, df_acc2_comp], [selected_account_1_comp, selected_account_2_comp]): 
@@ -699,7 +711,7 @@ def show_portfolio_analysis_page():
                 display_custom_message(f"One or both accounts ('{selected_account_1_comp}', '{selected_account_2_comp}') lack valid P&L data for comparison.", "warning")
             else:
                 combined_equity_comp_df.sort_values(by=date_col_actual, inplace=True)
-                combined_equity_comp_df = combined_equity_comp_df.fillna(method='ffill') # Forward fill for plotting alignment
+                combined_equity_comp_df = combined_equity_comp_df.fillna(method='ffill') 
 
                 fig_comp_equity = go.Figure() 
                 if f'Equity_{selected_account_1_comp}' in combined_equity_comp_df.columns:
@@ -715,7 +727,7 @@ def show_portfolio_analysis_page():
                         st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
                         st.dataframe(combined_equity_comp_df)
                         st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
+    st.markdown("</div>", unsafe_allow_html=True) 
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state: 
