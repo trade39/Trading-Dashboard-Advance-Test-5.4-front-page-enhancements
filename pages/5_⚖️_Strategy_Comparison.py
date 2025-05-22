@@ -135,7 +135,7 @@ def show_strategy_comparison_page():
                         'Strategy': strat_name,
                         'Annualized Return': kpis.get('Annualized Return', kpis.get('annualized_return', 0)), # Check common naming
                         'Annualized Volatility': kpis.get('Annualized Volatility', kpis.get('annualized_volatility', 0)),
-                        'Sharpe Ratio': kpis.get('Sharpe Ratio', kpis.get('sharpe_ratio',0)) # For text on scatter
+                        'Sharpe Ratio': kpis.get('Sharpe Ratio', kpis.get('sharpe_ratio', 'N/A')) # Default to 'N/A' string for scatter
                     }
                     all_kpis_for_scatter.append(scatter_kpis)
                 else:
@@ -164,7 +164,6 @@ def show_strategy_comparison_page():
     # --- Comparative Equity Curves ---
     st.subheader("📈 Comparative Equity Curves")
     st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
-    # ... (Equity curve logic remains largely the same as previous version)
     equity_fig = go.Figure()
     has_equity_data = False
     for strat_name in selected_strategies:
@@ -194,8 +193,6 @@ def show_strategy_comparison_page():
     # --- Return Distribution Comparison ---
     st.subheader("🎛️ Return Distribution Comparison (Daily PnL)")
     st.markdown('<div class="performance-section-container">', unsafe_allow_html=True)
-    # For simplicity, using daily PnL values directly for distribution.
-    # For percentage returns, analysis_service.calculate_daily_returns would be used.
     hist_data = []
     group_labels = []
     has_dist_data = False
@@ -203,7 +200,6 @@ def show_strategy_comparison_page():
     for strat_name in selected_strategies:
         strat_df = filtered_df[filtered_df[strategy_col].astype(str) == str(strat_name)]
         if not strat_df.empty and pnl_col in strat_df.columns:
-            # Using PnL directly for distribution. Ensure it's numeric and clean.
             daily_pnl_values = strat_df[pnl_col].dropna()
             if not daily_pnl_values.empty:
                 hist_data.append(daily_pnl_values.tolist())
@@ -213,10 +209,8 @@ def show_strategy_comparison_page():
             logger.info(f"No PnL data for distribution plot for strategy '{strat_name}'.")
 
     if has_dist_data:
-        # Create distplot with custom bin_size
-        # Note: ff.create_distplot is somewhat legacy. For more control, use go.Histogram directly.
         try:
-            dist_fig = ff.create_distplot(hist_data, group_labels, bin_size=.2, show_hist=True, show_rug=False) # Adjust bin_size as needed
+            dist_fig = ff.create_distplot(hist_data, group_labels, bin_size=.2, show_hist=True, show_rug=False) 
             dist_fig.update_layout(
                 title_text='Distribution of Daily PnL',
                 xaxis_title='Daily PnL',
@@ -227,12 +221,6 @@ def show_strategy_comparison_page():
         except Exception as e:
             logger.error(f"Error creating distribution plot: {e}", exc_info=True)
             display_custom_message(f"Could not generate return distribution plot: {e}", "error")
-            # Fallback to individual histograms if create_distplot fails (e.g., due to data issues)
-            # This is a simplified fallback.
-            # for i, data in enumerate(hist_data):
-            #     fallback_fig = go.Figure(data=[go.Histogram(x=data, name=group_labels[i])])
-            #     fallback_fig.update_layout(title_text=f"PnL Distribution for {group_labels[i]}")
-            #     st.plotly_chart(_apply_custom_theme(fallback_fig, theme), use_container_width=True)
 
     elif selected_strategies:
         display_custom_message("Not enough PnL data to plot return distributions for selected strategies.", "info")
@@ -246,41 +234,47 @@ def show_strategy_comparison_page():
     if all_kpis_for_scatter:
         scatter_df = pd.DataFrame(all_kpis_for_scatter)
         
-        # Check if necessary columns are present and numeric
         required_scatter_cols = ['Annualized Return', 'Annualized Volatility', 'Strategy']
         missing_cols = [col for col in required_scatter_cols if col not in scatter_df.columns]
 
         if not missing_cols and pd.api.types.is_numeric_dtype(scatter_df['Annualized Return']) and pd.api.types.is_numeric_dtype(scatter_df['Annualized Volatility']):
             scatter_fig = go.Figure()
             
-            # Add a trace for each strategy for better legend handling and individual styling if needed
             for i, row in scatter_df.iterrows():
                 strat_name = row['Strategy']
                 ann_return = row['Annualized Return']
                 ann_vol = row['Annualized Volatility']
-                sharpe_ratio = row.get('Sharpe Ratio', 'N/A') # Get Sharpe if available for hover
+                sharpe_ratio_val = row.get('Sharpe Ratio', 'N/A') 
                 
-                # Determine color
+                # Prepare Sharpe Ratio for display (ensure it's a string)
+                sharpe_display_text = "N/A"
+                if isinstance(sharpe_ratio_val, (int, float)) and pd.notna(sharpe_ratio_val):
+                    sharpe_display_text = f"{sharpe_ratio_val:.2f}"
+                elif pd.notna(sharpe_ratio_val): # Handles cases where it might be 'N/A' string already
+                    sharpe_display_text = str(sharpe_ratio_val)
+
                 point_color = COLORS.get(strat_name) if isinstance(COLORS, dict) and COLORS.get(strat_name) else None
+
+                hovertemplate_text = (
+                    f"<b>{strat_name}</b><br><br>"
+                    f"Annualized Volatility: {ann_vol:.2%}<br>" # Use direct formatting for known floats
+                    f"Annualized Return: {ann_return:.2%}<br>"  # Use direct formatting for known floats
+                    f"Sharpe Ratio: {sharpe_display_text}" # Use pre-formatted string
+                    "<extra></extra>" 
+                )
 
                 scatter_fig.add_trace(go.Scatter(
                     x=[ann_vol],
                     y=[ann_return],
-                    mode='markers+text', # Show markers and text
+                    mode='markers+text', 
                     name=strat_name,
-                    text=[strat_name], # Text label next to the marker
+                    text=[strat_name], 
                     textposition="top right",
                     marker=dict(size=12, color=point_color, line=dict(width=1, color='DarkSlateGrey')),
-                    hovertemplate=
-                        f"<b>{strat_name}</b><br><br>" +
-                        "Annualized Volatility: %{x:.2%}<br>" +
-                        "Annualized Return: %{y:.2%}<br>" +
-                        f"Sharpe Ratio: {sharpe_ratio:.2f if isinstance(sharpe_ratio, (int,float)) else sharpe_ratio}"+
-                        "<extra></extra>" # Hides trace info
+                    hovertemplate=hovertemplate_text
                 ))
 
             scatter_fig.update_layout(
-                # title_text="Risk-Reward Profile by Strategy", # Subheader serves as title
                 xaxis_title="Annualized Volatility (Risk)",
                 yaxis_title="Annualized Return (Reward)",
                 legend_title_text='Strategy',
@@ -304,10 +298,15 @@ if __name__ == "__main__":
         st.warning("This page is part of a multi-page app. For full functionality, run the main application script. Mock data may be used for standalone testing.")
         # Mock session state for standalone testing
         mock_dates = pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05'] * 2)
+        # Ensure EXPECTED_COLUMNS is defined before use or use literals
+        expected_date_col = EXPECTED_COLUMNS.get('date', 'Date') if 'EXPECTED_COLUMNS' in globals() else 'Date'
+        expected_strat_col = EXPECTED_COLUMNS.get('strategy', 'Strategy') if 'EXPECTED_COLUMNS' in globals() else 'Strategy'
+        expected_pnl_col = EXPECTED_COLUMNS.get('pnl', 'PnL') if 'EXPECTED_COLUMNS' in globals() else 'PnL'
+
         st.session_state.filtered_data = pd.DataFrame({
-            EXPECTED_COLUMNS.get('date', 'Date'): mock_dates,
-            EXPECTED_COLUMNS.get('strategy', 'Strategy'): ['Alpha'] * 5 + ['Beta'] * 5,
-            EXPECTED_COLUMNS.get('pnl', 'PnL'): np.random.randn(10).cumsum() + np.random.randint(-5, 5, 10)
+            expected_date_col: mock_dates,
+            expected_strat_col: ['Alpha'] * 5 + ['Beta'] * 5,
+            expected_pnl_col: np.random.randn(10).cumsum() + np.random.randint(-5, 5, 10)
         })
         st.session_state.risk_free_rate = 0.02
         st.session_state.current_theme = "dark"
@@ -319,15 +318,17 @@ if __name__ == "__main__":
         class MockAnalysisService:
             def get_core_kpis(self, df, rate):
                 pnl_col_name = EXPECTED_COLUMNS.get('pnl','PnL')
-                daily_returns = df[pnl_col_name].pct_change().fillna(0) if pnl_col_name in df else pd.Series([0]*len(df))
-                ann_ret = daily_returns.mean() * 252
-                ann_vol = daily_returns.std() * np.sqrt(252)
-                sharpe = (ann_ret - rate) / ann_vol if ann_vol != 0 else 0
+                daily_returns = df[pnl_col_name].pct_change().fillna(0) if pnl_col_name in df and not df[pnl_col_name].empty else pd.Series([0]*len(df), dtype=float)
+                if daily_returns.empty: # Handle case where df might be empty or pnl_col not found leading to empty series
+                    ann_ret, ann_vol, sharpe = 0.0, 0.0, 0.0
+                else:
+                    ann_ret = daily_returns.mean() * 252
+                    ann_vol = daily_returns.std() * np.sqrt(252)
+                    sharpe = (ann_ret - rate) / ann_vol if ann_vol != 0 and ann_vol is not np.nan else 0.0
                 return {
-                    "Annualized Return": ann_ret,
-                    "Annualized Volatility": ann_vol,
-                    "Sharpe Ratio": sharpe,
-                    # Add other KPIs as needed by DEFAULT_KPI_DISPLAY_ORDER
+                    "Annualized Return": ann_ret if pd.notna(ann_ret) else 0.0,
+                    "Annualized Volatility": ann_vol if pd.notna(ann_vol) else 0.0,
+                    "Sharpe Ratio": sharpe if pd.notna(sharpe) else 0.0,
                 }
         analysis_service = MockAnalysisService()
 
