@@ -12,6 +12,7 @@ and Collapsible KPI groups.
 
 Enhanced for a sleeker and more professional layout using containers and improved sectioning.
 Fixed TypeError for KPIClusterDisplay instantiation.
+Fixed TypeError for plot_equity_curve_and_drawdown instantiation.
 """
 import streamlit as st
 import pandas as pd
@@ -44,10 +45,10 @@ except ImportError as e:
         def render(self): st.warning("KPI Display Component failed to load.")
     class AnalysisService:
         def get_core_kpis(self, *args, **kwargs): return {"error": "Analysis Service not loaded"}
-    def plot_equity_curve_and_drawdown(**kwargs): return None
+    def plot_equity_curve_and_drawdown(**kwargs): return None # Modified fallback to accept **kwargs
     def _apply_custom_theme(fig, theme): return fig
     def display_custom_message(msg, type="error"): st.error(msg)
-    def format_currency(val, currency_symbol="$", **kwargs): return f"{currency_symbol}{val:,.2f}" if pd.notna(val) else "N/A" # Added currency_symbol here for fallback
+    def format_currency(val, currency_symbol="$", **kwargs): return f"{currency_symbol}{val:,.2f}" if pd.notna(val) else "N/A"
     st.stop() # Stop execution if critical imports fail
 
 logger = logging.getLogger(APP_TITLE)
@@ -228,7 +229,7 @@ def show_overview_page():
                 continue
 
         with st.expander(group_name, expanded=default_expanded):
-            KPIClusterDisplay( # Removed currency_symbol from here
+            KPIClusterDisplay( 
                 kpi_results=group_kpi_results,
                 kpi_definitions=KPI_CONFIG,
                 kpi_order=kpi_keys_in_group,
@@ -305,7 +306,7 @@ def show_overview_page():
                             df=df_for_plot_time_filtered,
                             date_col=date_col,
                             cumulative_pnl_col=cum_pnl_col,
-                            initial_capital=initial_capital,
+                            # initial_capital=initial_capital, # Removed this line
                             drawdown_pct_col=drawdown_pct_col_name if drawdown_pct_col_name in df_for_plot_time_filtered else None,
                             theme=plot_theme,
                             max_dd_peak_date=max_dd_peak_plot if selected_timeframe == "All Time" else None, 
@@ -351,7 +352,7 @@ def show_overview_page():
                         key: timeframe_kpis_results[key] for key in timeframe_kpi_keys_to_show if key in timeframe_kpis_results
                     }
                     if focused_kpis and not all(pd.isna(v) for v in focused_kpis.values()):
-                        KPIClusterDisplay( # Removed currency_symbol from here
+                        KPIClusterDisplay( 
                             kpi_results=focused_kpis,
                             kpi_definitions=KPI_CONFIG, 
                             kpi_order=timeframe_kpi_keys_to_show,
