@@ -39,9 +39,8 @@ try:
     from components.calendar_view import PnLCalendarComponent
 except ImportError as e:
     st.error(f"Categorical Analysis Page Error: Critical plotting/component import failed: {e}.")
-    logger = logging.getLogger(APP_TITLE if 'APP_TITLE' in globals() else "FallbackApp") # Ensure APP_TITLE is defined
+    logger = logging.getLogger(APP_TITLE if 'APP_TITLE' in globals() else "FallbackApp") 
     logger.error(f"CRITICAL IMPORT ERROR (Plotting/Components) in Categorical Analysis Page: {e}", exc_info=True)
-    # Fallback plotting functions
     def _apply_custom_theme(fig, theme): return fig
     def plot_pnl_by_category(*args, **kwargs): return None
     def plot_stacked_bar_chart(*args, **kwargs): return None
@@ -54,7 +53,7 @@ except ImportError as e:
     def plot_scatter_plot(*args, **kwargs): return None
     def plot_pnl_distribution(*args, **kwargs): return None
     def plot_win_rate_analysis(*args, **kwargs): return None
-    class PnLCalendarComponent: # Fallback
+    class PnLCalendarComponent: 
         def __init__(self, *args, **kwargs): pass
         def render(self): st.warning("Calendar component could not be loaded.")
     st.stop()
@@ -64,10 +63,6 @@ logger = logging.getLogger(APP_TITLE)
 statistical_service = StatisticalAnalysisService()
 
 def get_column_name(conceptual_key: str, df_columns: Optional[pd.Index] = None) -> Optional[str]:
-    """
-    Retrieves the actual column name from DataFrame columns based on a conceptual key.
-    Uses EXPECTED_COLUMNS mapping as a fallback.
-    """
     if df_columns is not None and conceptual_key in df_columns:
         return conceptual_key
     actual_col = EXPECTED_COLUMNS.get(conceptual_key)
@@ -91,10 +86,6 @@ def calculate_performance_summary_by_category(
     df: pd.DataFrame, category_col: str, pnl_col: str, win_col: str,
     calculate_cis_for: Optional[List[str]] = None
 ) -> pd.DataFrame:
-    """
-    Calculates a performance summary grouped by a specified category.
-    Includes options for bootstrapping confidence intervals for Average PnL and Win Rate.
-    """
     if calculate_cis_for is None:
         calculate_cis_for = []
 
@@ -202,18 +193,16 @@ def show_categorical_analysis_page():
     if not date_col_actual:
         logger.warning(f"Date column ('{date_col_actual}') not found. Some temporal analyses may be affected.")
 
-
     # --- 1. Strategy Performance ---
     st.header("💡 1. Strategy Performance Insights")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Strategy Metrics", expanded=False):
+    with st.expander("Strategy Metrics", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col1a, col1b = st.columns(2)
         with col1a:
             strategy_col_key = 'strategy'
             strategy_col_actual = get_column_name(strategy_col_key, df.columns)
             if strategy_col_actual and pnl_col_actual:
-                # Data for "Average PnL by Strategy"
                 avg_pnl_strategy_data = df.groupby(strategy_col_actual, observed=False)[pnl_col_actual].mean().reset_index()
                 avg_pnl_strategy_data = avg_pnl_strategy_data.sort_values(by=pnl_col_actual, ascending=False)
                 fig_avg_pnl_strategy = plot_pnl_by_category(
@@ -221,17 +210,16 @@ def show_categorical_analysis_page():
                     category_col=strategy_col_actual, 
                     pnl_col=pnl_col_actual, 
                     title_prefix="Average PnL by", aggregation_func='mean', 
-                    theme=plot_theme
+                    theme=plot_theme, is_data_aggregated=True
                 )
                 if fig_avg_pnl_strategy: st.plotly_chart(fig_avg_pnl_strategy, use_container_width=True)
                 if not avg_pnl_strategy_data.empty:
-                    with st.expander("View Data: Average PnL by Strategy"):
+                    if st.checkbox("View Data: Average PnL by Strategy", key="view_data_s1_c1"): # CHECKBOX INSTEAD OF EXPANDER
                         st.dataframe(avg_pnl_strategy_data, use_container_width=True, hide_index=True)
         with col1b:
             trade_plan_col_key = 'trade_plan_str'
             trade_plan_col_actual = get_column_name(trade_plan_col_key, df.columns)
             if trade_plan_col_actual and trade_result_col_actual in df.columns :
-                # Data for "Trade Result by Trade Plan"
                 result_by_plan_data = pd.crosstab(df[trade_plan_col_actual].fillna('N/A'), df[trade_result_col_actual].fillna('N/A'))
                 if 'WIN' not in result_by_plan_data.columns: result_by_plan_data['WIN'] = 0
                 if 'LOSS' not in result_by_plan_data.columns: result_by_plan_data['LOSS'] = 0
@@ -249,10 +237,10 @@ def show_categorical_analysis_page():
                 )
                 if fig_result_by_plan: st.plotly_chart(fig_result_by_plan, use_container_width=True)
                 if not result_by_plan_data.empty:
-                    with st.expander(f"View Data: {trade_result_col_actual.replace('_',' ').title()} by Trade Plan"):
+                    if st.checkbox(f"View Data: {trade_result_col_actual.replace('_',' ').title()} by Trade Plan", key="view_data_s1_c2"):
                         st.dataframe(result_by_plan_data.reset_index(), use_container_width=True, hide_index=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
         st.markdown("---") 
 
         rr_col_key = 'r_r_csv_num'; direction_col_key = 'direction_str'; strategy_col_key_for_rr = 'strategy'
@@ -272,15 +260,15 @@ def show_categorical_analysis_page():
                     if not pivot_rr_data.empty:
                         fig_rr_heatmap = plot_heatmap(df_pivot=pivot_rr_data, title=f"Average R:R by Strategy and Direction", color_scale="Viridis", theme=plot_theme, text_format=".2f")
                         if fig_rr_heatmap: st.plotly_chart(fig_rr_heatmap, use_container_width=True)
-                        with st.expander("View Data: Average R:R by Strategy and Direction"):
+                        if st.checkbox("View Data: Average R:R by Strategy and Direction", key="view_data_s1_c3"):
                             st.dataframe(pivot_rr_data.reset_index(), use_container_width=True, hide_index=True)
             except Exception as e_rr_heatmap: logger.error(f"Error in R:R Heatmap: {e_rr_heatmap}", exc_info=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 2. Temporal Analysis ---
     st.header("⏳ 2. Temporal Analysis")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Time-Based Performance", expanded=False):
+    with st.expander("Time-Based Performance", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col2a, col2b = st.columns(2)
         with col2a:
@@ -296,7 +284,7 @@ def show_categorical_analysis_page():
                     if not monthly_win_rate_data.empty:
                         fig_monthly_wr = plot_value_over_time(series=monthly_win_rate_data, series_name="Monthly Win Rate", title="Win Rate by Month", x_axis_title="Month", y_axis_title="Win Rate (%)", theme=plot_theme)
                         if fig_monthly_wr: st.plotly_chart(fig_monthly_wr, use_container_width=True)
-                        with st.expander("View Data: Win Rate by Month"):
+                        if st.checkbox("View Data: Win Rate by Month", key="view_data_s2_c1"):
                             st.dataframe(monthly_win_rate_data.reset_index(), use_container_width=True, hide_index=True, column_config={month_num_col_actual: "Month", win_col_actual: "Win Rate (%)"})
                 except Exception as e_mwr: logger.error(f"Error in Monthly Win Rate: {e_mwr}", exc_info=True)
         with col2b:
@@ -311,10 +299,10 @@ def show_categorical_analysis_page():
                     if not pivot_session_tf_data.empty:
                         fig_session_tf_heatmap = plot_heatmap(df_pivot=pivot_session_tf_data, title=f"Trade Count by Session and Time Frame", color_scale="Blues", theme=plot_theme, text_format=".0f")
                         if fig_session_tf_heatmap: st.plotly_chart(fig_session_tf_heatmap, use_container_width=True)
-                        with st.expander("View Data: Trade Count by Session and Time Frame"):
+                        if st.checkbox("View Data: Trade Count by Session and Time Frame", key="view_data_s2_c2"):
                              st.dataframe(pivot_session_tf_data.reset_index(), use_container_width=True, hide_index=True)
                 except Exception as e_sess_tf: logger.error(f"Error in Session/TF Heatmap: {e_sess_tf}", exc_info=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
         st.markdown("---") 
 
         if date_col_actual and pnl_col_actual: 
@@ -323,28 +311,26 @@ def show_categorical_analysis_page():
                 daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'})
                 available_years = sorted(daily_pnl_df_agg['date'].dt.year.unique(), reverse=True)
                 if available_years:
-                    selected_year = st.selectbox("Select Year for P&L Calendar:", options=available_years, index=0, key="cat_analysis_calendar_year_select_v9_final")
+                    selected_year = st.selectbox("Select Year for P&L Calendar:", options=available_years, index=0, key="cat_analysis_calendar_year_select_v10_final")
                     if selected_year:
                         st.markdown("<div class='calendar-display-area'>", unsafe_allow_html=True)
                         calendar_component = PnLCalendarComponent(daily_pnl_df=daily_pnl_df_agg, year=selected_year, plot_theme=plot_theme)
                         calendar_component.render()
                         st.markdown("</div>", unsafe_allow_html=True)
             except Exception as e_cal: logger.error(f"Error in P&L Calendar: {e_cal}", exc_info=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 3. Market Context Impact ---
     st.header("🌍 3. Market Context Impact")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Market Condition Effects", expanded=False):
+    with st.expander("Market Condition Effects", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col3a, col3b = st.columns(2)
         with col3a:
             event_type_col_key = 'event_type_str'
             event_type_col_actual = get_column_name(event_type_col_key, df.columns)
             if event_type_col_actual and trade_result_col_actual in df.columns:
-                
                 result_by_event_data = df.groupby([event_type_col_actual, trade_result_col_actual], observed=False).size().reset_index(name='count')
-
                 fig_result_by_event = plot_grouped_bar_chart(
                     df=result_by_event_data, 
                     category_col=event_type_col_actual,
@@ -357,7 +343,7 @@ def show_categorical_analysis_page():
                 )
                 if fig_result_by_event: st.plotly_chart(fig_result_by_event, use_container_width=True)
                 if not result_by_event_data.empty:
-                    with st.expander(f"View Data: {trade_result_col_actual.replace('_',' ').title()} Count by Event Type"):
+                    if st.checkbox(f"View Data: {trade_result_col_actual.replace('_',' ').title()} Count by Event Type", key="view_data_s3_c1"):
                         st.dataframe(result_by_event_data, use_container_width=True, hide_index=True)
         with col3b: 
             market_cond_col_key = 'market_conditions_str'
@@ -368,12 +354,11 @@ def show_categorical_analysis_page():
                     title=f"PnL Distribution by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(market_cond_col_key, market_cond_col_key).replace('_',' ').title()}", theme=plot_theme
                 )
                 if fig_pnl_by_market: st.plotly_chart(fig_pnl_by_market, use_container_width=True)
-                
-                if st.checkbox(f"Show Summary Statistics for PnL by Market Condition", key="cb_market_cond_stats_v9"):
+                if st.checkbox(f"Show Summary Statistics for PnL by Market Condition", key="cb_market_cond_stats_v10"): # CHECKBOX
                     market_cond_pnl_summary = df.groupby(market_cond_col_actual)[pnl_col_actual].describe()
                     st.dataframe(market_cond_pnl_summary, use_container_width=True)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
         st.markdown("---") 
 
         market_sent_col_key = 'market_sentiment_str'
@@ -389,15 +374,15 @@ def show_categorical_analysis_page():
                                          color=win_col_actual, color_continuous_scale="Greens")
                     if fig_sent_wr: fig_sent_wr.update_yaxes(ticksuffix="%")
                     if fig_sent_wr: st.plotly_chart(_apply_custom_theme(fig_sent_wr, plot_theme), use_container_width=True)
-                    with st.expander("View Data: Win Rate by Market Sentiment"):
+                    if st.checkbox("View Data: Win Rate by Market Sentiment", key="view_data_s3_c3"):
                         st.dataframe(sentiment_win_rate_data.rename(columns={win_col_actual: "Win Rate (%)"}), use_container_width=True, hide_index=True)
             except Exception as e_sent_wr: logger.error(f"Error generating Market Sentiment vs Win Rate: {e_sent_wr}", exc_info=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 4. Behavioral Factors ---
     st.header("🤔 4. Behavioral Factors")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Trader Psychology & Compliance", expanded=False):
+    with st.expander("Trader Psychology & Compliance", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col4a, col4b = st.columns(2)
         with col4a:
@@ -407,14 +392,11 @@ def show_categorical_analysis_page():
                 df_psych = df.copy()
                 if df_psych[psych_col_actual].dtype == 'object':
                     df_psych[psych_col_actual] = df_psych[psych_col_actual].astype(str).str.split(',').str[0].str.strip().fillna('N/A')
-
-                
                 psych_result_data = pd.crosstab(df_psych[psych_col_actual], df_psych[trade_result_col_actual])
                 if 'WIN' not in psych_result_data.columns: psych_result_data['WIN'] = 0
                 if 'LOSS' not in psych_result_data.columns: psych_result_data['LOSS'] = 0
                 if 'BREAKEVEN' not in psych_result_data.columns: psych_result_data['BREAKEVEN'] = 0
                 psych_result_data = psych_result_data[['WIN', 'LOSS', 'BREAKEVEN']]
-
                 fig_psych_result = plot_stacked_bar_chart(
                     df=psych_result_data.reset_index(), 
                     category_col=psych_col_actual,
@@ -426,16 +408,14 @@ def show_categorical_analysis_page():
                 )
                 if fig_psych_result: st.plotly_chart(fig_psych_result, use_container_width=True)
                 if not psych_result_data.empty:
-                    with st.expander("View Data: Trade Result by Dominant Psychological Factor"):
+                    if st.checkbox("View Data: Trade Result by Dominant Psychological Factor", key="view_data_s4_c1"):
                         st.dataframe(psych_result_data.reset_index(), use_container_width=True, hide_index=True)
         with col4b:
             compliance_col_key = 'compliance_check_str'
             compliance_col_actual = get_column_name(compliance_col_key, df.columns)
             if compliance_col_actual:
-                
                 compliance_data = df[compliance_col_actual].fillna('N/A').value_counts().reset_index()
                 compliance_data.columns = [compliance_col_actual, 'count']
-
                 fig_compliance = plot_donut_chart(
                     df=compliance_data, 
                     category_col=compliance_col_actual,
@@ -445,15 +425,15 @@ def show_categorical_analysis_page():
                 )
                 if fig_compliance: st.plotly_chart(fig_compliance, use_container_width=True)
                 if not compliance_data.empty:
-                    with st.expander("View Data: Compliance Outcomes"):
+                    if st.checkbox("View Data: Compliance Outcomes", key="view_data_s4_c2"):
                         st.dataframe(compliance_data, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 5. Capital & Risk Insights ---
     st.header("💰 5. Capital & Risk Insights")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Capital Management and Drawdown", expanded=False):
+    with st.expander("Capital Management and Drawdown", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col5a, col5b = st.columns(2)
         with col5a: 
@@ -472,33 +452,29 @@ def show_categorical_analysis_page():
                 )
                 if fig_bal_dd: st.plotly_chart(fig_bal_dd, use_container_width=True)
                 if not scatter_df_view.empty:
-                    with st.expander("View Data: Drawdown vs. Initial Balance"):
+                    if st.checkbox("View Data: Drawdown vs. Initial Balance", key="view_data_s5_c1"):
                         st.dataframe(scatter_df_view, use_container_width=True, hide_index=True)
         with col5b:
             trade_plan_col_key_dd = 'trade_plan_str'
             drawdown_csv_col_key_avg = 'drawdown_value_csv' 
             trade_plan_col_actual_dd = get_column_name(trade_plan_col_key_dd, df.columns)
             drawdown_csv_col_actual_avg = get_column_name(drawdown_csv_col_key_avg, df.columns)
-
             if trade_plan_col_actual_dd and drawdown_csv_col_actual_avg:
-                
                 avg_dd_plan_data = df.groupby(trade_plan_col_actual_dd, observed=False)[drawdown_csv_col_actual_avg].mean().reset_index()
                 avg_dd_plan_data = avg_dd_plan_data.sort_values(by=drawdown_csv_col_actual_avg, ascending=True) 
-
                 fig_avg_dd_plan = plot_pnl_by_category(
                     df=avg_dd_plan_data, 
                     category_col=trade_plan_col_actual_dd,
                     pnl_col=drawdown_csv_col_actual_avg, 
                     title_prefix="Average Drawdown by", aggregation_func='mean', 
-                    theme=plot_theme
+                    theme=plot_theme, is_data_aggregated=True
                 )
                 if fig_avg_dd_plan: st.plotly_chart(fig_avg_dd_plan, use_container_width=True)
                 if not avg_dd_plan_data.empty:
-                    with st.expander("View Data: Average Drawdown by Trade Plan"):
+                    if st.checkbox("View Data: Average Drawdown by Trade Plan", key="view_data_s5_c2"):
                         st.dataframe(avg_dd_plan_data, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
         st.markdown("---") 
-
         drawdown_csv_col_key_hist = 'drawdown_value_csv'
         drawdown_csv_col_actual_hist = get_column_name(drawdown_csv_col_key_hist, df.columns)
         if drawdown_csv_col_actual_hist:
@@ -511,22 +487,20 @@ def show_categorical_analysis_page():
                     theme=plot_theme, nbins=30
                 )
                 if fig_dd_hist: st.plotly_chart(fig_dd_hist, use_container_width=True)
-                
-                with st.expander("View Data: Drawdown Distribution (raw values)"):
+                if st.checkbox("View Data: Drawdown Distribution (raw values)", key="view_data_s5_c3"):
                     st.dataframe(df_dd_hist.rename(columns={drawdown_csv_col_actual_hist: "Drawdown Value"}), use_container_width=True, hide_index=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 6. Exit & Directional Insights ---
     st.header("🚪 6. Exit & Directional Insights")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Trade Exits and Directional Bias", expanded=False):
+    with st.expander("Trade Exits and Directional Bias", expanded=False): # OUTER EXPANDER
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col6a, col6b = st.columns(2)
         with col6a:
             exit_type_col_key = 'exit_type_csv_str'
             exit_type_col_actual = get_column_name(exit_type_col_key, df.columns)
             if exit_type_col_actual:
-                
                 exit_type_data = df[exit_type_col_actual].fillna('N/A').value_counts().reset_index()
                 exit_type_data.columns = [exit_type_col_actual, 'count']
                 fig_exit_type = plot_donut_chart(
@@ -538,17 +512,15 @@ def show_categorical_analysis_page():
                 )
                 if fig_exit_type: st.plotly_chart(fig_exit_type, use_container_width=True)
                 if not exit_type_data.empty:
-                    with st.expander("View Data: Exit Type Distribution"):
+                    if st.checkbox("View Data: Exit Type Distribution", key="view_data_s6_c1"):
                         st.dataframe(exit_type_data, use_container_width=True, hide_index=True)
         with col6b:
             direction_col_key_wr = 'direction_str'
             direction_col_actual_wr = get_column_name(direction_col_key_wr, df.columns)
             if direction_col_actual_wr and win_col_actual in df.columns:
-                 
                 dir_wr_data = df.groupby(direction_col_actual_wr, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
                 dir_wr_data['mean'] *= 100 
                 dir_wr_data.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
-
                 fig_dir_wr = plot_win_rate_analysis(
                     df=dir_wr_data, 
                     category_col=direction_col_actual_wr,
@@ -559,11 +531,10 @@ def show_categorical_analysis_page():
                 )
                 if fig_dir_wr: st.plotly_chart(fig_dir_wr, use_container_width=True)
                 if not dir_wr_data.empty:
-                    with st.expander("View Data: Win Rate by Direction"):
+                    if st.checkbox("View Data: Win Rate by Direction", key="view_data_s6_c2"):
                         st.dataframe(dir_wr_data, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close charts-grid
         st.markdown("---") 
-
         time_frame_col_key_facet = 'time_frame_str'
         time_frame_col_actual_facet = get_column_name(time_frame_col_key_facet, df.columns)
         direction_col_actual_facet = get_column_name('direction_str', df.columns)
@@ -576,7 +547,7 @@ def show_categorical_analysis_page():
                 selected_time_frames_for_facet = st.multiselect(
                     f"Select Time Frames for Faceted Chart (Max 5 recommended for clarity):",
                     options=unique_time_frames, default=default_selected_time_frames,
-                    key="facet_time_frame_select_cat_page_v9_final"
+                    key="facet_time_frame_select_cat_page_v10_final"
                 )
                 if not selected_time_frames_for_facet: st.info("Please select at least one time frame to display the faceted chart.")
                 else:
@@ -597,18 +568,18 @@ def show_categorical_analysis_page():
                                     color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')}
                                 )
                                 if fig_result_dir_tf: st.plotly_chart(_apply_custom_theme(fig_result_dir_tf, plot_theme), use_container_width=True)
-                                with st.expander("View Data: Faceted Trade Results"):
+                                if st.checkbox("View Data: Faceted Trade Results", key="view_data_s6_c3"):
                                     st.dataframe(df_grouped_facet_data, use_container_width=True, hide_index=True)
                             else: display_custom_message("No data for Trade Result by Direction and selected Time Frames after grouping.", "info")
                         except Exception as e_gbtf: logger.error(f"Error in Trade Result by Direction and Time Frame: {e_gbtf}", exc_info=True)
         else:
             display_custom_message(f"Missing columns for Trade Result by Direction & Time Frame. Needed: '{direction_col_actual_facet}', '{time_frame_col_actual_facet}', '{trade_result_col_actual}'.", "warning")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 7. Performance Summary by Custom Category Table (with CIs) ---
     st.header("📊 7. Performance Summary by Custom Category")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("View Performance Table with Confidence Intervals", expanded=False): 
+    with st.expander("View Performance Table with Confidence Intervals", expanded=False): # This is a main expander, View Data is intrinsic
         st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
         available_categories_for_table: Dict[str, str] = {}
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
@@ -622,13 +593,13 @@ def show_categorical_analysis_page():
             selected_display_name_table = st.selectbox(
                 "Select Category for Performance Summary:",
                 options=list(available_categories_for_table.keys()),
-                key="custom_category_summary_select_v9_ci_final"
+                key="custom_category_summary_select_v10_ci_final"
             )
             metrics_for_ci_options = ["Average PnL", "Win Rate %"]
             selected_cis_to_calculate = st.multiselect(
                 "Calculate Confidence Intervals for:",
                 options=metrics_for_ci_options, default=metrics_for_ci_options,
-                key="ci_metric_select_cat_page_v9_final"
+                key="ci_metric_select_cat_page_v10_final"
             )
 
             if selected_display_name_table:
@@ -666,14 +637,14 @@ def show_categorical_analysis_page():
                             }
                         )
                     else: display_custom_message(f"No summary data to display for category '{selected_display_name_table}'.", "info")
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True) # Close view-data-expander-content
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
     # --- 8. Dynamic Category Visualizer (with Top/N and Significance Testing) ---
     st.markdown("---") 
     st.header("🔬 8. Dynamic Category Visualizer")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("Explore Data Dynamically with Statistical Tests", expanded=True):
+    with st.expander("Explore Data Dynamically with Statistical Tests", expanded=True): # OUTER EXPANDER
         st.markdown("<div class='controls-expander-content'>", unsafe_allow_html=True)
         available_categories_for_dynamic_plot: Dict[str, str] = {}
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
@@ -690,7 +661,7 @@ def show_categorical_analysis_page():
                 selected_cat_display_name_dynamic = st.selectbox(
                     "Select Category to Analyze:",
                     options=list(available_categories_for_dynamic_plot.keys()),
-                    key="dynamic_cat_select_v9_stats_final"
+                    key="dynamic_cat_select_v10_stats_final"
                 )
                 actual_selected_category_col = available_categories_for_dynamic_plot.get(selected_cat_display_name_dynamic)
 
@@ -699,7 +670,7 @@ def show_categorical_analysis_page():
                 selected_metric_dynamic = st.selectbox(
                     "Select Metric to Visualize:",
                     options=metric_options_dynamic,
-                    key="dynamic_metric_select_v9_stats_final"
+                    key="dynamic_metric_select_v10_stats_final"
                 )
 
             chart_type_options_dynamic = ["Bar Chart"]
@@ -707,10 +678,9 @@ def show_categorical_analysis_page():
             elif selected_metric_dynamic == "PnL Distribution": chart_type_options_dynamic = ["Box Plot"] 
             elif selected_metric_dynamic in ["Total PnL", "Average PnL"]: chart_type_options_dynamic.append("Box Plot")
 
-
             with col_chart_select:
                 selected_chart_type_dynamic = st.selectbox(
-                    "Select Chart Type:", options=chart_type_options_dynamic, key="dynamic_chart_type_select_v9_stats_final"
+                    "Select Chart Type:", options=chart_type_options_dynamic, key="dynamic_chart_type_select_v10_stats_final"
                 )
 
             filter_type_dynamic = "Show All"; num_n_dynamic = 5
@@ -720,7 +690,7 @@ def show_categorical_analysis_page():
             if selected_metric_dynamic != "PnL Distribution" and selected_chart_type_dynamic in ["Bar Chart", "Donut Chart"]:
                 filter_type_dynamic = st.radio(
                     "Filter Categories by Metric Value:", ("Show All", "Top N", "Bottom N"), index=0,
-                    key="dynamic_filter_type_v9_stats_final", horizontal=True
+                    key="dynamic_filter_type_v10_stats_final", horizontal=True
                 )
                 if filter_type_dynamic != "Show All":
                     top_n_cols = st.columns([2,1])
@@ -728,54 +698,42 @@ def show_categorical_analysis_page():
                         sort_metric_for_top_n = st.selectbox(
                             "Rank categories by:", options=[m for m in metric_options_dynamic if m != "PnL Distribution"],
                             index=metric_options_dynamic.index(selected_metric_dynamic) if selected_metric_dynamic in metric_options_dynamic[:-1] else 0,
-                            key="dynamic_sort_metric_top_n_v9_final"
+                            key="dynamic_sort_metric_top_n_v10_final"
                         )
                     with top_n_cols[1]:
                         num_n_dynamic = st.number_input(
-                            f"N:", 1, 50, 5, 1, key="dynamic_num_n_v9_stats_final"
+                            f"N:", 1, 50, 5, 1, key="dynamic_num_n_v10_stats_final"
                         )
-                    show_others_dynamic = st.checkbox("Group remaining into 'Others'", key="dynamic_show_others_v9_final")
+                    show_others_dynamic = st.checkbox("Group remaining into 'Others'", key="dynamic_show_others_v10_final")
 
             dynamic_plot_df_for_view = pd.DataFrame() 
 
             if actual_selected_category_col:
                 df_dynamic_plot_data_source = df.copy()
-
                 if filter_type_dynamic != "Show All" and selected_metric_dynamic != "PnL Distribution" and selected_chart_type_dynamic in ["Bar Chart", "Donut Chart"]:
+                    # ... (Filtering logic remains the same)
                     if not df_dynamic_plot_data_source.empty:
-                        if not pnl_col_actual or pnl_col_actual not in df_dynamic_plot_data_source.columns:
-                            display_custom_message("PnL column missing for ranking.", "error"); return 
-                        if sort_metric_for_top_n == "Win Rate (%)" and (not win_col_actual or win_col_actual not in df_dynamic_plot_data_source.columns):
-                            display_custom_message("Win column missing for win rate ranking.", "error"); return 
-
+                        if not pnl_col_actual or pnl_col_actual not in df_dynamic_plot_data_source.columns: display_custom_message("PnL column missing for ranking.", "error"); return 
+                        if sort_metric_for_top_n == "Win Rate (%)" and (not win_col_actual or win_col_actual not in df_dynamic_plot_data_source.columns): display_custom_message("Win column missing for win rate ranking.", "error"); return 
                         grouped_for_ranking_series = df_dynamic_plot_data_source.groupby(actual_selected_category_col, observed=False)
-
                         ranked_values_series = pd.Series(dtype=float)
                         if sort_metric_for_top_n == "Total PnL": ranked_values_series = grouped_for_ranking_series[pnl_col_actual].sum()
                         elif sort_metric_for_top_n == "Average PnL": ranked_values_series = grouped_for_ranking_series[pnl_col_actual].mean()
                         elif sort_metric_for_top_n == "Win Rate (%)": ranked_values_series = grouped_for_ranking_series[win_col_actual].mean() * 100
                         elif sort_metric_for_top_n == "Trade Count": ranked_values_series = grouped_for_ranking_series.size()
-
                         if not ranked_values_series.empty:
                             top_n_cat_names = ranked_values_series.nlargest(num_n_dynamic).index.tolist() if filter_type_dynamic == "Top N" else ranked_values_series.nsmallest(num_n_dynamic).index.tolist()
-
                             if show_others_dynamic:
                                 df_top_n_plot = df_dynamic_plot_data_source[df_dynamic_plot_data_source[actual_selected_category_col].isin(top_n_cat_names)].copy()
                                 df_others_plot = df_dynamic_plot_data_source[~df_dynamic_plot_data_source[actual_selected_category_col].isin(top_n_cat_names)].copy()
                                 if not df_others_plot.empty:
                                     df_others_plot[actual_selected_category_col] = "Others"
                                     df_dynamic_plot_data = pd.concat([df_top_n_plot, df_others_plot], ignore_index=True)
-                                else:
-                                    df_dynamic_plot_data = df_top_n_plot
-                            else:
-                                df_dynamic_plot_data = df_dynamic_plot_data_source[df_dynamic_plot_data_source[actual_selected_category_col].isin(top_n_cat_names)].copy()
-                        else:
-                            logger.warning(f"Could not rank categories for Top/Bottom N based on {sort_metric_for_top_n}.")
-                            df_dynamic_plot_data = pd.DataFrame()
-                    else:
-                        df_dynamic_plot_data = pd.DataFrame()
-                else:
-                    df_dynamic_plot_data = df_dynamic_plot_data_source
+                                else: df_dynamic_plot_data = df_top_n_plot
+                            else: df_dynamic_plot_data = df_dynamic_plot_data_source[df_dynamic_plot_data_source[actual_selected_category_col].isin(top_n_cat_names)].copy()
+                        else: logger.warning(f"Could not rank categories for Top/Bottom N based on {sort_metric_for_top_n}."); df_dynamic_plot_data = pd.DataFrame()
+                    else: df_dynamic_plot_data = pd.DataFrame()
+                else: df_dynamic_plot_data = df_dynamic_plot_data_source
 
 
                 fig_dynamic = None
@@ -783,38 +741,31 @@ def show_categorical_analysis_page():
                 if filter_type_dynamic != "Show All": title_dynamic += f" ({filter_type_dynamic} {num_n_dynamic} by {sort_metric_for_top_n})"
                 if show_others_dynamic and filter_type_dynamic != "Show All": title_dynamic += " with Others"
 
-
                 if df_dynamic_plot_data.empty:
-                    if filter_type_dynamic != "Show All":
-                         display_custom_message(f"No data remains for '{selected_cat_display_name_dynamic}' after applying '{filter_type_dynamic} {num_n_dynamic}' filter.", "info")
-                    else:
-                         display_custom_message(f"No data available for '{selected_cat_display_name_dynamic}'.", "info")
+                    if filter_type_dynamic != "Show All": display_custom_message(f"No data remains for '{selected_cat_display_name_dynamic}' after applying '{filter_type_dynamic} {num_n_dynamic}' filter.", "info")
+                    else: display_custom_message(f"No data available for '{selected_cat_display_name_dynamic}'.", "info")
                 else:
                     logger.debug(f"Dynamic Plot: Category='{actual_selected_category_col}', Metric='{selected_metric_dynamic}', Chart='{selected_chart_type_dynamic}', PlotTheme type: {type(plot_theme)}, value: '{plot_theme}'")
                     try:
-                        
                         if selected_metric_dynamic == "Total PnL":
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[pnl_col_actual].sum().reset_index()
                             if selected_chart_type_dynamic == "Bar Chart":
-                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='sum', theme=plot_theme)
+                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='sum', theme=plot_theme, is_data_aggregated=True)
                             elif selected_chart_type_dynamic == "Box Plot": 
                                 fig_dynamic = plot_box_plot(df=df_dynamic_plot_data, category_col=actual_selected_category_col, value_col=pnl_col_actual, title=title_dynamic, theme=plot_theme)
                                 dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy() 
-
                         elif selected_metric_dynamic == "Average PnL":
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[pnl_col_actual].mean().reset_index()
                             if selected_chart_type_dynamic == "Bar Chart":
-                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='mean', theme=plot_theme)
+                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='mean', theme=plot_theme, is_data_aggregated=True)
                             elif selected_chart_type_dynamic == "Box Plot":
                                 fig_dynamic = plot_box_plot(df=df_dynamic_plot_data, category_col=actual_selected_category_col, value_col=pnl_col_actual, title=title_dynamic, theme=plot_theme)
                                 dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy()
-
                         elif selected_metric_dynamic == "Win Rate (%)" and selected_chart_type_dynamic == "Bar Chart" and win_col_actual in df_dynamic_plot_data.columns:
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
                             dynamic_plot_df_for_view['mean'] *= 100
                             dynamic_plot_df_for_view.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
                             fig_dynamic = plot_win_rate_analysis(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, win_rate_col='Win Rate (%)', trades_col='Total Trades', title_prefix=title_dynamic, theme=plot_theme, is_data_aggregated=True)
-
                         elif selected_metric_dynamic == "Trade Count":
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False).size().reset_index(name='count').sort_values(by='count', ascending=False)
                             if selected_chart_type_dynamic == "Bar Chart":
@@ -822,40 +773,30 @@ def show_categorical_analysis_page():
                                 if fig_dynamic: fig_dynamic = _apply_custom_theme(fig_dynamic, plot_theme)
                             elif selected_chart_type_dynamic == "Donut Chart":
                                 fig_dynamic = plot_donut_chart(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, value_col='count', title=title_dynamic, theme=plot_theme, is_data_aggregated=True)
-
                         elif selected_metric_dynamic == "PnL Distribution" and selected_chart_type_dynamic == "Box Plot":
                             fig_dynamic = plot_box_plot(df=df_dynamic_plot_data, category_col=actual_selected_category_col, value_col=pnl_col_actual, title=title_dynamic, theme=plot_theme)
                             dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy()
 
-
                         if fig_dynamic:
                             st.plotly_chart(fig_dynamic, use_container_width=True)
                             if not dynamic_plot_df_for_view.empty:
-                                with st.expander(f"View Data for: {title_dynamic}"):
+                                # Use checkbox for "View Data" inside this expander
+                                if st.checkbox(f"View Data for: {title_dynamic}", key=f"view_data_dynamic_{selected_cat_display_name_dynamic}_{selected_metric_dynamic}"):
                                     st.dataframe(dynamic_plot_df_for_view.reset_index(drop=True), use_container_width=True)
-
                             
+                            # Statistical Tests (logic remains the same)
                             category_groups_for_test = df_dynamic_plot_data[actual_selected_category_col].dropna().unique()
-                            if "Others" in category_groups_for_test:
-                                category_groups_for_test = [cat for cat in category_groups_for_test if cat != "Others"]
-
+                            if "Others" in category_groups_for_test: category_groups_for_test = [cat for cat in category_groups_for_test if cat != "Others"]
                             if len(category_groups_for_test) >= 2:
                                 if selected_metric_dynamic == "Average PnL" and selected_chart_type_dynamic == "Bar Chart":
                                     st.markdown("##### ANOVA F-test (Difference in Average PnL across categories)")
-                                    avg_pnl_data_for_anova = [
-                                        df_dynamic_plot_data[df_dynamic_plot_data[actual_selected_category_col] == group][pnl_col_actual].dropna().values
-                                        for group in category_groups_for_test
-                                    ]
+                                    avg_pnl_data_for_anova = [df_dynamic_plot_data[df_dynamic_plot_data[actual_selected_category_col] == group][pnl_col_actual].dropna().values for group in category_groups_for_test]
                                     avg_pnl_data_for_anova_filtered = [g_data for g_data in avg_pnl_data_for_anova if len(g_data) >= 2]
-
                                     if len(avg_pnl_data_for_anova_filtered) >= 2:
                                         anova_results = statistical_service.run_hypothesis_test(data1=avg_pnl_data_for_anova_filtered, test_type='anova')
                                         if 'error' in anova_results: st.caption(f"ANOVA Test Error: {anova_results['error']}")
-                                        else:
-                                            p_val_str = f"{anova_results.get('p_value', np.nan):.4f}"
-                                            st.metric(label="ANOVA P-value", value=p_val_str, help=anova_results.get('interpretation', ''))
+                                        else: st.metric(label="ANOVA P-value", value=f"{anova_results.get('p_value', np.nan):.4f}", help=anova_results.get('interpretation', ''))
                                     else: st.caption("ANOVA Test: Not enough groups with sufficient data (min 2 obs/group).")
-
                                 elif selected_metric_dynamic == "Win Rate (%)" and selected_chart_type_dynamic == "Bar Chart":
                                     st.markdown("##### Chi-squared Test (Difference in Win Rates across categories)")
                                     contingency_table_data = []
@@ -863,31 +804,23 @@ def show_categorical_analysis_page():
                                     for group in category_groups_for_test:
                                         group_data = df_dynamic_plot_data[df_dynamic_plot_data[actual_selected_category_col] == group]
                                         if not group_data.empty and win_col_actual in group_data.columns:
-                                            wins = group_data[win_col_actual].sum()
-                                            losses = len(group_data) - wins
-                                            if wins + losses >= 5 :
-                                                contingency_table_data.append([wins, losses])
-                                                valid_groups_for_chi2 +=1
-
+                                            wins = group_data[win_col_actual].sum(); losses = len(group_data) - wins
+                                            if wins + losses >= 5 : contingency_table_data.append([wins, losses]); valid_groups_for_chi2 +=1
                                     if valid_groups_for_chi2 >= 2 and len(contingency_table_data) >=2 :
                                         chi2_results = statistical_service.run_hypothesis_test(data1=np.array(contingency_table_data), test_type='chi-squared')
                                         if 'error' in chi2_results: st.caption(f"Chi-squared Test Error: {chi2_results['error']}")
-                                        else:
-                                            p_val_str_chi2 = f"{chi2_results.get('p_value', np.nan):.4f}"
-                                            st.metric(label="Chi-squared P-value", value=p_val_str_chi2, help=chi2_results.get('interpretation', ''))
+                                        else: st.metric(label="Chi-squared P-value", value=f"{chi2_results.get('p_value', np.nan):.4f}", help=chi2_results.get('interpretation', ''))
                                     else: st.caption("Chi-squared Test: Not enough groups or observations per group.")
                         elif selected_metric_dynamic and selected_chart_type_dynamic:
                             if not (selected_metric_dynamic == "Win Rate (%)" and win_col_actual not in df_dynamic_plot_data.columns):
                                 display_custom_message(f"Could not generate '{selected_chart_type_dynamic}' for '{selected_metric_dynamic}' by '{selected_cat_display_name_dynamic}'.", "warning")
-
                     except Exception as e_dynamic_plot:
                         logger.error(f"Error generating dynamic plot for {selected_cat_display_name_dynamic} ({selected_metric_dynamic} / {selected_chart_type_dynamic}): {e_dynamic_plot}", exc_info=True)
                         display_custom_message(f"An error occurred while generating the dynamic chart: {e_dynamic_plot}", "error")
             else:
                 display_custom_message("Please select a valid category to visualize.", "info")
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
+        st.markdown("</div>", unsafe_allow_html=True) # Close controls-expander-content
+    st.markdown("</div>", unsafe_allow_html=True) # Close performance-section-container
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state:
