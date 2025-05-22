@@ -156,7 +156,7 @@ h3.section-subheader {
 }
 
 h3.component-subheader,
-.performance-section-container h3 { 
+.performance-section-container h3 { /* Also targets h3 within performance sections */
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-heading-color);
@@ -171,7 +171,7 @@ h3.component-subheader,
     font-size: 1.05rem;
     font-weight: 500; 
     color: var(--text-muted-color); 
-    margin-top: 1.25rem; /* Increased top margin */
+    margin-top: 1.25rem; 
     margin-bottom: 0.5rem; 
     padding-bottom: 0;
     border-bottom: none; 
@@ -347,7 +347,6 @@ div[data-testid="stButton"] > button[style*="background-color: var(--error-color
 }
 
 /* --- Input Fields (Select, Text Input, etc.) --- */
-/* Add margin-bottom to input widgets for better spacing when stacked */
 div[data-testid="stTextInput"],
 div[data-testid="stNumberInput"],
 div[data-testid="stTextArea"],
@@ -360,9 +359,8 @@ div[data-testid="stRadio"],
 div[data-testid="stCheckbox"],
 div[data-testid="stColorPicker"],
 div[data-testid="stFileUploader"] {
-    margin-bottom: 1rem; /* Consistent bottom margin for controls */
+    margin-bottom: 1rem; 
 }
-
 
 div[data-testid="stTextInput"] input,
 div[data-testid="stNumberInput"] input,
@@ -473,7 +471,6 @@ div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"]
 /* --- Slider Styling (st.slider) --- */
 div[data-testid="stSlider"] {
     padding: 0.5rem 0.25rem; 
-    /* margin-bottom is handled by the generic control rule */
 }
 div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(1) { 
     background-color: var(--slider-track-color) !important;
@@ -798,9 +795,9 @@ div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] inpu
 /* --- Performance Page Specific Styling --- */
 .performance-section-container {
     background-color: var(--card-background-color);
-    padding: 1.75rem; /* Slightly increased padding */
+    padding: 1.75rem; 
     border-radius: var(--border-radius-lg); 
-    margin-bottom: 2rem; /* Consistent space between sections */
+    margin-bottom: 2rem; 
     box-shadow: var(--box-shadow-md); 
     border: 1px solid var(--border-color); 
 }
@@ -812,7 +809,7 @@ div[data-testid="stMetric"] {
     border: 1px solid var(--border-color);
     box-shadow: var(--box-shadow-sm);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    margin-bottom: 0.5rem; /* Spacing if metrics stack or before other content in same column */
+    margin-bottom: 0.5rem; 
 }
 div[data-testid="stMetric"]:hover {
     transform: translateY(-2px);
@@ -832,21 +829,80 @@ div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
     font-size: 0.85rem; font-weight: 500;
 }
 
-/* Subheaders within performance sections */
 .performance-section-container > div > div > div > div > h3 { 
     font-size: 1.45rem !important; 
     color: var(--primary-color) !important; 
-    margin-top: 0.25rem !important; /* Adjusted for better alignment at top of card */
+    margin-top: 0.25rem !important; 
     margin-bottom: 1.25rem !important; 
     padding-bottom: 0.6rem !important;
     border-bottom: 1px solid var(--border-color) !important;
 }
 
-/* Markdown text used as descriptions under subheaders */
 .performance-section-container > div > div > div > div > p { 
     font-size: 0.95rem !important;
     color: var(--text-muted-color) !important;
     margin-top: -0.75rem !important; 
-    margin-bottom: 1.5rem !important; /* Good space before next element (e.g., controls or plots) */
+    margin-bottom: 1.5rem !important; 
     line-height: 1.6 !important;
 }
+
+/* --- NEW: Specific Block Styling for Performance Page (CSS Class Strategy) --- */
+.kpi-metrics-block {
+    /* Styles for the block containing st.metric elements */
+    /* Example: Add some vertical padding if needed around the group of KPIs */
+    /* padding: 0.5rem 0; */ 
+    margin-bottom: 1rem; /* Add some space after the KPI block */
+}
+
+.charts-grid {
+    /* Styles for an area containing multiple charts, often in columns */
+    /* margin-top: 1rem; */ /* Space above the chart grid */
+    /* padding: 1rem; */ /* Padding within the chart grid area */
+    /* background-color: color-mix(in srgb, var(--background-color) 97%, var(--card-background-color) 3%); */ /* Subtle different background */
+    /* border: 1px dashed var(--input-border-color); */ /* Example border */
+    /* border-radius: var(--border-radius-md); */
+}
+
+.calendar-display-area {
+    /* Styles specific to the P&L calendar display block */
+    margin-top: 1rem; /* Space before the calendar */
+    /* padding: 1rem; */
+    /* background-color: color-mix(in srgb, var(--background-color) 97%, var(--card-background-color) 3%); */
+    /* border-radius: var(--border-radius-md); */
+}
+
+.controls-expander-content {
+    /* Styles for the content INSIDE st.expander for controls */
+    padding: 0.75rem; /* Add some padding inside control expanders */
+    /* background-color: color-mix(in srgb, var(--expander-content-bg) 95%, var(--background-color) 5%); */
+    /* border-top: 1px solid var(--border-color); */ /* If expander header has no bottom border */
+}
+
+.view-data-expander-content {
+    /* Styles for the content INSIDE st.expander for "View Data" */
+    padding: 0.5rem; /* Padding around the dataframe */
+}
+
+.view-data-expander-content div[data-testid="stDataFrame"] {
+    /* More specific targeting for dataframes within .view-data-expander-content */
+    /* For example, to control max-height and scrolling for the dataframe */
+    /* max-height: 350px; */
+    /* overflow-y: auto; */
+    /* border: 1px solid var(--input-border-color); */
+    /* border-radius: var(--border-radius-sm); */
+}
+
+/* Ensure expander details padding is not too much if we add padding to content */
+div[data-testid="stExpander"] [data-testid="stExpanderDetails"] .controls-expander-content,
+div[data-testid="stExpander"] [data-testid="stExpanderDetails"] .view-data-expander-content {
+    /* If the expander details already has padding, and our content div has padding,
+       we might want to remove the expander's default details padding for these specific cases.
+       Default is: padding: 1.25rem; 
+    */
+   /* For example, if you want to control all padding via the inner div: */
+   /* padding: 0 !important; */
+}
+/* However, it's often better to let the expander have its padding and the inner div add to it or manage its own.
+   The above is an option if double padding becomes an issue.
+   For now, the default expander padding + inner div padding will combine.
+*/
