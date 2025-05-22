@@ -150,38 +150,28 @@ def show_strategy_comparison_page():
                     if col not in ['trading_days', 'risk_free_rate_used']
                 ]
 
-
-            # Dynamic theme-adaptive colors for table highlights
-            # These specific colors could also be defined in style.css as variables if used widely
+            # Define explicit highlight background and text colors based on theme
             if theme == "dark":
-                max_color_hex = "#3BA55D"   # Dark theme green
-                min_color_hex = "#FF776B"   # Dark theme red
-                # Text color for highlighted cells should contrast with background
-                # Assuming global style.css handles default text color, focus on background
+                max_bg_color = "#3BA55D"   # Dark theme green background for max values
+                min_bg_color = "#FF776B"   # Dark theme red background for min values
+                highlight_text_color = "#F0F1F6" # Light text for dark theme highlights (contrasts with bg)
             else: # Light theme
-                max_color_hex = "#B2F2BB" # Light theme green (background)
-                min_color_hex = "#FFD6D6" # Light theme red (background)
+                max_bg_color = "#B2F2BB" # Light theme green background for max values
+                min_bg_color = "#FFD6D6" # Light theme red background for min values
+                highlight_text_color = "#121416" # Dark text for light theme highlights (contrasts with bg)
             
-            # Text color for highlighted cells - ensure it's readable on max_color_hex/min_color_hex
-            # For simplicity, we might not need to change text color if background provides enough contrast
-            # Or, you could define these:
-            # highlight_text_color_dark = "var(--text-heading-color)" # or a specific contrast color
-            # highlight_text_color_light = "var(--text-heading-color)"
 
             if kpis_to_show_in_table:
                 styled = (
                     comp_df[kpis_to_show_in_table]
                     .style
                     .format("{:,.2f}", na_rep="-")
-                    # .set_properties(**{ # General cell styling can be inherited from global CSS for dataframes
-                    #     "font-size": "1.02rem" # Example: if specific font size needed
-                    # })
-                     # Highlighting Max: Apply background color and ensure text is readable.
-                    .highlight_max(axis=0, props=f"background-color: {max_color_hex}; color: var(--text-heading-color); font-weight:bold;")
-                    # Highlighting Min: Apply background color and ensure text is readable.
-                    .highlight_min(axis=0, props=f"background-color: {min_color_hex}; color: var(--text-heading-color); font-weight:bold;")
+                    .highlight_max(axis=0, props=f"background-color: {max_bg_color}; color: {highlight_text_color}; font-weight:bold;")
+                    .highlight_min(axis=0, props=f"background-color: {min_bg_color}; color: {highlight_text_color}; font-weight:bold;")
                 )
-                st.dataframe(styled, use_container_width=True) # Removed fixed height to allow dynamic height
+                # The st.dataframe should inherit text color for non-highlighted cells from style.css
+                # For highlighted cells, the 'color' in props above will take precedence.
+                st.dataframe(styled, use_container_width=True)
             else:
                 display_custom_message("No common KPIs found to display for selected strategies.", "warning")
         elif selected_strategies: # Only show this if strategies were selected but no data was processed
@@ -278,7 +268,7 @@ if __name__ == "__main__":
         # You might want to initialize some mock session state data for testing
         # st.session_state.filtered_data = pd.DataFrame(...) 
         # st.session_state.risk_free_rate = 0.02
-        # st.session_state.current_theme = "dark"
+        # st.session_state.current_theme = "dark" # or "light"
         
     # Ensure critical variables for the page are at least nominally defined for standalone run
     if 'EXPECTED_COLUMNS' not in globals(): EXPECTED_COLUMNS = {"strategy":"Strategy", "date":"Date", "pnl":"PnL"}
@@ -286,7 +276,16 @@ if __name__ == "__main__":
     if 'COLORS' not in globals(): COLORS = {}
     if 'analysis_service' not in globals() or analysis_service is None:
         class MockAnalysisService:
-            def get_core_kpis(self, df, rate): return {"Total Return": 0.1, "Sharpe Ratio": 1.0, "error": None}
+            def get_core_kpis(self, df, rate): 
+                # Simulate some data for KPIs
+                import random
+                return {
+                    "Total Return": random.uniform(-0.5, 2.0), 
+                    "Sharpe Ratio": random.uniform(0.1, 3.0),
+                    "Win Rate": random.uniform(0.3, 0.7),
+                    "Profit Factor": random.uniform(0.5, 5.0),
+                    "error": None
+                }
         analysis_service = MockAnalysisService()
     if 'display_custom_message' not in globals():
         def display_custom_message(msg, type):
