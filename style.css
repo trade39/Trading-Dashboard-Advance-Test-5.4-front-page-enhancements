@@ -114,6 +114,7 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    font-size: 16px; /* Base font size for rem calculation, can be browser default */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -171,12 +172,13 @@ h3.component-subheader {
 
 
 .page-subtitle { /* For subtitles under main page titles */
-    font-size: 1.1rem; 
+    font-size: 1.15rem;  /* Increased for better readability */
     color: var(--text-muted-color);
     margin-top: -0.25rem; 
     margin-bottom: 2.5rem; 
     font-weight: 300; 
     max-width: 75ch; 
+    line-height: 1.65; /* Adjusted line height */
 }
 
 /* --- Streamlit Toolbar Styling --- */
@@ -670,7 +672,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .main .block-container { padding: 1rem 1.5rem; } 
     h1 { font-size: 2rem; }
     h2.section-header { font-size: 1.6rem; }
-    .page-subtitle { font-size: 1rem; }
+    .page-subtitle { font-size: 1rem; } /* Adjusted from 1.15rem for tablet */
     .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } 
     .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } 
     .welcome-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; } 
@@ -682,7 +684,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
     h2.section-header { font-size: 1.4rem; margin-bottom: 1rem; }
     h3.section-subheader { font-size: 1.2rem; }
-    .page-subtitle { font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .page-subtitle { font-size: 0.95rem; } /* Adjusted from 1.15rem for mobile */
     
     .ai-ml-task-container { padding: 1.25rem; }
     .ai-ml-task-container div[data-testid="stExpander"] summary { font-size: 1rem; padding: 0.75rem 1rem;}
@@ -728,7 +730,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     border-style: solid;
     display: flex;
     align-items: center;
-    font-size: 0.95rem;
+    /* font-size: 0.95rem; /* Base size for message box, will be overridden by new rule */
     box-shadow: var(--box-shadow-sm);
 }
 .custom-message-box-icon { margin-right: 0.75rem; font-size: 1.25rem; }
@@ -830,4 +832,73 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     color: var(--error-color) !important; /* Ensure this is applied */
     font-weight: bold;
     margin-left: 0.15rem; /* Small space before asterisk */
+}
+
+
+/* --- Readability Enhancements for User Guide & General Content --- */
+.main .block-container p,
+.main .block-container li,
+div[data-testid="stExpander"] [data-testid="stExpanderDetails"] p,
+div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
+.custom-card p,
+.custom-card li {
+    font-size: 1.08rem; /* Increased from typical 1rem */
+    line-height: 1.7;  /* Increased line height for better spacing */
+}
+
+/* Fine-tune text within specific elements in the User Guide, like the conceptual column list */
+/* This targets the div used in the Python script for conceptual column items */
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] {
+    font-size: 1.02rem; /* Slightly smaller than the main 1.08rem if needed for this specific list */
+    line-height: 1.65;
+}
+
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] code,
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] strong {
+    font-size: 1.03rem; /* Make the conceptual key (code/strong) slightly more prominent */
+}
+
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] em {
+    font-size: 1rem; /* Keep description text clear and slightly smaller than the key */
+}
+
+/* Adjust font size for custom message box content */
+.custom-message-box,
+.custom-message-box p, /* Target paragraphs inside message boxes */
+.custom-message-box ul li { /* Target list items inside message boxes */
+    font-size: 1.02rem; 
+    line-height: 1.65;
+}
+.custom-message-box strong { /* For strong text within message boxes */
+    font-size: 1.03rem; 
+}
+
+/* Ensure critical marker stands out but isn't oversized if its parent's font size increases */
+.critical-marker {
+    font-size: inherit; /* Inherit from parent, or set explicitly if needed */
+    /* color: var(--error-color) !important; /* Already defined elsewhere, ensure it's maintained */
+    /* font-weight: bold; /* Already defined elsewhere */
+}
+
+/* Responsive adjustments for increased font sizes if necessary */
+@media (max-width: 767px) { /* Mobile */
+    .main .block-container p,
+    .main .block-container li,
+    div[data-testid="stExpander"] [data-testid="stExpanderDetails"] p,
+    div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
+    .custom-card p,
+    .custom-card li {
+        font-size: 1.02rem; /* Slightly reduce on mobile if 1.08rem is too large */
+        line-height: 1.65;
+    }
+
+    .custom-message-box,
+    .custom-message-box p,
+    .custom-message-box ul li {
+        font-size: 0.98rem; /* Adjust for mobile */
+        line-height: 1.6;
+    }
+    .page-subtitle {
+        font-size: 1.05rem; /* Adjust subtitle for mobile */
+    }
 }
