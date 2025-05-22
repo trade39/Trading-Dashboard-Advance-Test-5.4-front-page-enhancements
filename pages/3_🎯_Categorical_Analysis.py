@@ -217,11 +217,11 @@ def show_categorical_analysis_page():
                 avg_pnl_strategy_data = df.groupby(strategy_col_actual, observed=False)[pnl_col_actual].mean().reset_index()
                 avg_pnl_strategy_data = avg_pnl_strategy_data.sort_values(by=pnl_col_actual, ascending=False)
                 fig_avg_pnl_strategy = plot_pnl_by_category(
-                    df=avg_pnl_strategy_data, # Pass aggregated data
-                    category_col=strategy_col_actual, # Name of category column in agg data
-                    pnl_col=pnl_col_actual, # Name of value column in agg data
-                    title_prefix="Average PnL by", aggregation_func='mean', # Func here is for title, data is pre-agg
-                    theme=plot_theme, is_data_aggregated=True
+                    df=avg_pnl_strategy_data, 
+                    category_col=strategy_col_actual, 
+                    pnl_col=pnl_col_actual, 
+                    title_prefix="Average PnL by", aggregation_func='mean', 
+                    theme=plot_theme
                 )
                 if fig_avg_pnl_strategy: st.plotly_chart(fig_avg_pnl_strategy, use_container_width=True)
                 if not avg_pnl_strategy_data.empty:
@@ -236,16 +236,16 @@ def show_categorical_analysis_page():
                 if 'WIN' not in result_by_plan_data.columns: result_by_plan_data['WIN'] = 0
                 if 'LOSS' not in result_by_plan_data.columns: result_by_plan_data['LOSS'] = 0
                 if 'BREAKEVEN' not in result_by_plan_data.columns: result_by_plan_data['BREAKEVEN'] = 0
-                result_by_plan_data = result_by_plan_data[['WIN', 'LOSS', 'BREAKEVEN']] # Ensure order
+                result_by_plan_data = result_by_plan_data[['WIN', 'LOSS', 'BREAKEVEN']] 
 
                 fig_result_by_plan = plot_stacked_bar_chart(
-                    df=result_by_plan_data.reset_index(), # Pass aggregated data
-                    category_col=trade_plan_col_actual, # Name of category column
-                    stack_cols=['WIN', 'LOSS', 'BREAKEVEN'], # Names of stack columns
+                    df=result_by_plan_data.reset_index(), 
+                    category_col=trade_plan_col_actual, 
+                    stack_cols=['WIN', 'LOSS', 'BREAKEVEN'], 
                     title=f"{trade_result_col_actual.replace('_',' ').title()} by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(trade_plan_col_key, trade_plan_col_key).replace('_',' ').title()}",
                     theme=plot_theme,
                     color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')},
-                    is_data_aggregated=True
+                    is_data_aggregated=True 
                 )
                 if fig_result_by_plan: st.plotly_chart(fig_result_by_plan, use_container_width=True)
                 if not result_by_plan_data.empty:
@@ -253,7 +253,7 @@ def show_categorical_analysis_page():
                         st.dataframe(result_by_plan_data.reset_index(), use_container_width=True, hide_index=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("---") # Visual separator
+        st.markdown("---") 
 
         rr_col_key = 'r_r_csv_num'; direction_col_key = 'direction_str'; strategy_col_key_for_rr = 'strategy'
         rr_col_actual = get_column_name(rr_col_key, df.columns)
@@ -264,7 +264,7 @@ def show_categorical_analysis_page():
                 df_rr_heatmap_prep = df[[strategy_col_actual_for_rr, rr_col_actual, direction_col_actual]].copy()
                 df_rr_heatmap_prep[rr_col_actual] = pd.to_numeric(df_rr_heatmap_prep[rr_col_actual], errors='coerce')
                 df_rr_heatmap_cleaned = df_rr_heatmap_prep.dropna(subset=[rr_col_actual, strategy_col_actual_for_rr, direction_col_actual])
-                pivot_rr_data = pd.DataFrame() # Initialize
+                pivot_rr_data = pd.DataFrame() 
                 if not df_rr_heatmap_cleaned.empty and df_rr_heatmap_cleaned[strategy_col_actual_for_rr].nunique() >= 1 and df_rr_heatmap_cleaned[direction_col_actual].nunique() >= 1:
                     pivot_rr_data = pd.pivot_table(df_rr_heatmap_cleaned, values=rr_col_actual, index=[strategy_col_actual_for_rr, direction_col_actual], aggfunc='mean').unstack(level=-1)
                     if isinstance(pivot_rr_data.columns, pd.MultiIndex): pivot_rr_data.columns = pivot_rr_data.columns.droplevel(0)
@@ -291,7 +291,7 @@ def show_categorical_analysis_page():
                     monthly_win_rate_series = df.groupby(month_num_col_actual)[win_col_actual].mean() * 100
                     month_map_df = df[[month_num_col_actual, month_name_col_actual]].drop_duplicates().sort_values(month_num_col_actual)
                     month_mapping = pd.Series(month_map_df[month_name_col_actual].values, index=month_map_df[month_num_col_actual]).to_dict()
-                    monthly_win_rate_data = monthly_win_rate_series.rename(index=month_mapping).sort_index() # This is a Series
+                    monthly_win_rate_data = monthly_win_rate_series.rename(index=month_mapping).sort_index() 
 
                     if not monthly_win_rate_data.empty:
                         fig_monthly_wr = plot_value_over_time(series=monthly_win_rate_data, series_name="Monthly Win Rate", title="Win Rate by Month", x_axis_title="Month", y_axis_title="Win Rate (%)", theme=plot_theme)
@@ -315,9 +315,9 @@ def show_categorical_analysis_page():
                              st.dataframe(pivot_session_tf_data.reset_index(), use_container_width=True, hide_index=True)
                 except Exception as e_sess_tf: logger.error(f"Error in Session/TF Heatmap: {e_sess_tf}", exc_info=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("---") # Visual separator
+        st.markdown("---") 
 
-        if date_col_actual and pnl_col_actual: # date_col_actual is now defined globally for the page
+        if date_col_actual and pnl_col_actual: 
             try:
                 daily_pnl_df_agg = df.groupby(df[date_col_actual].dt.normalize())[pnl_col_actual].sum().reset_index()
                 daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'})
@@ -342,13 +342,13 @@ def show_categorical_analysis_page():
             event_type_col_key = 'event_type_str'
             event_type_col_actual = get_column_name(event_type_col_key, df.columns)
             if event_type_col_actual and trade_result_col_actual in df.columns:
-                # Data for "Trade Result Count by Event Type"
+                
                 result_by_event_data = df.groupby([event_type_col_actual, trade_result_col_actual], observed=False).size().reset_index(name='count')
 
                 fig_result_by_event = plot_grouped_bar_chart(
-                    df=result_by_event_data, # Pass aggregated data
+                    df=result_by_event_data, 
                     category_col=event_type_col_actual,
-                    value_col='count', # Name of value column in agg data
+                    value_col='count', 
                     group_col=trade_result_col_actual,
                     title=f"{trade_result_col_actual.replace('_',' ').title()} Count by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(event_type_col_key, event_type_col_key).replace('_',' ').title()}",
                     theme=plot_theme,
@@ -359,7 +359,7 @@ def show_categorical_analysis_page():
                 if not result_by_event_data.empty:
                     with st.expander(f"View Data: {trade_result_col_actual.replace('_',' ').title()} Count by Event Type"):
                         st.dataframe(result_by_event_data, use_container_width=True, hide_index=True)
-        with col3b: # Box plot - typically no simple aggregated data to show other than raw or describe()
+        with col3b: 
             market_cond_col_key = 'market_conditions_str'
             market_cond_col_actual = get_column_name(market_cond_col_key, df.columns)
             if market_cond_col_actual and pnl_col_actual:
@@ -368,13 +368,13 @@ def show_categorical_analysis_page():
                     title=f"PnL Distribution by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(market_cond_col_key, market_cond_col_key).replace('_',' ').title()}", theme=plot_theme
                 )
                 if fig_pnl_by_market: st.plotly_chart(fig_pnl_by_market, use_container_width=True)
-                # "View Data" for box plot can show describe() per category
+                
                 if st.checkbox(f"Show Summary Statistics for PnL by Market Condition", key="cb_market_cond_stats_v9"):
                     market_cond_pnl_summary = df.groupby(market_cond_col_actual)[pnl_col_actual].describe()
                     st.dataframe(market_cond_pnl_summary, use_container_width=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("---") # Visual separator
+        st.markdown("---") 
 
         market_sent_col_key = 'market_sentiment_str'
         market_sent_col_actual = get_column_name(market_sent_col_key, df.columns)
@@ -408,7 +408,7 @@ def show_categorical_analysis_page():
                 if df_psych[psych_col_actual].dtype == 'object':
                     df_psych[psych_col_actual] = df_psych[psych_col_actual].astype(str).str.split(',').str[0].str.strip().fillna('N/A')
 
-                # Data for "Trade Result by Dominant Psychological Factor"
+                
                 psych_result_data = pd.crosstab(df_psych[psych_col_actual], df_psych[trade_result_col_actual])
                 if 'WIN' not in psych_result_data.columns: psych_result_data['WIN'] = 0
                 if 'LOSS' not in psych_result_data.columns: psych_result_data['LOSS'] = 0
@@ -416,7 +416,7 @@ def show_categorical_analysis_page():
                 psych_result_data = psych_result_data[['WIN', 'LOSS', 'BREAKEVEN']]
 
                 fig_psych_result = plot_stacked_bar_chart(
-                    df=psych_result_data.reset_index(), # Pass aggregated data
+                    df=psych_result_data.reset_index(), 
                     category_col=psych_col_actual,
                     stack_cols=['WIN', 'LOSS', 'BREAKEVEN'],
                     title=f"{trade_result_col_actual.replace('_',' ').title()} by Dominant {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(psych_col_key, psych_col_key).replace('_',' ').title()}",
@@ -432,12 +432,12 @@ def show_categorical_analysis_page():
             compliance_col_key = 'compliance_check_str'
             compliance_col_actual = get_column_name(compliance_col_key, df.columns)
             if compliance_col_actual:
-                # Data for "Compliance Outcomes"
+                
                 compliance_data = df[compliance_col_actual].fillna('N/A').value_counts().reset_index()
                 compliance_data.columns = [compliance_col_actual, 'count']
 
                 fig_compliance = plot_donut_chart(
-                    df=compliance_data, # Pass aggregated data
+                    df=compliance_data, 
                     category_col=compliance_col_actual,
                     value_col='count',
                     title=f"{PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(compliance_col_key, compliance_col_key).replace('_',' ').title()} Outcomes", theme=plot_theme,
@@ -456,7 +456,7 @@ def show_categorical_analysis_page():
     with st.expander("Capital Management and Drawdown", expanded=False):
         st.markdown("<div class='charts-grid'>", unsafe_allow_html=True)
         col5a, col5b = st.columns(2)
-        with col5a: # Scatter plot - view data would be the selected columns
+        with col5a: 
             initial_bal_col_key = 'initial_balance_num'
             drawdown_csv_col_key = 'drawdown_value_csv'
             initial_bal_col_actual = get_column_name(initial_bal_col_key, df.columns)
@@ -476,33 +476,33 @@ def show_categorical_analysis_page():
                         st.dataframe(scatter_df_view, use_container_width=True, hide_index=True)
         with col5b:
             trade_plan_col_key_dd = 'trade_plan_str'
-            drawdown_csv_col_key_avg = 'drawdown_value_csv' # Ensure key consistency
+            drawdown_csv_col_key_avg = 'drawdown_value_csv' 
             trade_plan_col_actual_dd = get_column_name(trade_plan_col_key_dd, df.columns)
             drawdown_csv_col_actual_avg = get_column_name(drawdown_csv_col_key_avg, df.columns)
 
             if trade_plan_col_actual_dd and drawdown_csv_col_actual_avg:
-                # Data for "Average Drawdown by Trade Plan"
+                
                 avg_dd_plan_data = df.groupby(trade_plan_col_actual_dd, observed=False)[drawdown_csv_col_actual_avg].mean().reset_index()
-                avg_dd_plan_data = avg_dd_plan_data.sort_values(by=drawdown_csv_col_actual_avg, ascending=True) # Typically view smaller drawdowns favorably
+                avg_dd_plan_data = avg_dd_plan_data.sort_values(by=drawdown_csv_col_actual_avg, ascending=True) 
 
                 fig_avg_dd_plan = plot_pnl_by_category(
-                    df=avg_dd_plan_data, # Pass aggregated data
+                    df=avg_dd_plan_data, 
                     category_col=trade_plan_col_actual_dd,
-                    pnl_col=drawdown_csv_col_actual_avg, # Value column
-                    title_prefix="Average Drawdown by", aggregation_func='mean', # For title
-                    theme=plot_theme, is_data_aggregated=True
+                    pnl_col=drawdown_csv_col_actual_avg, 
+                    title_prefix="Average Drawdown by", aggregation_func='mean', 
+                    theme=plot_theme
                 )
                 if fig_avg_dd_plan: st.plotly_chart(fig_avg_dd_plan, use_container_width=True)
                 if not avg_dd_plan_data.empty:
                     with st.expander("View Data: Average Drawdown by Trade Plan"):
                         st.dataframe(avg_dd_plan_data, use_container_width=True, hide_index=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("---") # Visual separator
+        st.markdown("---") 
 
         drawdown_csv_col_key_hist = 'drawdown_value_csv'
         drawdown_csv_col_actual_hist = get_column_name(drawdown_csv_col_key_hist, df.columns)
         if drawdown_csv_col_actual_hist:
-            df_dd_hist = df[[drawdown_csv_col_actual_hist]].copy() # Select only the relevant column for histogram
+            df_dd_hist = df[[drawdown_csv_col_actual_hist]].copy() 
             df_dd_hist[drawdown_csv_col_actual_hist] = pd.to_numeric(df_dd_hist[drawdown_csv_col_actual_hist], errors='coerce')
             df_dd_hist.dropna(subset=[drawdown_csv_col_actual_hist], inplace=True)
             if not df_dd_hist.empty:
@@ -511,7 +511,7 @@ def show_categorical_analysis_page():
                     theme=plot_theme, nbins=30
                 )
                 if fig_dd_hist: st.plotly_chart(fig_dd_hist, use_container_width=True)
-                # View Data for histogram shows the raw column used
+                
                 with st.expander("View Data: Drawdown Distribution (raw values)"):
                     st.dataframe(df_dd_hist.rename(columns={drawdown_csv_col_actual_hist: "Drawdown Value"}), use_container_width=True, hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -526,11 +526,11 @@ def show_categorical_analysis_page():
             exit_type_col_key = 'exit_type_csv_str'
             exit_type_col_actual = get_column_name(exit_type_col_key, df.columns)
             if exit_type_col_actual:
-                # Data for "Exit Type Distribution"
+                
                 exit_type_data = df[exit_type_col_actual].fillna('N/A').value_counts().reset_index()
                 exit_type_data.columns = [exit_type_col_actual, 'count']
                 fig_exit_type = plot_donut_chart(
-                    df=exit_type_data, # Pass aggregated data
+                    df=exit_type_data, 
                     category_col=exit_type_col_actual,
                     value_col='count',
                     title=f"{PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(exit_type_col_key, exit_type_col_key).replace('_',' ').title()} Distribution", theme=plot_theme,
@@ -544,16 +544,16 @@ def show_categorical_analysis_page():
             direction_col_key_wr = 'direction_str'
             direction_col_actual_wr = get_column_name(direction_col_key_wr, df.columns)
             if direction_col_actual_wr and win_col_actual in df.columns:
-                 # Data for "Win Rate by Direction"
+                 
                 dir_wr_data = df.groupby(direction_col_actual_wr, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
-                dir_wr_data['mean'] *= 100 # Convert win rate to percentage
+                dir_wr_data['mean'] *= 100 
                 dir_wr_data.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
 
                 fig_dir_wr = plot_win_rate_analysis(
-                    df=dir_wr_data, # Pass aggregated data
+                    df=dir_wr_data, 
                     category_col=direction_col_actual_wr,
-                    win_rate_col='Win Rate (%)', # Name of win rate col in agg data
-                    trades_col='Total Trades', # Name of trades col in agg data
+                    win_rate_col='Win Rate (%)', 
+                    trades_col='Total Trades', 
                     title_prefix="Win Rate by", theme=plot_theme,
                     is_data_aggregated=True
                 )
@@ -562,7 +562,7 @@ def show_categorical_analysis_page():
                     with st.expander("View Data: Win Rate by Direction"):
                         st.dataframe(dir_wr_data, use_container_width=True, hide_index=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("---") # Visual separator
+        st.markdown("---") 
 
         time_frame_col_key_facet = 'time_frame_str'
         time_frame_col_actual_facet = get_column_name(time_frame_col_key_facet, df.columns)
@@ -572,7 +572,7 @@ def show_categorical_analysis_page():
             if not unique_time_frames:
                 display_custom_message(f"No unique values found in '{time_frame_col_actual_facet}' for faceted chart selection.", "info")
             else:
-                default_selected_time_frames = unique_time_frames[:3] if len(unique_time_frames) > 3 else unique_time_frames # Max 3 default
+                default_selected_time_frames = unique_time_frames[:3] if len(unique_time_frames) > 3 else unique_time_frames 
                 selected_time_frames_for_facet = st.multiselect(
                     f"Select Time Frames for Faceted Chart (Max 5 recommended for clarity):",
                     options=unique_time_frames, default=default_selected_time_frames,
@@ -608,7 +608,7 @@ def show_categorical_analysis_page():
     # --- 7. Performance Summary by Custom Category Table (with CIs) ---
     st.header("📊 7. Performance Summary by Custom Category")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
-    with st.expander("View Performance Table with Confidence Intervals", expanded=False): # This section already shows data
+    with st.expander("View Performance Table with Confidence Intervals", expanded=False): 
         st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
         available_categories_for_table: Dict[str, str] = {}
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
@@ -670,7 +670,7 @@ def show_categorical_analysis_page():
     st.markdown("</div>", unsafe_allow_html=True)
 
     # --- 8. Dynamic Category Visualizer (with Top/N and Significance Testing) ---
-    st.markdown("---") # Top level separator before this major section
+    st.markdown("---") 
     st.header("🔬 8. Dynamic Category Visualizer")
     st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     with st.expander("Explore Data Dynamically with Statistical Tests", expanded=True):
@@ -704,7 +704,7 @@ def show_categorical_analysis_page():
 
             chart_type_options_dynamic = ["Bar Chart"]
             if selected_metric_dynamic == "Trade Count": chart_type_options_dynamic.append("Donut Chart")
-            elif selected_metric_dynamic == "PnL Distribution": chart_type_options_dynamic = ["Box Plot"] # Only box plot for distribution
+            elif selected_metric_dynamic == "PnL Distribution": chart_type_options_dynamic = ["Box Plot"] 
             elif selected_metric_dynamic in ["Total PnL", "Average PnL"]: chart_type_options_dynamic.append("Box Plot")
 
 
@@ -736,7 +736,7 @@ def show_categorical_analysis_page():
                         )
                     show_others_dynamic = st.checkbox("Group remaining into 'Others'", key="dynamic_show_others_v9_final")
 
-            dynamic_plot_df_for_view = pd.DataFrame() # To store data for "View Data" expander
+            dynamic_plot_df_for_view = pd.DataFrame() 
 
             if actual_selected_category_col:
                 df_dynamic_plot_data_source = df.copy()
@@ -744,9 +744,9 @@ def show_categorical_analysis_page():
                 if filter_type_dynamic != "Show All" and selected_metric_dynamic != "PnL Distribution" and selected_chart_type_dynamic in ["Bar Chart", "Donut Chart"]:
                     if not df_dynamic_plot_data_source.empty:
                         if not pnl_col_actual or pnl_col_actual not in df_dynamic_plot_data_source.columns:
-                            display_custom_message("PnL column missing for ranking.", "error"); return # Critical
+                            display_custom_message("PnL column missing for ranking.", "error"); return 
                         if sort_metric_for_top_n == "Win Rate (%)" and (not win_col_actual or win_col_actual not in df_dynamic_plot_data_source.columns):
-                            display_custom_message("Win column missing for win rate ranking.", "error"); return # Critical
+                            display_custom_message("Win column missing for win rate ranking.", "error"); return 
 
                         grouped_for_ranking_series = df_dynamic_plot_data_source.groupby(actual_selected_category_col, observed=False)
 
@@ -792,19 +792,19 @@ def show_categorical_analysis_page():
                 else:
                     logger.debug(f"Dynamic Plot: Category='{actual_selected_category_col}', Metric='{selected_metric_dynamic}', Chart='{selected_chart_type_dynamic}', PlotTheme type: {type(plot_theme)}, value: '{plot_theme}'")
                     try:
-                        # Prepare data for plotting AND for "View Data" expander
+                        
                         if selected_metric_dynamic == "Total PnL":
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[pnl_col_actual].sum().reset_index()
                             if selected_chart_type_dynamic == "Bar Chart":
-                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='sum', theme=plot_theme, is_data_aggregated=True)
-                            elif selected_chart_type_dynamic == "Box Plot": # Box plot uses original non-aggregated data for the selected categories
+                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='sum', theme=plot_theme)
+                            elif selected_chart_type_dynamic == "Box Plot": 
                                 fig_dynamic = plot_box_plot(df=df_dynamic_plot_data, category_col=actual_selected_category_col, value_col=pnl_col_actual, title=title_dynamic, theme=plot_theme)
-                                dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy() # For view data
+                                dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy() 
 
                         elif selected_metric_dynamic == "Average PnL":
                             dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[pnl_col_actual].mean().reset_index()
                             if selected_chart_type_dynamic == "Bar Chart":
-                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='mean', theme=plot_theme, is_data_aggregated=True)
+                                fig_dynamic = plot_pnl_by_category(df=dynamic_plot_df_for_view, category_col=actual_selected_category_col, pnl_col=pnl_col_actual, title_prefix=title_dynamic, aggregation_func='mean', theme=plot_theme)
                             elif selected_chart_type_dynamic == "Box Plot":
                                 fig_dynamic = plot_box_plot(df=df_dynamic_plot_data, category_col=actual_selected_category_col, value_col=pnl_col_actual, title=title_dynamic, theme=plot_theme)
                                 dynamic_plot_df_for_view = df_dynamic_plot_data[[actual_selected_category_col, pnl_col_actual]].copy()
@@ -834,7 +834,7 @@ def show_categorical_analysis_page():
                                 with st.expander(f"View Data for: {title_dynamic}"):
                                     st.dataframe(dynamic_plot_df_for_view.reset_index(drop=True), use_container_width=True)
 
-                            # Statistical Tests
+                            
                             category_groups_for_test = df_dynamic_plot_data[actual_selected_category_col].dropna().unique()
                             if "Others" in category_groups_for_test:
                                 category_groups_for_test = [cat for cat in category_groups_for_test if cat != "Others"]
