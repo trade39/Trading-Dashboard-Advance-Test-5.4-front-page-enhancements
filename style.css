@@ -20,6 +20,7 @@
     --slider-track-color: #4A4C5E; /* For inactive part of slider track */
     
     --accent-color: #FF8C00; 
+    --info-accent-color: #17A2B8; /* Using info color for instructions */
     
     --success-color: #28a745; 
     --warning-color: #ffc107; 
@@ -77,6 +78,8 @@
 
 
     --accent-color: #FF6B00; 
+    --info-accent-color: #17A2B8; /* Consistent info color */
+
 
     --box-shadow-sm: 0 2px 4px rgba(0,0,0,0.05); 
     --box-shadow-md: 0 4px 8px rgba(0,0,0,0.07);
@@ -485,26 +488,43 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
 
 
 /* --- Expander Styling --- */
+/* Styling for category headers (h6) used before expanders in column mapper */
+.column-mapper-container h6 {
+    font-size: 1.05rem; /* Slightly larger than default text */
+    font-weight: 600; /* Bolder */
+    color: var(--text-heading-color);
+    margin-top: 1.25rem; /* Space above category header */
+    margin-bottom: 0.5rem; /* Space below category header, before expander */
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--input-border-color); /* Subtle separator */
+}
+.column-mapper-container h6 .critical-marker { /* For the asterisk on critical categories */
+    color: var(--error-color);
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+
 div[data-testid="stExpander"] summary {
-    font-size: 1.05rem; 
+    font-size: 1rem; /* Adjusted for a cleaner look with h6 above */
     font-weight: 500;
     color: var(--text-heading-color);
     background-color: var(--expander-header-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    padding: 0.8rem 1.25rem;
+    padding: 0.75rem 1rem; /* Slightly reduced padding */
     transition: background-color var(--transition-speed) var(--transition-timing);
-    margin-bottom: -1px; /* Prevents double border when open */
+    /* margin-bottom: -1px; Removed as h6 provides separation */
 }
 div[data-testid="stExpander"] summary:hover {
     background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
 }
-div[data-testid="stExpander"][open] summary { /* Style for when expander is open */
+div[data-testid="stExpander"][open] summary { 
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 1.5rem;
+    padding: 1.25rem; /* Consistent padding */
     background-color: var(--expander-content-bg);
     border: 1px solid var(--border-color);
     border-top: none; 
@@ -702,21 +722,40 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 
 
 /* --- Column Mapper Specific Styles --- */
+
+/* NEW/UPDATED: Styling for the instructions box */
 .column-mapper-container .mapper-instructions {
-    font-size: 0.9rem;
-    color: var(--text-muted-color);
-    background-color: var(--section-background-color);
-    padding: 0.75rem 1rem;
+    font-size: 0.95rem; /* Slightly increased font size for readability */
+    color: var(--text-color); /* Main text color for better readability than muted */
+    background-color: color-mix(in srgb, var(--info-accent-color) 10%, var(--section-background-color) 90%); /* Subtle info background */
+    padding: 1rem 1.25rem; /* Increased padding for more breathing room */
     border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
+    border-left: 4px solid var(--info-accent-color); /* Prominent left border with info color */
+    margin-top: 1.5rem; /* More space above */
+    margin-bottom: 2rem; /* More space below, before the form starts */
+    line-height: 1.6; /* Improved line spacing */
+    box-shadow: var(--box-shadow-sm);
+    display: flex; /* For aligning icon and text */
+    align-items: flex-start; /* Align items to the top */
 }
+
+.column-mapper-container .mapper-instructions .instruction-icon {
+    font-size: 1.2rem; /* Icon size */
+    margin-right: 0.75rem; /* Space between icon and text */
+    color: var(--info-accent-color); /* Icon color matches border */
+    line-height: 1.6; /* Match text line-height for vertical alignment */
+}
+
+.column-mapper-container .mapper-instructions strong { /* For the asterisk emphasis */
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+
 .column-mapper-container .type-mismatch-warning {
-    color: var(--warning-color) !important; /* Ensure high visibility */
+    color: var(--warning-color) !important; 
     font-size: 0.8rem;
-    display: block; /* Make it take its own line */
+    display: block; 
     margin-top: 0.25rem;
 }
 .column-mapper-container hr.styled-hr {
@@ -725,43 +764,49 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin: 1.5rem 0;
 }
 
-/* --- NEW: Column Mapper Data Preview Section --- */
+/* Column Mapper Data Preview Section */
 .data-preview-container {
-    background-color: var(--section-background-color); /* Can also use --card-background-color for more "pop" */
+    background-color: var(--section-background-color); 
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg); /* Consistent rounding */
-    padding: 1.25rem; /* Inner spacing */
-    margin-top: 1rem; /* Space above the preview section */
-    margin-bottom: 1.5rem; /* Space below the preview section */
-    box-shadow: var(--box-shadow-sm); /* Subtle shadow for depth */
+    border-radius: var(--border-radius-lg); 
+    padding: 1.25rem; 
+    margin-top: 1rem; 
+    margin-bottom: 1.5rem; 
+    box-shadow: var(--box-shadow-sm); 
 }
 
-/* Styles for the title of the data preview section */
-.data-preview-container .data-preview-title { /* Targets the <p> tag used in the Python script */
-    font-size: 1.1rem; /* Or 1.15rem for more emphasis */
-    font-weight: 600; /* Semibold for clarity */
+.data-preview-container .data-preview-title { 
+    font-size: 1.1rem; 
+    font-weight: 600; 
     color: var(--text-heading-color);
-    margin-top: 0; /* Remove default p margin if any from browser styles */
-    margin-bottom: 1rem; /* Space below title, before dataframe */
-    padding-bottom: 0.65rem; /* Space for the border */
-    border-bottom: 1px solid var(--input-border-color); /* Subtle separator line, using a lighter border color */
-    line-height: 1.4; /* Ensure good line spacing for the title */
+    margin-top: 0; 
+    margin-bottom: 1rem; 
+    padding-bottom: 0.65rem; 
+    border-bottom: 1px solid var(--input-border-color); 
+    line-height: 1.4; 
 }
 
-/* Optional: Add a little spacing above the Streamlit dataframe if it's not handled by Streamlit's own margins */
 .data-preview-container div[data-testid="stDataFrame"] {
-    margin-top: 0.25rem; /* Small gap between title's border and the dataframe itself */
+    margin-top: 0.25rem; 
 }
 
-/* Placeholder styling when data preview is not available or file is empty */
 .data-preview-container .data-preview-placeholder {
-    font-size: 0.95rem; /* Slightly larger for better readability */
+    font-size: 0.95rem; 
     color: var(--text-muted-color);
-    padding: 1.5rem 1rem; /* More padding for better visual balance */
+    padding: 1.5rem 1rem; 
     text-align: center;
-    border: 1px dashed var(--input-border-color); /* Dashed border for distinction, using a lighter border */
-    border-radius: var(--border-radius-md); /* Consistent rounding */
-    background-color: color-mix(in srgb, var(--section-background-color) 70%, var(--background-color) 30%); /* Slightly different bg */
-    margin-top: 0.5rem; /* Space if title was rendered then this placeholder appears */
+    border: 1px dashed var(--input-border-color); 
+    border-radius: var(--border-radius-md); 
+    background-color: color-mix(in srgb, var(--section-background-color) 70%, var(--background-color) 30%); 
+    margin-top: 0.5rem; 
 }
 
+/* Custom label styling for selectboxes to allow HTML (e.g., red asterisk) */
+.column-mapper-container div[data-testid="stSelectbox"] > label, /* General label */
+.column-mapper-container label[for*="map_"] { /* Specific for our markdown labels */
+    font-size: 1rem; /* Or your desired font size for labels */
+    color: var(--text-color);
+    display: block;
+    margin-bottom: 0.25rem; /* Space between label and selectbox */
+    padding-left: 0; /* Remove default Streamlit label padding if any */
+}
