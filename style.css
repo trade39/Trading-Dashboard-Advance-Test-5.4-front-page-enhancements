@@ -147,14 +147,23 @@ h2.section-header {
     font-weight: 600;
 }
 
+/* Subheader for main sections on a page */
 h3.section-subheader { 
-    font-size: 1.375rem; 
+    font-size: 1.375rem; /* Slightly larger for primary subheadings */
     color: var(--text-heading-color);
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 2.5rem; /* Increased top margin for better separation */
+    margin-bottom: 1.25rem; /* Adjusted bottom margin */
     font-weight: 500;
+    display: flex; /* For aligning icons if used with st.markdown */
+    align-items: center;
+}
+h3.section-subheader .icon { /* If using <span class="icon">emoji</span> */
+    margin-right: 0.5rem;
+    font-size: 1.1em; /* Adjust icon size relative to text */
 }
 
+
+/* Subheader for components or subsections within expanders/containers */
 h3.component-subheader,
 .performance-section-container h3 { /* Also targets h3 within performance sections */
     font-size: 1.25rem;
@@ -272,7 +281,7 @@ div[data-testid="stSidebar"] .stButton button {
 
 /* --- General Button Styling for Streamlit --- */
 div[data-testid="stButton"] > button,
-button[data-testid="baseButton-secondary"] {
+button[data-testid="baseButton-secondary"] { /* Catches some other buttons */
     background-color: var(--primary-color) !important; 
     color: #FFFFFF !important; 
     border: 1px solid var(--primary-color) !important;
@@ -286,6 +295,7 @@ button[data-testid="baseButton-secondary"] {
     box-shadow: var(--box-shadow-sm); cursor: pointer;
 }
 
+/* Ensure primary form submit buttons are styled consistently */
 div[data-testid="stButton"] button[kind="primary"],
 div[data-testid="stFormSubmitButton"] button[kind="primary"],
 div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
@@ -294,17 +304,19 @@ div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
     border-color: var(--primary-color) !important;
 }
 
+/* Catching Streamlit's default "secondary" form submit or "destructive" buttons */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"], 
-div[data-testid="stButton"] > button[style*="background-color: #ff4b4b"],
-div[data-testid="stButton"] > button[style*="background-color: rgb(255, 75, 75)"],
-div[data-testid="stButton"] > button[style*="background-color: #ff4b4b !important"],
-div[data-testid="stButton"] > button[style*="background-color: #ff5555"],
-div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] {
-    background-color: var(--primary-color) !important; 
+div[data-testid="stButton"] > button[style*="background-color: #ff4b4b"], /* Default red */
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 75, 75)"], /* Default red */
+div[data-testid="stButton"] > button[style*="background-color: #ff4b4b !important"], /* Default red */
+div[data-testid="stButton"] > button[style*="background-color: #ff5555"], /* A common Streamlit red variation */
+div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] { /* If explicitly set to error color */
+    background-color: var(--primary-color) !important; /* Overriding to primary for consistency */
     border-color: var(--primary-color) !important; 
     color: #fff !important;
 }
 
+/* Style for a custom secondary button if you add a class like "secondary-button" */
 div[data-testid="stButton"] > button.secondary-button { 
     background-color: var(--accent-color) !important;
     border-color: var(--accent-color) !important;
@@ -314,15 +326,16 @@ div[data-testid="stButton"] > button.secondary-button:hover {
     border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
 }
 
+
 div[data-testid="stButton"] > button:hover,
 button[data-testid="baseButton-secondary"]:hover,
 div[data-testid="stButton"] button[kind="primary"]:hover,
 div[data-testid="stFormSubmitButton"] button[kind="primary"]:hover,
 div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:hover,
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"]:hover,
-div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover, 
-div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:hover,
-div[data-testid="stButton"] > button[style*="background-color: red"]:hover,
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover, /* Hover state of default red */
+div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:hover, /* Hover state of default red */
+div[data-testid="stButton"] > button[style*="background-color: red"]:hover, /* Generic red */
 div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"]:hover {
     background-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
     border-color: color-mix(in srgb, var(--primary-color) 85%, black 15%) !important;
@@ -365,40 +378,44 @@ div[data-testid="stFileUploader"] {
 div[data-testid="stTextInput"] input,
 div[data-testid="stNumberInput"] input,
 div[data-testid="stTextArea"] textarea,
-div[data-testid="stDateInput"] input, 
-div[data-testid="stDateInput"] div[data-baseweb="input"] input, 
+div[data-testid="stDateInput"] input, /* For the main input part of date picker */
+div[data-testid="stDateInput"] div[data-baseweb="input"] input, /* More specific for baseweb date input */
 div[data-testid="stTimeInput"] input {
     background-color: var(--card-background-color) !important;
     color: var(--text-color) !important;
     border: 1px solid var(--input-border-color) !important;
     border-radius: var(--border-radius-md) !important;
     box-shadow: var(--box-shadow-inset) !important;
-    padding: 0.5rem 0.75rem !important;
+    padding: 0.5rem 0.75rem !important; /* Standardized padding */
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
+/* Selectbox main display area */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child {
     background-color: var(--card-background-color) !important;
     border: 1px solid var(--input-border-color) !important;
     border-radius: var(--border-radius-md) !important;
     box-shadow: var(--box-shadow-inset) !important;
-    padding: 0.25rem 0.75rem !important; 
-    line-height: 1.5; 
-    min-height: calc(1.5em + 1rem + 2px); 
-    display: flex; align-items: center;
+    padding: 0.25rem 0.75rem !important; /* Adjusted for vertical alignment */
+    line-height: 1.5; /* Ensure text fits well */
+    min-height: calc(1.5em + 1rem + 2px); /* Matches input field height */
+    display: flex; align-items: center; /* Better vertical alignment */
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div, 
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { 
+/* Text color within selectbox */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div, /* Selected value text */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { /* Placeholder/input text */
     color: var(--text-color) !important;
-    background-color: transparent !important; 
-    opacity: 1 !important; padding: 0 !important; margin: 0 !important; 
-    line-height: inherit !important; 
-    font-family: var(--font-family-sans-serif) !important; 
-    font-size: 1rem !important; 
+    background-color: transparent !important; /* Ensure no conflicting background */
+    opacity: 1 !important; /* Ensure text is fully visible */
+    padding: 0 !important; margin: 0 !important; /* Remove internal padding/margin */
+    line-height: inherit !important; /* Inherit line height from parent */
+    font-family: var(--font-family-sans-serif) !important; /* Consistent font */
+    font-size: 1rem !important; /* Consistent font size */
 }
 
+/* Arrow icon in selectbox */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] svg { 
     fill: var(--text-muted-color) !important; 
     transition: fill var(--transition-speed) var(--transition-timing);
@@ -407,20 +424,24 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"]:hover svg {
     fill: var(--text-color) !important; 
 }
 
+
+/* Focus styles for input fields */
 div[data-testid="stTextInput"] input:focus,
 div[data-testid="stNumberInput"] input:focus,
 div[data-testid="stTextArea"] textarea:focus,
 div[data-testid="stDateInput"] input:focus,
 div[data-testid="stDateInput"] div[data-baseweb="input"] input:focus,
 div[data-testid="stTimeInput"] input:focus,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child:focus-within { 
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child:focus-within { /* For selectbox when focused */
     border-color: var(--primary-color) !important;
     box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary-color) 25%, transparent 75%), var(--box-shadow-inset) !important;
 }
 
+/* Placeholder text styling */
 ::placeholder { color: var(--text-muted-color); opacity: 1; }
 :-ms-input-placeholder { color: var(--text-muted-color); }
 ::-ms-input-placeholder { color: var(--text-muted-color); }
+
 
 /* Dropdown Menu Styling (for st.selectbox, st.multiselect) */
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"],
@@ -429,28 +450,30 @@ div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"]
     border-radius: var(--border-radius-md) !important;
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--box-shadow-lg) !important; 
-    margin-top: 4px !important;
-    padding: 0.25rem 0 !important; 
+    margin-top: 4px !important; /* Small gap from select box */
+    padding: 0.25rem 0 !important; /* Padding around the list of options */
 }
 
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] ul,
 div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"] ul {
-    padding: 0 !important; 
+    padding: 0 !important; /* Remove default ul padding */
 }
 
+/* Individual dropdown items */
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"],
-div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li,
+div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li, /* Fallback for some structures */
 div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"] li div[role="option"],
 div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"] li {
     background-color: transparent !important;
     color: var(--text-color) !important;
-    padding: 0.6rem 1rem !important;
+    padding: 0.6rem 1rem !important; /* Consistent padding */
     font-size: 0.9rem;
-    border-radius: var(--border-radius-sm); 
-    margin: 0.125rem 0.25rem; 
+    border-radius: var(--border-radius-sm); /* Subtle rounding for items */
+    margin: 0.125rem 0.25rem; /* Spacing between items */
     transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
 }
 
+/* Selected item in dropdown */
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"][aria-selected="true"],
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li[aria-selected="true"],
 div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"] li div[role="option"][aria-selected="true"],
@@ -460,6 +483,7 @@ div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"]
     font-weight: 500;
 }
 
+/* Hovered item in dropdown */
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li div[role="option"]:hover,
 div[data-baseweb="popover"][id^="baseweb-select-"] div[data-baseweb="menu"] li:hover,
 div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"] li div[role="option"]:hover,
@@ -468,21 +492,25 @@ div[data-baseweb="popover"][id^="baseweb-multiselect-"] div[data-baseweb="menu"]
     color: #FFFFFF !important;
 }
 
+
 /* --- Slider Styling (st.slider) --- */
 div[data-testid="stSlider"] {
-    padding: 0.5rem 0.25rem; 
+    padding: 0.5rem 0.25rem; /* Padding around the slider component */
 }
+/* Slider track (inactive part) */
 div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(1) { 
     background-color: var(--slider-track-color) !important;
     height: 6px !important; border-radius: var(--border-radius-sm);
 }
+/* Slider track (active part) */
 div[data-testid="stSlider"] div[data-baseweb="slider"] > div:nth-child(2) > div { 
     background-color: var(--primary-color) !important;
     height: 6px !important; border-radius: var(--border-radius-sm);
 }
+/* Slider thumb (handle) */
 div[data-testid="stSlider"] div[role="slider"] { 
     background-color: var(--primary-color) !important;
-    border: 2px solid var(--card-background-color) !important; 
+    border: 2px solid var(--card-background-color) !important; /* Border to make it pop from track */
     box-shadow: var(--box-shadow-md) !important;
     width: 18px !important; height: 18px !important; 
     border-radius: 50% !important; cursor: pointer;
@@ -490,14 +518,15 @@ div[data-testid="stSlider"] div[role="slider"] {
 }
 div[data-testid="stSlider"] div[role="slider"]:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 20%, transparent) !important; 
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 20%, transparent) !important; /* Subtle glow on hover */
 }
-div[data-testid="stSlider"] div[role="slider"]:focus-visible { 
+div[data-testid="stSlider"] div[role="slider"]:focus-visible { /* Focus state for accessibility */
     box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
     outline: none;
 }
 
 /* --- Expander Styling --- */
+/* For specific context like column mapper, if needed */
 .column-mapper-container h6 { 
     font-size: 1.05rem; font-weight: 600; 
     color: var(--text-heading-color);
@@ -509,6 +538,7 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
     color: var(--error-color); font-weight: bold; margin-left: 0.25rem;
 }
 
+/* General Expander Header */
 div[data-testid="stExpander"] summary {
     font-size: 1rem; font-weight: 500;
     color: var(--text-heading-color);
@@ -517,20 +547,28 @@ div[data-testid="stExpander"] summary {
     border-radius: var(--border-radius-md);
     padding: 0.75rem 1rem; 
     transition: background-color var(--transition-speed) var(--transition-timing);
+    margin-bottom: 0; /* Remove default margin if any, control spacing with expander itself */
 }
 div[data-testid="stExpander"] summary:hover {
     background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
 }
+/* When expander is open, adjust summary border radius */
 div[data-testid="stExpander"][open] summary { 
     border-bottom-left-radius: 0; border-bottom-right-radius: 0;
 }
+/* Expander Content Area */
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 1.25rem; 
+    padding: 1.25rem; /* Default padding for content */
     background-color: var(--expander-content-bg);
     border: 1px solid var(--border-color);
-    border-top: none; 
+    border-top: none; /* Top border is handled by summary */
     border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); 
 }
+/* Add margin below each expander for separation */
+div[data-testid="stExpander"] {
+    margin-bottom: 1.5rem; 
+}
+
 
 /* --- Card Styling (Generic Custom Card) --- */
 .custom-card { 
@@ -624,6 +662,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .main .block-container { padding: 1rem 1.5rem; } 
     h1 { font-size: 2rem; }
     h2.section-header { font-size: 1.6rem; }
+    h3.section-subheader { font-size: 1.25rem; } /* Adjusted for tablet */
     .page-subtitle { font-size: 1rem; } 
     .welcome-container { padding: 0.5rem 1.5rem 1.5rem 1.5rem; margin: 0 auto; } 
     .welcome-title { font-size: 2.25rem; margin-top: 0.5rem; } 
@@ -635,7 +674,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .main .block-container { padding: 0.5rem 1rem; } 
     h1 { font-size: 1.75rem; margin-bottom: 0.75rem; }
     h2.section-header { font-size: 1.4rem; margin-bottom: 1rem; }
-    h3.section-subheader { font-size: 1.2rem; }
+    h3.section-subheader { font-size: 1.15rem; } /* Adjusted for mobile */
     .page-subtitle { font-size: 0.95rem; } 
     
     .ai-ml-task-container { padding: 1.25rem; }
@@ -688,11 +727,13 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     display: block; margin-top: 0.25rem;
 }
 .column-mapper-container hr.styled-hr,
-.performance-section-container hr { /* Style for <hr> used via st.markdown("<hr>") */
+.performance-section-container hr, /* Style for <hr> used via st.markdown("<hr>") */
+hr.styled-hr { /* General styled HR */
     border: none;
     border-top: 1px solid var(--border-color);
     margin: 2rem 0; /* Consistent vertical spacing for dividers */
 }
+
 
 .data-preview-container {
     background-color: var(--section-background-color); 
@@ -739,7 +780,8 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
 .performance-section-container p { /* Ensure paragraphs in perf sections also get this */
     font-size: 1.08rem; line-height: 1.7;  
 }
-.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] {
+/* For text directly within st.markdown that might not be in a <p> but is styled like one by Streamlit */
+.main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] { /* Example of a generic Streamlit markdown element style */
     font-size: 1.02rem; line-height: 1.65;
 }
 .main .block-container div[style*='border-bottom: 1px solid var(--input-border-color);'] code,
@@ -753,7 +795,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
     font-size: 1.02rem; line-height: 1.65;
 }
 .custom-message-box strong { font-size: 1.03rem; }
-.critical-marker { font-size: inherit; }
+.critical-marker { font-size: inherit; } /* Ensure critical marker inherits font size */
 
 @media (max-width: 767px) { /* Mobile Readability */
     .main .block-container p, .main .block-container li,
@@ -766,33 +808,37 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
     .custom-message-box, .custom-message-box p, .custom-message-box ul li {
         font-size: 0.98rem; line-height: 1.6;
     }
-    .page-subtitle { font-size: 1.05rem; }
+    .page-subtitle { font-size: 1.05rem; } /* Slightly larger for better readability on mobile */
 }
 
 /* --- Radio Button Styling --- */
-div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] > div:first-child {
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] > div:first-child { /* Radio button outer circle */
     border-color: var(--input-border-color) !important; 
     background-color: var(--card-background-color) !important; 
 }
-div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div > div:last-child {
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div > div:last-child { /* Radio button inner circle (checked) */
     background-color: var(--primary-color) !important; 
 }
-div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div {
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div { /* Radio button outer circle (checked) */
     border-color: var(--primary-color) !important; 
     background-color: var(--card-background-color) !important; 
 }
+/* Hover effect for unchecked radio buttons */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"]:not(:has(input:checked)):hover > div:first-child {
     border-color: var(--primary-color) !important; 
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); 
 }
-div[data-testid="stRadio"] label { color: var(--text-color) !important; }
+div[data-testid="stRadio"] label { color: var(--text-color) !important; } /* Radio button label text */
+/* Focus state for radio buttons */
 div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:focus-visible + div {
     outline: 2px solid var(--primary-color) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
 }
 
+
 /* --- Performance Page Specific Styling --- */
+/* This class can be applied to st.container() to group sections */
 .performance-section-container {
     background-color: var(--card-background-color);
     padding: 1.75rem; 
@@ -802,6 +848,8 @@ div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] inpu
     border: 1px solid var(--border-color); 
 }
 
+/* Styling for st.metric, effectively the .kpi-metric-card */
+/* This selector targets Streamlit's metric component. */
 div[data-testid="stMetric"] {
     background-color: var(--section-background-color); 
     padding: 1rem 1.25rem;
@@ -809,27 +857,33 @@ div[data-testid="stMetric"] {
     border: 1px solid var(--border-color);
     box-shadow: var(--box-shadow-sm);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    margin-bottom: 0.5rem; 
+    margin-bottom: 1rem; /* Increased margin for better vertical spacing */
 }
 div[data-testid="stMetric"]:hover {
     transform: translateY(-2px);
     box-shadow: var(--box-shadow-md);
 }
-div[data-testid="stMetric"] label { 
+div[data-testid="stMetric"] label { /* Metric label */
     font-size: 0.9rem; font-weight: 500;
     color: var(--text-muted-color);
     margin-bottom: 0.25rem; 
 }
-div[data-testid="stMetric"] div[data-testid="stMetricValue"] { 
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] { /* Metric value */
     font-size: 1.75rem; font-weight: 600;
     color: var(--text-heading-color);
     line-height: 1.2;
 }
-div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { 
+div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { /* Metric delta (if present) */
     font-size: 0.85rem; font-weight: 500;
 }
 
-.performance-section-container > div > div > div > div > h3 { 
+/* More specific styling for H3 if it's directly inside a performance section container's column structure */
+/* Example: .performance-section-container > div > div > div > div > h3 */
+/* This is highly dependent on Streamlit's generated HTML structure for columns. */
+/* The generic h3.component-subheader or h3.section-subheader should cover most cases. */
+/* If more specific targeting is needed, inspect the element and adjust. */
+/* For instance, if st.columns is used within .performance-section-container: */
+.performance-section-container .stApp > div > div > div > div > h3 { 
     font-size: 1.45rem !important; 
     color: var(--primary-color) !important; 
     margin-top: 0.25rem !important; 
@@ -838,7 +892,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
     border-bottom: 1px solid var(--border-color) !important;
 }
 
-.performance-section-container > div > div > div > div > p { 
+.performance-section-container .stApp > div > div > div > div > p { 
     font-size: 0.95rem !important;
     color: var(--text-muted-color) !important;
     margin-top: -0.75rem !important; 
@@ -846,9 +900,13 @@ div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
     line-height: 1.6 !important;
 }
 
+
 /* --- NEW: Specific Block Styling for Performance Page (CSS Class Strategy) --- */
+/* These classes are intended to be used with st.container(class_name="...") */
+/* They provide examples of how to structure CSS for maintainability. */
+
 .kpi-metrics-block {
-    /* Styles for the block containing st.metric elements */
+    /* Styles for a block specifically containing st.metric elements if wrapped in a container */
     /* Example: Add some vertical padding if needed around the group of KPIs */
     /* padding: 0.5rem 0; */ 
     margin-bottom: 1rem; /* Add some space after the KPI block */
@@ -871,6 +929,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
     /* border-radius: var(--border-radius-md); */
 }
 
+/* Styling for content INSIDE st.expander if wrapped with these classes */
 .controls-expander-content {
     /* Styles for the content INSIDE st.expander for controls */
     padding: 0.75rem; /* Add some padding inside control expanders */
@@ -892,17 +951,16 @@ div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {
     /* border-radius: var(--border-radius-sm); */
 }
 
-/* Ensure expander details padding is not too much if we add padding to content */
-div[data-testid="stExpander"] [data-testid="stExpanderDetails"] .controls-expander-content,
-div[data-testid="stExpander"] [data-testid="stExpanderDetails"] .view-data-expander-content {
-    /* If the expander details already has padding, and our content div has padding,
-       we might want to remove the expander's default details padding for these specific cases.
-       Default is: padding: 1.25rem; 
-    */
-   /* For example, if you want to control all padding via the inner div: */
-   /* padding: 0 !important; */
-}
-/* However, it's often better to let the expander have its padding and the inner div add to it or manage its own.
-   The above is an option if double padding becomes an issue.
-   For now, the default expander padding + inner div padding will combine.
+/*
+  Note on expander padding:
+  Streamlit's div[data-testid="stExpanderDetails"] already has padding (1.25rem).
+  If you add padding to an inner div (like .controls-expander-content),
+  the paddings will combine. This is usually fine.
+  If you need to override the expander's default padding for specific cases,
+  you could target it like:
+  div[data-testid="stExpander"] [data-testid="stExpanderDetails"].specific-expander-class {
+     padding: 0 !important;
+  }
+  And then control all padding via your inner .controls-expander-content div.
+  However, it's often simpler to work with the default expander padding.
 */
