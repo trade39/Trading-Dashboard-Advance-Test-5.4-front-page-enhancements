@@ -279,14 +279,15 @@ button[data-testid="baseButton-secondary"] /* For st.download_button */ {
 }
 
 /* OVERRIDE: Force all danger/confirm/red buttons to use primary color (blue) */
-div[data-testid="stButton"] > button.danger,
-div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"],
+div[data-testid="stButton"] > button[style*="background-color: #ff4b4b"],
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 75, 75)"],
+div[data-testid="stButton"] > button[style*="background-color: #ff4b4b !important"],
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"],
-div[data-testid="stButton"] > button[style*="background-color: red"],
 div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] {
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
-    color: #FFFFFF !important;
+    color: #fff !important;
+}
 }
 
 /* If you want a secondary button style with accent color, you'd need to apply a class */
