@@ -55,34 +55,15 @@ def _calculate_drawdown_series_for_aggregated_df(cumulative_pnl_series: pd.Serie
     high_water_mark = cumulative_pnl_series.cummax()
     drawdown_abs_series = high_water_mark - cumulative_pnl_series
     
-    # Replace 0s in HWM with NaN before division to avoid 0/0 or X/0 issues if HWM is 0
-    # and ensure we don't get 100% drawdown incorrectly if PnL is always negative from start.
-    hwm_for_pct = high_water_mark.copy()
-    # If HWM is zero and PnL is negative, drawdown % should be 100% of the loss relative to starting point (0)
-    # This logic is tricky for percentage of *what*. If initial capital is 0, then % of HWM.
-    # If HWM is 0, and PnL is negative, it's an infinite % loss from HWM.
-    # Let's consider drawdown relative to the peak. If peak is 0, and PnL is -100, drawdown is 100.
-    # The plotting function expects drawdown_pct to be positive.
-    # (high_water_mark - cumulative_pnl) / high_water_mark
-    # If high_water_mark is 0, and cumulative_pnl is -100 -> (0 - (-100)) / 0 -> 100 / 0 -> inf
-    # If high_water_mark is 100, and cumulative_pnl is 50 -> (100 - 50) / 100 = 0.5
-    # If high_water_mark is -50, and cumulative_pnl is -100 -> (-50 - (-100)) / -50 = 50 / -50 = -1 (incorrect for typical DD plot)
-
-    # Drawdown percentage is usually (Peak - Trough) / Peak.
-    # If Peak is 0, and Trough is negative, it's effectively 100% loss of that negative amount from 0.
-    # The plotting function expects positive drawdown percentages.
-    # Let's use a small epsilon for HWM if it's zero to avoid division by zero for percentage calculation,
-    # or handle it by setting to 100% if HWM is zero and there's a negative PnL.
-
     drawdown_pct_series = pd.Series(index=cumulative_pnl_series.index, dtype=float)
     for i in range(len(cumulative_pnl_series)):
         current_hwm = high_water_mark.iloc[i]
         current_dd_abs = drawdown_abs_series.iloc[i]
-        if current_hwm > 1e-9: # If HWM is positive
+        if current_hwm > 1e-9: 
             drawdown_pct_series.iloc[i] = (current_dd_abs / current_hwm) * 100.0
-        elif current_dd_abs > 1e-9: # HWM is <=0 but there is an absolute drawdown (meaning PnL is negative)
-            drawdown_pct_series.iloc[i] = 100.0 # Max drawdown percentage if starting from zero or negative HWM
-        else: # No absolute drawdown or HWM is zero and PnL is zero
+        elif current_dd_abs > 1e-9: 
+            drawdown_pct_series.iloc[i] = 100.0 
+        else: 
             drawdown_pct_series.iloc[i] = 0.0
             
     drawdown_pct_series = drawdown_pct_series.fillna(0)
@@ -196,9 +177,14 @@ def show_portfolio_analysis_page():
         display_custom_message("No data for the selected accounts in the portfolio view.", "info")
         return 
 
+    # --- Overall Performance Section ---
+    st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header(f"📈 Overall Performance for Selected Portfolio ({', '.join(selected_accounts_for_portfolio)})")
     portfolio_df[date_col_actual] = pd.to_datetime(portfolio_df[date_col_actual], errors='coerce')
     portfolio_df_cleaned_dates = portfolio_df.dropna(subset=[date_col_actual, pnl_col_actual])
+    
+    # Define portfolio_daily_trades_df here to ensure it's in scope for "View Data"
+    portfolio_daily_trades_df = pd.DataFrame() 
 
     if portfolio_df_cleaned_dates.empty:
         display_custom_message("No valid P&L or date data after cleaning for selected portfolio.", "warning")
@@ -211,7 +197,6 @@ def show_portfolio_analysis_page():
             portfolio_daily_trades_df['cumulative_pnl'] = portfolio_daily_trades_df[pnl_col_actual].cumsum()
             portfolio_daily_trades_df['win'] = portfolio_daily_trades_df[pnl_col_actual] > 0 
             
-            # *** ADDED DRAWDOWN CALCULATION FOR AGGREGATED PORTFOLIO DATA ***
             if 'cumulative_pnl' in portfolio_daily_trades_df.columns and not portfolio_daily_trades_df['cumulative_pnl'].empty:
                 drawdown_abs_series, drawdown_pct_series = _calculate_drawdown_series_for_aggregated_df(portfolio_daily_trades_df['cumulative_pnl'])
                 portfolio_daily_trades_df['drawdown_abs'] = drawdown_abs_series
@@ -221,34 +206,48 @@ def show_portfolio_analysis_page():
                 portfolio_daily_trades_df['drawdown_abs'] = pd.Series(dtype=float)
                 portfolio_daily_trades_df['drawdown_pct'] = pd.Series(dtype=float)
                 logger.warning("Could not calculate drawdown for aggregated portfolio as cumulative_pnl was missing or empty.")
-            # *****************************************************************
 
             with st.spinner("Calculating selected portfolio KPIs..."):
                 portfolio_kpis = general_analysis_service.get_core_kpis(portfolio_daily_trades_df, risk_free_rate, initial_capital=global_initial_capital)
             
             if portfolio_kpis and 'error' not in portfolio_kpis:
+                st.markdown("<div class='kpi-metrics-block'>", unsafe_allow_html=True)
                 portfolio_kpi_keys = ["total_pnl", "sharpe_ratio", "sortino_ratio", "calmar_ratio", "max_drawdown_abs", "max_drawdown_pct", "avg_daily_pnl", "pnl_skewness", "pnl_kurtosis"]
                 kpis_to_display_portfolio = {key: portfolio_kpis[key] for key in portfolio_kpi_keys if key in portfolio_kpis}
                 if kpis_to_display_portfolio:
                     KPIClusterDisplay(kpis_to_display_portfolio, KPI_CONFIG, portfolio_kpi_keys, cols_per_row=3).render()
                 else: display_custom_message("Could not retrieve relevant KPIs for selected portfolio.", "warning")
+                st.markdown("</div>", unsafe_allow_html=True)
             else: display_custom_message(f"Error calculating KPIs for selected portfolio: {portfolio_kpis.get('error', 'Unknown error') if portfolio_kpis else 'KPI calc failed'}", "error")
             
-            st.subheader("Selected Portfolio Combined Equity Curve & Drawdown")
-            # Pass the drawdown_pct_col explicitly if it's named differently, or ensure it's 'drawdown_pct'
+            st.subheader("📉 Selected Portfolio Combined Equity Curve & Drawdown")
             portfolio_equity_fig = plot_equity_curve_and_drawdown(
                 portfolio_daily_trades_df, 
                 date_col_actual, 
                 'cumulative_pnl', 
-                drawdown_pct_col='drawdown_pct', # Explicitly pass the column name
+                drawdown_pct_col='drawdown_pct',
                 theme=plot_theme
             )
             if portfolio_equity_fig: st.plotly_chart(portfolio_equity_fig, use_container_width=True)
             else: display_custom_message("Could not generate equity curve for selected portfolio.", "warning")
-    
+
+            if not portfolio_daily_trades_df.empty:
+                with st.expander("View Underlying Equity Curve Data"):
+                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                    st.dataframe(portfolio_daily_trades_df)
+                    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
     st.markdown("---")
+
+    # --- Inter-Connections Section ---
+    st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header(f"🔗 Inter-Connections (Selected Portfolio: {', '.join(selected_accounts_for_portfolio)})")
-    st.subheader("Inter-Strategy P&L Correlation")
+    
+    # Define correlation matrices here to ensure scope for "View Data"
+    matrix_df_strat_corr = pd.DataFrame()
+    matrix_df_acc_corr = pd.DataFrame()
+
+    st.subheader("🔀 Inter-Strategy P&L Correlation")
     if strategy_col_actual not in portfolio_df.columns: 
         display_custom_message(f"Strategy column '{strategy_col_actual}' not found in selected portfolio data.", "warning")
     else:
@@ -274,11 +273,16 @@ def show_portfolio_analysis_page():
                             df_strat_corr_prep, strategy_col_actual, pnl_col_actual, date_col_actual)
                 
                 if correlation_results_strat and 'error' not in correlation_results_strat:
-                    matrix_df = correlation_results_strat.get('correlation_matrix')
-                    if matrix_df is not None and not matrix_df.empty and matrix_df.shape[0] > 1:
-                        fig = go.Figure(data=go.Heatmap(z=matrix_df.values, x=matrix_df.columns, y=matrix_df.index, colorscale='RdBu', zmin=-1, zmax=1, text=matrix_df.round(2).astype(str), texttemplate="%{text}", hoverongaps=False))
-                        fig.update_layout(title="Inter-Strategy Daily P&L Correlation")
-                        st.plotly_chart(_apply_custom_theme(fig, plot_theme), use_container_width=True)
+                    matrix_df_strat_corr = correlation_results_strat.get('correlation_matrix')
+                    if matrix_df_strat_corr is not None and not matrix_df_strat_corr.empty and matrix_df_strat_corr.shape[0] > 1:
+                        fig_strat_corr = go.Figure(data=go.Heatmap(z=matrix_df_strat_corr.values, x=matrix_df_strat_corr.columns, y=matrix_df_strat_corr.index, colorscale='RdBu', zmin=-1, zmax=1, text=matrix_df_strat_corr.round(2).astype(str), texttemplate="%{text}", hoverongaps=False))
+                        fig_strat_corr.update_layout(title="Inter-Strategy Daily P&L Correlation")
+                        st.plotly_chart(_apply_custom_theme(fig_strat_corr, plot_theme), use_container_width=True)
+                        
+                        with st.expander("View Inter-Strategy Correlation Matrix"):
+                            st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                            st.dataframe(matrix_df_strat_corr)
+                            st.markdown("</div>", unsafe_allow_html=True)
                     else: display_custom_message("Not enough data for inter-strategy correlation matrix.", "info")
                 elif correlation_results_strat: display_custom_message(f"Inter-strategy correlation error: {correlation_results_strat.get('error')}", "error")
                 else: display_custom_message("Inter-strategy correlation analysis failed.", "error")
@@ -286,7 +290,7 @@ def show_portfolio_analysis_page():
                 logger.error(f"Error in inter-strategy correlation section: {e_strat_corr}", exc_info=True)
                 display_custom_message(f"Error during inter-strategy correlation: {e_strat_corr}", "error")
 
-    st.subheader("Inter-Account P&L Correlation")
+    st.subheader("🤝 Inter-Account P&L Correlation")
     if len(selected_accounts_for_portfolio) < 2:
         st.info("At least two accounts must be selected in the sidebar for inter-account correlation.")
     else:
@@ -308,26 +312,39 @@ def show_portfolio_analysis_page():
                         df_acc_corr_prep, account_col_actual, pnl_col_actual, date_col_actual)
             
             if correlation_results_acc and 'error' not in correlation_results_acc:
-                matrix_df_acc = correlation_results_acc.get('correlation_matrix')
-                if matrix_df_acc is not None and not matrix_df_acc.empty and matrix_df_acc.shape[0] > 1:
-                    fig_acc = go.Figure(data=go.Heatmap(z=matrix_df_acc.values, x=matrix_df_acc.columns, y=matrix_df_acc.index, colorscale='RdBu', zmin=-1, zmax=1, text=matrix_df_acc.round(2).astype(str), texttemplate="%{text}", hoverongaps=False))
-                    fig_acc.update_layout(title="Inter-Account Daily P&L Correlation")
-                    st.plotly_chart(_apply_custom_theme(fig_acc, plot_theme), use_container_width=True)
+                matrix_df_acc_corr = correlation_results_acc.get('correlation_matrix')
+                if matrix_df_acc_corr is not None and not matrix_df_acc_corr.empty and matrix_df_acc_corr.shape[0] > 1:
+                    fig_acc_corr = go.Figure(data=go.Heatmap(z=matrix_df_acc_corr.values, x=matrix_df_acc_corr.columns, y=matrix_df_acc_corr.index, colorscale='RdBu', zmin=-1, zmax=1, text=matrix_df_acc_corr.round(2).astype(str), texttemplate="%{text}", hoverongaps=False))
+                    fig_acc_corr.update_layout(title="Inter-Account Daily P&L Correlation")
+                    st.plotly_chart(_apply_custom_theme(fig_acc_corr, plot_theme), use_container_width=True)
+
+                    with st.expander("View Inter-Account Correlation Matrix"):
+                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                        st.dataframe(matrix_df_acc_corr)
+                        st.markdown("</div>", unsafe_allow_html=True)
                 else: display_custom_message("Not enough data for inter-account correlation matrix.", "info")
             elif correlation_results_acc: display_custom_message(f"Inter-account correlation error: {correlation_results_acc.get('error')}", "error")
             else: display_custom_message("Inter-account correlation analysis failed.", "error")
         except Exception as e_acc_corr:
             logger.error(f"Error in inter-account correlation section: {e_acc_corr}", exc_info=True)
             display_custom_message(f"Error during inter-account correlation: {e_acc_corr}", "error")
-
+    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
     st.markdown("---")
+
+    # --- Account Performance Breakdown Section ---
+    st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header(f"📊 Account Performance Breakdown (within Selected Portfolio: {', '.join(selected_accounts_for_portfolio)})")
+    
     account_metrics_data = []
+    summary_table_df = pd.DataFrame() # Define for "View Data" scope
+    pnl_contribution_df_filtered = pd.DataFrame() # Define for "View Data" scope
+
     for acc_name_loop in selected_accounts_for_portfolio: 
         acc_df_original_trades = base_df[base_df[account_col_actual] == acc_name_loop].copy()
         if not acc_df_original_trades.empty:
             metrics = calculate_metrics_for_df(acc_df_original_trades, pnl_col_actual, date_col_actual, risk_free_rate, global_initial_capital)
             account_metrics_data.append({"Account": acc_name_loop, **metrics})
+    
     if account_metrics_data:
         summary_table_df = pd.DataFrame(account_metrics_data)
         display_cols_summary = ["Account", "Total PnL", "Total Trades", "Win Rate %", "Avg Trade PnL", "Max Drawdown %", "Sharpe Ratio"]
@@ -346,6 +363,11 @@ def show_portfolio_analysis_page():
             formatted_summary_df["Sharpe Ratio"] = formatted_summary_df["Sharpe Ratio"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
         
         st.dataframe(formatted_summary_df.set_index("Account"), use_container_width=True)
+        if not summary_table_df.empty:
+            with st.expander("View Raw Account Performance Data"):
+                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                st.dataframe(summary_table_df)
+                st.markdown("</div>", unsafe_allow_html=True)
 
         pnl_contribution_df = summary_table_df.copy() 
         pnl_contribution_df["Total PnL Numeric"] = pd.to_numeric(
@@ -357,13 +379,21 @@ def show_portfolio_analysis_page():
             fig_pnl_contrib = px.pie(pnl_contribution_df_filtered, names='Account', values='Total PnL Numeric', title='P&L Contribution by Account (Selected Portfolio)', hole=0.3)
             fig_pnl_contrib.update_traces(textposition='inside', textinfo='percent+label')
             st.plotly_chart(_apply_custom_theme(fig_pnl_contrib, plot_theme), use_container_width=True)
+
+            with st.expander("View P&L Contribution Data"):
+                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                st.dataframe(pnl_contribution_df_filtered)
+                st.markdown("</div>", unsafe_allow_html=True)
         else: st.info("No P&L contribution data to display (all selected accounts have zero or non-numeric P&L).")
     else: display_custom_message("Could not calculate performance metrics for individual accounts.", "warning")
-
+    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
     st.markdown("---")
+
+    # --- Portfolio Optimization Section ---
+    st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header("⚖️ Portfolio Optimization")
 
-    with st.expander("Configure Portfolio Optimization", expanded=True):
+    with st.expander("⚙️ Configure Portfolio Optimization", expanded=True):
         if strategy_col_actual not in portfolio_df.columns:
             st.warning(f"Strategy column ('{strategy_col_actual}') not found in the selected portfolio data. Cannot perform optimization.")
         else:
@@ -507,13 +537,18 @@ def show_portfolio_analysis_page():
                                         if opt_results and 'error' not in opt_results:
                                             st.success(f"Portfolio Optimization ({optimization_objective}) Complete!")
                                             
-                                            st.subheader("Optimal Portfolio Weights")
+                                            st.subheader("⚖️ Optimal Portfolio Weights")
                                             optimal_weights_dict = opt_results['optimal_weights']
                                             weights_df = pd.DataFrame.from_dict(optimal_weights_dict, orient='index', columns=['Weight'])
                                             weights_df.index.name = "Strategy"
                                             weights_df["Weight %"] = (weights_df["Weight"] * 100) 
                                             
                                             st.dataframe(weights_df[["Weight %"]].style.format("{:.2f}%", subset=["Weight %"]))
+                                            with st.expander("View Optimal Weights Data"):
+                                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                                st.dataframe(weights_df)
+                                                st.markdown("</div>", unsafe_allow_html=True)
+
 
                                             fig_weights_pie = px.pie(
                                                 weights_df[weights_df['Weight'] > 0.0001], 
@@ -529,8 +564,9 @@ def show_portfolio_analysis_page():
                                             else: 
                                                  st.caption("Current weights not provided; turnover not calculated.")
 
-                                            st.subheader(f"Optimized Portfolio Performance (Annualized) - {optimization_objective}")
+                                            st.subheader(f"🚀 Optimized Portfolio Performance (Annualized) - {optimization_objective}")
                                             optimized_kpis_data = opt_results['performance']
+                                            st.markdown("<div class='kpi-metrics-block'>", unsafe_allow_html=True)
                                             optimized_kpi_order = ["expected_annual_return", "annual_volatility", "sharpe_ratio"]
                                             KPIClusterDisplay(
                                                 kpi_results=optimized_kpis_data,
@@ -538,9 +574,16 @@ def show_portfolio_analysis_page():
                                                 kpi_order=optimized_kpi_order,
                                                 cols_per_row=3
                                             ).render()
+                                            st.markdown("</div>", unsafe_allow_html=True)
+                                            
+                                            if optimized_kpis_data:
+                                                with st.expander("View Optimized Performance Data"):
+                                                    st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                                    st.dataframe(pd.DataFrame.from_dict(optimized_kpis_data, orient='index', columns=['Value']))
+                                                    st.markdown("</div>", unsafe_allow_html=True)
                                             
                                             if "risk_contributions" in opt_results and opt_results["risk_contributions"]:
-                                                st.subheader("Risk Contributions to Portfolio Variance")
+                                                st.subheader("🛡️ Risk Contributions to Portfolio Variance")
                                                 rc_df = pd.DataFrame.from_dict(opt_results["risk_contributions"], orient='index', columns=['Risk Contribution %'])
                                                 rc_df.index.name = "Strategy"
                                                 rc_df_sorted = rc_df.sort_values(by="Risk Contribution %", ascending=False)
@@ -556,9 +599,16 @@ def show_portfolio_analysis_page():
                                                 )
                                                 fig_rc_bar.update_yaxes(ticksuffix="%")
                                                 st.plotly_chart(_apply_custom_theme(fig_rc_bar, plot_theme), use_container_width=True)
+                                                
+                                                if not rc_df_sorted.empty:
+                                                    with st.expander("View Risk Contribution Data"):
+                                                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                                        st.dataframe(rc_df_sorted)
+                                                        st.markdown("</div>", unsafe_allow_html=True)
+
 
                                             if optimization_objective in ["Maximize Sharpe Ratio", "Minimize Volatility"]:
-                                                st.subheader("Efficient Frontier")
+                                                st.subheader("🎯 Efficient Frontier")
                                                 frontier_data = opt_results.get("efficient_frontier")
                                                 if frontier_data and frontier_data.get('volatility') and frontier_data.get('return'):
                                                     max_sharpe_vol_plot, max_sharpe_ret_plot = None, None
@@ -593,6 +643,13 @@ def show_portfolio_analysis_page():
                                                     )
                                                     if frontier_fig:
                                                         st.plotly_chart(frontier_fig, use_container_width=True)
+                                                        
+                                                        frontier_df_display = pd.DataFrame(frontier_data)
+                                                        if not frontier_df_display.empty:
+                                                            with st.expander("View Efficient Frontier Data"):
+                                                                st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                                                                st.dataframe(frontier_df_display)
+                                                                st.markdown("</div>", unsafe_allow_html=True)
                                                     else:
                                                         display_custom_message("Could not generate the Efficient Frontier plot.", "warning")
                                                 else:
@@ -602,7 +659,11 @@ def show_portfolio_analysis_page():
                                             display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
                                         else:
                                             display_custom_message("Portfolio optimization failed to return results.", "error")
+    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
     st.markdown("---")
+    
+    # --- Compare Equity Curves Section ---
+    st.markdown("<div class='performance-section-container'>", unsafe_allow_html=True)
     st.header("↔️ Compare Equity Curves of Any Two Accounts")
     if len(unique_accounts_all) < 2:
         st.info("At least two distinct accounts are needed for this comparison.")
@@ -614,24 +675,47 @@ def show_portfolio_analysis_page():
         if selected_account_1_comp == selected_account_2_comp: 
             st.warning("Please select two different accounts.")
         else:
-            st.subheader(f"Equity Curve Comparison: {selected_account_1_comp} vs. {selected_account_2_comp}")
+            st.subheader(f"🆚 Equity Curve Comparison: {selected_account_1_comp} vs. {selected_account_2_comp}")
             df_acc1_comp = base_df[base_df[account_col_actual] == selected_account_1_comp].copy()
             df_acc2_comp = base_df[base_df[account_col_actual] == selected_account_2_comp].copy()
             
-            for df_comp_loop in [df_acc1_comp, df_acc2_comp]: 
+            # Initialize for "View Data" expander
+            combined_equity_comp_df = pd.DataFrame()
+
+            for df_comp_loop, acc_name_comp in zip([df_acc1_comp, df_acc2_comp], [selected_account_1_comp, selected_account_2_comp]): 
                 df_comp_loop[date_col_actual] = pd.to_datetime(df_comp_loop[date_col_actual], errors='coerce')
                 df_comp_loop.dropna(subset=[date_col_actual, pnl_col_actual], inplace=True)
                 df_comp_loop.sort_values(by=date_col_actual, inplace=True)
-                if not df_comp_loop.empty: df_comp_loop['cumulative_pnl'] = df_comp_loop[pnl_col_actual].cumsum()
+                if not df_comp_loop.empty: 
+                    df_comp_loop['cumulative_pnl'] = df_comp_loop[pnl_col_actual].cumsum()
+                    temp_df = df_comp_loop[[date_col_actual, 'cumulative_pnl']].copy()
+                    temp_df.rename(columns={'cumulative_pnl': f'Equity_{acc_name_comp}'}, inplace=True)
+                    if combined_equity_comp_df.empty:
+                        combined_equity_comp_df = temp_df
+                    else:
+                        combined_equity_comp_df = pd.merge(combined_equity_comp_df, temp_df, on=date_col_actual, how='outer')
             
-            if df_acc1_comp.empty or df_acc2_comp.empty: 
+            if combined_equity_comp_df.empty or df_acc1_comp.empty or df_acc2_comp.empty : 
                 display_custom_message(f"One or both accounts ('{selected_account_1_comp}', '{selected_account_2_comp}') lack valid P&L data for comparison.", "warning")
             else:
+                combined_equity_comp_df.sort_values(by=date_col_actual, inplace=True)
+                combined_equity_comp_df = combined_equity_comp_df.fillna(method='ffill') # Forward fill for plotting alignment
+
                 fig_comp_equity = go.Figure() 
-                fig_comp_equity.add_trace(go.Scatter(x=df_acc1_comp[date_col_actual], y=df_acc1_comp['cumulative_pnl'], mode='lines', name=f"{selected_account_1_comp} Equity"))
-                fig_comp_equity.add_trace(go.Scatter(x=df_acc2_comp[date_col_actual], y=df_acc2_comp['cumulative_pnl'], mode='lines', name=f"{selected_account_2_comp} Equity"))
+                if f'Equity_{selected_account_1_comp}' in combined_equity_comp_df.columns:
+                    fig_comp_equity.add_trace(go.Scatter(x=combined_equity_comp_df[date_col_actual], y=combined_equity_comp_df[f'Equity_{selected_account_1_comp}'], mode='lines', name=f"{selected_account_1_comp} Equity"))
+                if f'Equity_{selected_account_2_comp}' in combined_equity_comp_df.columns:
+                    fig_comp_equity.add_trace(go.Scatter(x=combined_equity_comp_df[date_col_actual], y=combined_equity_comp_df[f'Equity_{selected_account_2_comp}'], mode='lines', name=f"{selected_account_2_comp} Equity"))
+                
                 fig_comp_equity.update_layout(title=f"Equity Comparison: {selected_account_1_comp} vs. {selected_account_2_comp}", xaxis_title="Date", yaxis_title="Cumulative PnL", hovermode="x unified")
                 st.plotly_chart(_apply_custom_theme(fig_comp_equity, plot_theme), use_container_width=True)
+
+                if not combined_equity_comp_df.empty:
+                    with st.expander("View Combined Equity Comparison Data"):
+                        st.markdown("<div class='view-data-expander-content'>", unsafe_allow_html=True)
+                        st.dataframe(combined_equity_comp_df)
+                        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) # End performance-section-container
 
 if __name__ == "__main__":
     if 'app_initialized' not in st.session_state: 
