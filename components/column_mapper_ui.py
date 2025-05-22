@@ -205,13 +205,51 @@ class ColumnMapperUI:
         st.markdown("<div class='column-mapper-container'>", unsafe_allow_html=True)
         st.markdown(f"<h3 class='component-subheader'>Map Columns for '{self.uploaded_file_name}'</h3>", unsafe_allow_html=True)
         
+        initial_mapping = self._attempt_automatic_mapping()
+
         # --- Enhanced Data Preview Section ---
         st.markdown("<div class='data-preview-container'>", unsafe_allow_html=True)
         if self.preview_df is not None and not self.preview_df.empty:
+            df_to_display = self.preview_df # Default to original df
+
+            # Attempt to reorder columns for preview
+            try:
+                # 1. Get CSV headers that were auto-mapped, ordered by their conceptual key's appearance
+                ordered_conceptual_keys = list(self.conceptual_columns_map.keys())
+                
+                mapped_csv_cols_ordered = []
+                seen_mapped_csv_cols = set()
+
+                for conceptual_key in ordered_conceptual_keys:
+                    mapped_csv_header = initial_mapping.get(conceptual_key)
+                    if mapped_csv_header and mapped_csv_header in self.preview_df.columns and mapped_csv_header not in seen_mapped_csv_cols:
+                        mapped_csv_cols_ordered.append(mapped_csv_header)
+                        seen_mapped_csv_cols.add(mapped_csv_header)
+
+                # 2. Get remaining columns from the preview_df that weren't in the mapped list, preserving original relative order
+                remaining_original_cols = [
+                    col for col in self.preview_df.columns if col not in seen_mapped_csv_cols
+                ]
+                
+                # 3. Combine the lists for the final display order
+                final_display_order = mapped_csv_cols_ordered + remaining_original_cols
+                
+                # Basic validation: ensure all original columns are present in the new order exactly once
+                if set(final_display_order) == set(self.preview_df.columns) and len(final_display_order) == len(self.preview_df.columns):
+                    df_to_display = self.preview_df[final_display_order]
+                else:
+                    logger.warning(
+                        f"Column reordering for preview of '{self.uploaded_file_name}' resulted in mismatched column sets. "
+                        f"Expected: {set(self.preview_df.columns)}, Got: {set(final_display_order)}. Displaying in original order."
+                    )
+                    # df_to_display remains self.preview_df (original)
+            except Exception as e:
+                logger.error(f"Error during column reordering for preview of '{self.uploaded_file_name}': {e}. Displaying in original order.")
+                # df_to_display remains self.preview_df (original)
+
             st.markdown("<p class='data-preview-title'>Data Preview (First 5 Rows):</p>", unsafe_allow_html=True)
-            st.dataframe(self.preview_df, hide_index=True, use_container_width=True)
+            st.dataframe(df_to_display, hide_index=True, use_container_width=True)
         else:
-            # Display a styled placeholder if preview is not available
             st.markdown("<div class='data-preview-placeholder'>Data preview is not available or the file is empty.</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True) # Close data-preview-container
         # --- End of Data Preview Section ---
@@ -225,8 +263,6 @@ class ColumnMapperUI:
             "A warning icon (⚠️) next to a selection indicates a potential data type mismatch."
             "</div>", unsafe_allow_html=True)
         # --- End of Instructions Section ---
-        
-        initial_mapping = self._attempt_automatic_mapping()
         
         # Form for submitting mappings
         form_key = f"column_mapping_form_{self.uploaded_file_name.replace('.', '_').replace(' ', '_')}"
@@ -252,22 +288,19 @@ class ColumnMapperUI:
                         continue
 
                     has_critical = any(key in self.critical_conceptual_cols for key in valid_keys_in_category)
-                    # Display category name, bold if it contains critical fields
+                    
                     expander_label_html = f"<strong>{category_name}</strong>" if has_critical else category_name
                     if has_critical:
-                         expander_label_html += " <span style='color: var(--error-color); font-weight: bold;'>*</span>"
-
+                         expander_label_html += " <span class='critical-marker'>*</span>" # Use class for styling
 
                     open_by_default = False
                     for key in valid_keys_in_category:
-                        # Open expander if it contains an unmapped critical field
                         if key in self.critical_conceptual_cols and not initial_mapping.get(key):
                             open_by_default = True
                             break
                     
-                    # Use st.markdown for the expander label to render HTML for bolding critical categories
                     st.markdown(f"<h6>{expander_label_html}</h6>", unsafe_allow_html=True)
-                    with st.expander("View/Edit Mappings", expanded=open_by_default): # Generic label for expander toggle
+                    with st.expander("View/Edit Mappings", expanded=open_by_default):
                         self._render_mapping_selectboxes(valid_keys_in_category, initial_mapping)
             
             st.markdown("<hr class='styled-hr'>", unsafe_allow_html=True)
@@ -278,18 +311,16 @@ class ColumnMapperUI:
 
         # Handle form submission
         if submit_button_top or submit_button_bottom:
-            # Validation: Check if all critical fields are mapped
             missing_critical = [
                 self.conceptual_columns_map.get(k, k) for k in self.critical_conceptual_cols if not self.mapping.get(k)
             ]
             if missing_critical:
                 st.error(f"Critical fields not mapped: {', '.join(missing_critical)}. Please map these fields to proceed.")
-                st.markdown("</div>", unsafe_allow_html=True); return None # Exit render
+                st.markdown("</div>", unsafe_allow_html=True); return None
             
-            # Validation: Check for duplicate CSV columns mapped to multiple CRITICAL conceptual fields
             csv_to_critical_map: Dict[str, List[str]] = {}
             for conc_key, csv_header in self.mapping.items():
-                if csv_header and conc_key in self.critical_conceptual_cols: # Only consider mapped critical fields
+                if csv_header and conc_key in self.critical_conceptual_cols:
                     csv_to_critical_map.setdefault(csv_header, []).append(self.conceptual_columns_map.get(conc_key, conc_key))
             
             has_critical_duplicates = False
@@ -301,20 +332,18 @@ class ColumnMapperUI:
                     )
                     has_critical_duplicates = True
             if has_critical_duplicates:
-                st.markdown("</div>", unsafe_allow_html=True); return None # Exit render
+                st.markdown("</div>", unsafe_allow_html=True); return None
 
             logger.info(f"Column mapping confirmed for '{self.uploaded_file_name}': {self.mapping}")
-            st.success(f"Column mapping confirmed for '{self.uploaded_file_name}'.") # User feedback
-            st.markdown("</div>", unsafe_allow_html=True) # Close column-mapper-container
-            # Return only successfully mapped (non-empty) conceptual_key: csv_header pairs
+            st.success(f"Column mapping confirmed for '{self.uploaded_file_name}'.")
+            st.markdown("</div>", unsafe_allow_html=True)
             return {k: v for k, v in self.mapping.items() if v}
         
-        st.markdown("</div>", unsafe_allow_html=True) # Close column-mapper-container
-        return None # No submission yet
+        st.markdown("</div>", unsafe_allow_html=True)
+        return None
 
     def _render_mapping_selectboxes(self, conceptual_keys_to_render: List[str], initial_mapping: Dict[str, Optional[str]]):
-        # Helper to render selectboxes for mapping, in a two-column layout
-        cols_ui = st.columns(2) # Create two columns for layout
+        cols_ui = st.columns(2)
         col_idx = 0
         for conceptual_key in conceptual_keys_to_render:
             if conceptual_key not in self.conceptual_columns_map:
@@ -322,34 +351,32 @@ class ColumnMapperUI:
                 continue
 
             conceptual_desc = self.conceptual_columns_map[conceptual_key]
-            target_container = cols_ui[col_idx % 2] # Alternate between columns
+            target_container = cols_ui[col_idx % 2]
             col_idx += 1
             
             with target_container:
                 is_critical = conceptual_key in self.critical_conceptual_cols
-                # Use HTML for red asterisk for critical fields
                 label_html = f"{conceptual_desc}"
                 if is_critical:
-                    label_html += " <span style='color: var(--error-color); font-weight: bold;'>*</span>"
+                    label_html += " <span class='critical-marker'>*</span>" # Use class for styling
                 
                 default_csv_header = initial_mapping.get(conceptual_key)
-                default_index = 0 # Default to "Not Applicable" (empty string at index 0)
+                default_index = 0
                 if default_csv_header and default_csv_header in self.csv_headers:
                     try:
                         default_index = self.csv_headers.index(default_csv_header)
                     except ValueError: 
-                        logger.error(f"Error finding index for default header '{default_csv_header}'")
+                        logger.error(f"Error finding index for default header '{default_csv_header}' for conceptual key '{conceptual_key}'")
                         default_index = 0
                 
                 selectbox_key = f"map_{self.uploaded_file_name.replace('.', '_').replace(' ', '_')}_{conceptual_key}"
                 
-                # Use st.markdown for the label to render HTML
-                st.markdown(f"<label for='{selectbox_key}'>{label_html}</label>", unsafe_allow_html=True)
+                st.markdown(f"<label class='selectbox-label' for='{selectbox_key}'>{label_html}</label>", unsafe_allow_html=True)
                 selected_csv_col = st.selectbox(
-                    label="", # Label is now handled by st.markdown above
+                    label="", 
                     options=self.csv_headers, index=default_index,
-                    key=selectbox_key,  # This key is what st.markdown's label `for` attribute should target (though Streamlit handles this internally)
-                    label_visibility="collapsed", # Hide the default label
+                    key=selectbox_key,
+                    label_visibility="collapsed",
                     help=(
                         f"Select the CSV column for '{conceptual_desc}'. "
                         f"Expected type: '{self.conceptual_column_types.get(conceptual_key, 'any')}'. "
@@ -380,21 +407,30 @@ if __name__ == "__main__":
     st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="Column Mapper Test")
     
     try:
-        with open("style.css") as f:
+        with open("style.css") as f: # Make sure style.css is in the correct path
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
         st.warning("style.css not found. Using default Streamlit styling for component test.")
 
     st.title("Test Categorized Column Mapper UI")
-    st.markdown("This page demonstrates the `ColumnMapperUI` component with categorized fields, styled instructions, and data preview.")
+    st.markdown("This page demonstrates the `ColumnMapperUI` component with categorized fields, styled instructions, and reordered data preview.")
 
-    _MOCK_CONCEPTUAL_COLUMNS = {
-        "date": "Trade Date/Time", "pnl": "Profit or Loss (PnL)", "strategy": "Strategy Name", 
-        "symbol": "Trading Symbol", "r_r_csv_num": "Risk:Reward Ratio", "notes": "Trade Notes",
-        "duration_minutes": "Duration (Mins)", "risk_pct": "Risk %", "entry_price": "Entry Price",
-        "exit_price": "Exit Price", "quantity": "Quantity", "commission": "Commission Cost",
-        "fees": "Total Fees", "tags": "Custom Tags"
-    }
+    _MOCK_CONCEPTUAL_COLUMNS = OrderedDict([ # Using OrderedDict for stable key order for preview reordering
+        ("date", "Trade Date/Time"), 
+        ("symbol", "Trading Symbol"),
+        ("entry_price", "Entry Price"), 
+        ("exit_price", "Exit Price"), 
+        ("quantity", "Quantity"),
+        ("pnl", "Profit or Loss (PnL)"), 
+        ("strategy", "Strategy Name"), 
+        ("r_r_csv_num", "Risk:Reward Ratio"), 
+        ("duration_minutes", "Duration (Mins)"), 
+        ("risk_pct", "Risk %"), 
+        ("commission", "Commission Cost"),
+        ("fees", "Total Fees"), 
+        ("notes", "Trade Notes"),
+        ("tags", "Custom Tags")
+    ])
     _MOCK_CONCEPTUAL_COLUMN_TYPES = {
         "date": "datetime", "pnl": "numeric", "strategy": "text", "symbol": "text",
         "r_r_csv_num": "numeric", "notes": "text", "duration_minutes": "numeric", "risk_pct": "numeric",
@@ -426,6 +462,7 @@ if __name__ == "__main__":
     mock_csv_headers = sample_csv_content.splitlines()[0].split(',')
 
     st.write("### Scenario: Mapping for 'sample_trades.csv'")
+    # Ensure _MOCK_CONCEPTUAL_COLUMNS is an OrderedDict if its key order matters for preview reordering
     mapper_ui_instance = ColumnMapperUI(
         uploaded_file_name="sample_trades.csv", 
         uploaded_file_bytes=mock_uploaded_file_bytes, 
@@ -446,4 +483,4 @@ if __name__ == "__main__":
         test_auto_map_result = mapper_ui_instance._attempt_automatic_mapping() 
         st.json({k:v for k,v in test_auto_map_result.items() if v})
 
-    logger.info("ColumnMapperUI component test complete.")
+    logger.info("ColumnMapperUI component test complete with preview reordering.")
