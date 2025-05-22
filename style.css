@@ -275,9 +275,10 @@ div[data-testid="stSidebar"] .stButton button {
 
 
 /* --- General Button Styling for Streamlit --- */
+/* This rule applies to st.button (default/secondary), st.download_button */
 div[data-testid="stButton"] > button,
-button[data-testid="baseButton-secondary"] /* For st.download_button */ {
-    background-color: var(--primary-color) !important;
+button[data-testid="baseButton-secondary"] {
+    background-color: var(--primary-color) !important; 
     color: #FFFFFF !important; 
     border: 1px solid var(--primary-color) !important;
     padding: 0.6rem 1.25rem;
@@ -287,20 +288,31 @@ button[data-testid="baseButton-secondary"] /* For st.download_button */ {
     transition: background-color var(--transition-speed) var(--transition-timing), 
                 border-color var(--transition-speed) var(--transition-timing),
                 transform var(--transition-speed) var(--transition-timing),
-                box-shadow var(--transition-speed) var(--transition-timing); /* Corrected var name */
+                box-shadow var(--transition-speed) var(--transition-timing);
     box-shadow: var(--box-shadow-sm);
     cursor: pointer;
 }
 
-/* Override for Streamlit's default red/danger buttons to use primary color */
-div[data-testid="stButton"] > button[kind="secondaryFormSubmit"], /* Common for form submit */
+/* Specific overrides for primary buttons (st.button(type="primary"), st.form_submit_button(type="primary")) */
+div[data-testid="stButton"] button[kind="primary"],
+div[data-testid="stFormSubmitButton"] button[kind="primary"],
+div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"] {
+    background-color: var(--primary-color) !important;
+    color: #FFFFFF !important; 
+    border-color: var(--primary-color) !important;
+}
+
+
+/* Override for Streamlit's default RED danger/confirm buttons to use OUR primary color (blue) */
+/* This is to make "destructive" actions look consistent with primary actions if desired */
+div[data-testid="stButton"] > button[kind="secondaryFormSubmit"], 
 div[data-testid="stButton"] > button[style*="background-color: #ff4b4b"],
 div[data-testid="stButton"] > button[style*="background-color: rgb(255, 75, 75)"],
 div[data-testid="stButton"] > button[style*="background-color: #ff4b4b !important"],
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"],
 div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"] {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
+    background-color: var(--primary-color) !important; /* Forcing to blue */
+    border-color: var(--primary-color) !important; /* Forcing to blue */
     color: #fff !important;
 }
 
@@ -315,11 +327,15 @@ div[data-testid="stButton"] > button.secondary-button:hover {
     border-color: color-mix(in srgb, var(--accent-color) 85%, black 15%) !important;
 }
 
-/* Hover and Active states for all primary-styled buttons */
+/* Hover and Active states for ALL buttons styled with our primary color */
 div[data-testid="stButton"] > button:hover,
 button[data-testid="baseButton-secondary"]:hover,
+div[data-testid="stButton"] button[kind="primary"]:hover,
+div[data-testid="stFormSubmitButton"] button[kind="primary"]:hover,
+div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:hover,
+/* Also include the "danger" buttons that we've forced to be blue */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"]:hover,
-div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover, /* if still targeting old danger styles */
+div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:hover, 
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:hover,
 div[data-testid="stButton"] > button[style*="background-color: red"]:hover,
 div[data-testid="stButton"] > button[style*="background-color: var(--error-color)"]:hover {
@@ -331,6 +347,10 @@ div[data-testid="stButton"] > button[style*="background-color: var(--error-color
 
 div[data-testid="stButton"] > button:active,
 button[data-testid="baseButton-secondary"]:active,
+div[data-testid="stButton"] button[kind="primary"]:active,
+div[data-testid="stFormSubmitButton"] button[kind="primary"]:active,
+div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:active,
+/* Also include the "danger" buttons that we've forced to be blue */
 div[data-testid="stButton"] > button[kind="secondaryFormSubmit"]:active,
 div[data-testid="stButton"] > button[style*="background-color: rgb(255, 85, 85)"]:active,
 div[data-testid="stButton"] > button[style*="background-color: #ff5555"]:active,
@@ -346,9 +366,9 @@ div[data-testid="stButton"] > button[style*="background-color: var(--error-color
 div[data-testid="stTextInput"] input,
 div[data-testid="stNumberInput"] input,
 div[data-testid="stTextArea"] textarea,
-div[data-testid="stDateInput"] input, /* Streamlit uses stDateInput for the input field itself */
-div[data-testid="stDateInput"] div[data-baseweb="input"] input, /* More specific target for date input if needed */
-div[data-testid="stTimeInput"] input /* Streamlit uses stTimeInput for the input field itself */ {
+div[data-testid="stDateInput"] input, 
+div[data-testid="stDateInput"] div[data-baseweb="input"] input, 
+div[data-testid="stTimeInput"] input {
     background-color: var(--card-background-color) !important;
     color: var(--text-color) !important;
     border: 1px solid var(--input-border-color) !important;
@@ -363,27 +383,27 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child {
     border: 1px solid var(--input-border-color) !important;
     border-radius: var(--border-radius-md) !important;
     box-shadow: var(--box-shadow-inset) !important;
-    padding: 0.25rem 0.75rem !important; /* Adjusted padding for select box for alignment */
-    line-height: 1.5; /* Ensure text is vertically centered */
-    min-height: calc(1.5em + 1rem + 2px); /* Match text input height: line-height + padding + border */
+    padding: 0.25rem 0.75rem !important; 
+    line-height: 1.5; 
+    min-height: calc(1.5em + 1rem + 2px); 
     display: flex;
     align-items: center;
     transition: border-color var(--transition-speed) var(--transition-timing), box-shadow var(--transition-speed) var(--transition-timing);
 }
 
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div, /* Text content */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { /* Input field inside select */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child > div, 
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:first-child input { 
     color: var(--text-color) !important;
     background-color: transparent !important; 
     opacity: 1 !important; 
     padding: 0 !important; 
     margin: 0 !important; 
     line-height: inherit !important; 
-    font-family: var(--font-family-sans-serif) !important; /* Ensure font consistency */
-    font-size: 1rem !important; /* Ensure font size consistency */
+    font-family: var(--font-family-sans-serif) !important; 
+    font-size: 1rem !important; 
 }
 
-div[data-testid="stSelectbox"] div[data-baseweb="select"] svg { /* Dropdown arrow */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] svg { 
     fill: var(--text-muted-color) !important; 
     transition: fill var(--transition-speed) var(--transition-timing);
 }
@@ -488,17 +508,16 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
 
 
 /* --- Expander Styling --- */
-/* Styling for category headers (h6) used before expanders in column mapper */
 .column-mapper-container h6 {
-    font-size: 1.05rem; /* Slightly larger than default text */
-    font-weight: 600; /* Bolder */
+    font-size: 1.05rem; 
+    font-weight: 600; 
     color: var(--text-heading-color);
-    margin-top: 1.25rem; /* Space above category header */
-    margin-bottom: 0.5rem; /* Space below category header, before expander */
+    margin-top: 1.25rem; 
+    margin-bottom: 0.5rem; 
     padding-bottom: 0.25rem;
-    border-bottom: 1px solid var(--input-border-color); /* Subtle separator */
+    border-bottom: 1px solid var(--input-border-color); 
 }
-.column-mapper-container h6 .critical-marker { /* For the asterisk on critical categories */
+.column-mapper-container h6 .critical-marker { 
     color: var(--error-color);
     font-weight: bold;
     margin-left: 0.25rem;
@@ -506,15 +525,14 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
 
 
 div[data-testid="stExpander"] summary {
-    font-size: 1rem; /* Adjusted for a cleaner look with h6 above */
+    font-size: 1rem; 
     font-weight: 500;
     color: var(--text-heading-color);
     background-color: var(--expander-header-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    padding: 0.75rem 1rem; /* Slightly reduced padding */
+    padding: 0.75rem 1rem; 
     transition: background-color var(--transition-speed) var(--transition-timing);
-    /* margin-bottom: -1px; Removed as h6 provides separation */
 }
 div[data-testid="stExpander"] summary:hover {
     background-color: color-mix(in srgb, var(--expander-header-bg) 90%, var(--text-color) 5%);
@@ -524,7 +542,7 @@ div[data-testid="stExpander"][open] summary {
     border-bottom-right-radius: 0;
 }
 div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 1.25rem; /* Consistent padding */
+    padding: 1.25rem; 
     background-color: var(--expander-content-bg);
     border: 1px solid var(--border-color);
     border-top: none; 
@@ -558,7 +576,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     font-size: 1.15rem; 
     padding: 1rem 1.5rem;
 }
-.ai-ml-task-container div[data-testid="stForm"] .stCaption { /* Caption inside a form in this container */
+.ai-ml-task-container div[data-testid="stForm"] .stCaption { 
     font-size: 0.9rem;
     color: var(--text-muted-color);
     margin-top: -0.25rem; 
@@ -716,37 +734,36 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
 .custom-message-box-icon { margin-right: 0.75rem; font-size: 1.25rem; }
 .custom-message-box.success { background-color: color-mix(in srgb, var(--success-color) 15%, transparent); border-color: var(--success-color); color: var(--success-color); }
 .custom-message-box.warning { background-color: color-mix(in srgb, var(--warning-color) 15%, transparent); border-color: var(--warning-color); color: color-mix(in srgb, var(--warning-color) 80%, black); }
-[data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); } /* Ensure contrast in light mode */
+[data-theme="light"] .custom-message-box.warning { color: color-mix(in srgb, var(--warning-color) 90%, black); } 
 .custom-message-box.error   { background-color: color-mix(in srgb, var(--error-color) 15%, transparent); border-color: var(--error-color); color: var(--error-color); }
 .custom-message-box.info    { background-color: color-mix(in srgb, var(--info-color) 15%, transparent); border-color: var(--info-color); color: var(--info-color); }
 
 
 /* --- Column Mapper Specific Styles --- */
 
-/* NEW/UPDATED: Styling for the instructions box */
 .column-mapper-container .mapper-instructions {
-    font-size: 0.95rem; /* Slightly increased font size for readability */
-    color: var(--text-color); /* Main text color for better readability than muted */
-    background-color: color-mix(in srgb, var(--info-accent-color) 10%, var(--section-background-color) 90%); /* Subtle info background */
-    padding: 1rem 1.25rem; /* Increased padding for more breathing room */
+    font-size: 0.95rem; 
+    color: var(--text-color); 
+    background-color: color-mix(in srgb, var(--info-accent-color) 10%, var(--section-background-color) 90%); 
+    padding: 1rem 1.25rem; 
     border-radius: var(--border-radius-md);
-    border-left: 4px solid var(--info-accent-color); /* Prominent left border with info color */
-    margin-top: 1.5rem; /* More space above */
-    margin-bottom: 2rem; /* More space below, before the form starts */
-    line-height: 1.6; /* Improved line spacing */
+    border-left: 4px solid var(--info-accent-color); 
+    margin-top: 1.5rem; 
+    margin-bottom: 2rem; 
+    line-height: 1.6; 
     box-shadow: var(--box-shadow-sm);
-    display: flex; /* For aligning icon and text */
-    align-items: flex-start; /* Align items to the top */
+    display: flex; 
+    align-items: flex-start; 
 }
 
 .column-mapper-container .mapper-instructions .instruction-icon {
-    font-size: 1.2rem; /* Icon size */
-    margin-right: 0.75rem; /* Space between icon and text */
-    color: var(--info-accent-color); /* Icon color matches border */
-    line-height: 1.6; /* Match text line-height for vertical alignment */
+    font-size: 1.2rem; 
+    margin-right: 0.75rem; 
+    color: var(--info-accent-color); 
+    line-height: 1.6; 
 }
 
-.column-mapper-container .mapper-instructions strong { /* For the asterisk emphasis */
+.column-mapper-container .mapper-instructions strong { 
     color: var(--error-color);
     font-weight: bold;
 }
@@ -764,7 +781,6 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin: 1.5rem 0;
 }
 
-/* Column Mapper Data Preview Section */
 .data-preview-container {
     background-color: var(--section-background-color); 
     border: 1px solid var(--border-color);
@@ -801,12 +817,17 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     margin-top: 0.5rem; 
 }
 
-/* Custom label styling for selectboxes to allow HTML (e.g., red asterisk) */
-.column-mapper-container div[data-testid="stSelectbox"] > label, /* General label */
-.column-mapper-container label[for*="map_"] { /* Specific for our markdown labels */
-    font-size: 1rem; /* Or your desired font size for labels */
+.column-mapper-container label.selectbox-label { /* More specific for custom labels */
+    font-size: 1rem; 
     color: var(--text-color);
     display: block;
-    margin-bottom: 0.25rem; /* Space between label and selectbox */
-    padding-left: 0; /* Remove default Streamlit label padding if any */
+    margin-bottom: 0.25rem; 
+    padding-left: 0; 
+}
+
+.column-mapper-container label.selectbox-label .critical-marker,
+.column-mapper-container h6 .critical-marker { /* Styling for critical marker span */
+    color: var(--error-color) !important; /* Ensure this is applied */
+    font-weight: bold;
+    margin-left: 0.15rem; /* Small space before asterisk */
 }
