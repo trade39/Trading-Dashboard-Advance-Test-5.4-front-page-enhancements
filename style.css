@@ -876,8 +876,6 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
 /* Ensure critical marker stands out but isn't oversized if its parent's font size increases */
 .critical-marker {
     font-size: inherit; /* Inherit from parent, or set explicitly if needed */
-    /* color: var(--error-color) !important; /* Already defined elsewhere, ensure it's maintained */
-    /* font-weight: bold; /* Already defined elsewhere */
 }
 
 /* Responsive adjustments for increased font sizes if necessary */
@@ -902,3 +900,40 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] li,
         font-size: 1.05rem; /* Adjust subtitle for mobile */
     }
 }
+
+/* --- Radio Button Styling --- */
+/* Targets the individual radio button's outer circle when not selected */
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] > div:first-child {
+    border-color: var(--input-border-color) !important; /* Unselected border */
+    background-color: var(--card-background-color) !important; /* Unselected background */
+}
+
+/* Targets the inner circle (dot) of the radio button when selected */
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div > div:last-child {
+    background-color: var(--primary-color) !important; /* Selected inner dot color */
+}
+
+/* Targets the outer circle of the radio button when selected */
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:checked + div {
+    border-color: var(--primary-color) !important; /* Selected outer border color */
+    background-color: var(--card-background-color) !important; /* Selected outer background - can match card or be slightly different */
+}
+
+/* Optional: Hover effect for unselected radio buttons */
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"]:not(:has(input:checked)):hover > div:first-child {
+    border-color: var(--primary-color) !important; 
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); /* Subtle glow */
+}
+
+/* Text color for radio button labels */
+div[data-testid="stRadio"] label {
+    color: var(--text-color) !important;
+}
+
+/* Ensure focus outline is visible and uses primary color for accessibility */
+div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] input:focus-visible + div {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+}
+
