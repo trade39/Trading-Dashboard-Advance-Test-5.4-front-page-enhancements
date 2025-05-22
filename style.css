@@ -159,15 +159,27 @@ h3.section-subheader { /* Custom class for sub-section titles */
     font-weight: 500;
 }
 
-/* Component specific subheader, e.g., in Column Mapper */
-h3.component-subheader {
+/* Component specific subheader, e.g., in Column Mapper or Performance Page sections */
+h3.component-subheader,
+.performance-section-container h3 { /* Target h3 within performance sections too */
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-heading-color);
-    margin-top: 0.5rem; /* Reduced top margin for component context */
+    margin-top: 0.25rem; /* Reduced top margin for component context */
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
+}
+
+/* Styling for h6 used as plot titles within performance sections */
+.performance-section-container h6 {
+    font-size: 1.05rem;
+    font-weight: 500; /* Slightly less bold than subheaders */
+    color: var(--text-muted-color); /* Muted color for plot titles */
+    margin-top: 1rem;
+    margin-bottom: 0.5rem; /* Space before the plot */
+    padding-bottom: 0;
+    border-bottom: none; /* No border for these plot titles */
 }
 
 
@@ -510,7 +522,7 @@ div[data-testid="stSlider"] div[role="slider"]:focus-visible {
 
 
 /* --- Expander Styling --- */
-.column-mapper-container h6 {
+.column-mapper-container h6 { /* This was specific to column mapper, now more generic for h6 in containers */
     font-size: 1.05rem; 
     font-weight: 600; 
     color: var(--text-heading-color);
@@ -699,7 +711,7 @@ div[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
     .feature-item h4 { font-size: 1.15rem; }
 }
 
-/* --- KPI Card Styling --- */
+/* --- KPI Card Styling (Old, can be removed or adapted if st.metric is not enough) --- */
 .kpi-card {
     background-color: var(--card-background-color);
     padding: 1.25rem;
@@ -937,3 +949,67 @@ div[data-testid="stRadio"] div[role="radiogroup"] div[data-baseweb="radio"] inpu
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
 }
 
+
+/* --- NEW: Performance Page Specific Styling --- */
+.performance-section-container {
+    background-color: var(--card-background-color);
+    padding: 1.5rem; /* Consistent padding */
+    border-radius: var(--border-radius-lg); /* Consistent border radius */
+    margin-bottom: 2rem; /* Space between sections */
+    box-shadow: var(--box-shadow-md); /* Consistent shadow */
+    border: 1px solid var(--border-color); /* Subtle border */
+}
+
+/* Styling for st.metric to make KPIs look more professional */
+div[data-testid="stMetric"] {
+    background-color: var(--section-background-color); /* Slightly different background for emphasis */
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow-sm);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
+}
+
+div[data-testid="stMetric"] label { /* Metric Label */
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted-color);
+    margin-bottom: 0.25rem; /* Space between label and value */
+}
+
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] { /* Metric Value */
+    font-size: 1.75rem; /* Larger font for value */
+    font-weight: 600;
+    color: var(--text-heading-color);
+    line-height: 1.2;
+}
+
+div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { /* Metric Delta */
+    font-size: 0.85rem;
+    font-weight: 500;
+    /* Colors for delta (positive/negative) are handled by Streamlit based on delta_color="normal" */
+}
+
+/* Ensure subheaders within performance sections are styled correctly */
+.performance-section-container > div > div > div > div > h3 { /* Targets st.subheader within the container */
+    font-size: 1.45rem !important; /* Slightly larger for section titles */
+    color: var(--primary-color) !important; /* Use primary color for emphasis */
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.25rem !important; /* More space after subheader */
+    padding-bottom: 0.6rem !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Adjust markdown text used as descriptions under subheaders */
+.performance-section-container > div > div > div > div > p { /* Targets st.markdown <p> directly under subheader */
+    font-size: 0.95rem !important;
+    color: var(--text-muted-color) !important;
+    margin-top: -0.75rem !important; /* Pull up slightly */
+    margin-bottom: 1.5rem !important;
+    line-height: 1.6 !important;
+}
