@@ -25,7 +25,7 @@ try:
     from services.analysis_service import AnalysisService
     from services.portfolio_analysis import PortfolioAnalysisService
     from plotting import plot_equity_curve_and_drawdown, _apply_custom_theme, plot_efficient_frontier
-    from components.kpi_display import KPIClusterDisplay
+    from components.kpi_display import KPIClusterDisplay # Assuming this component exists
 except ImportError as e:
     # Log critical import errors and display an error message in Streamlit.
     critical_error_message = f"Portfolio Analysis Page Error: Critical module import failed: {e}. This page cannot be loaded."
@@ -79,7 +79,6 @@ def _clean_data_for_analysis(
 
     df_cleaned = df.copy()
 
-    # Ensure date column exists and convert to datetime
     if date_col not in df_cleaned.columns:
         logger.warning(f"Date column '{date_col}' not found in DataFrame. Returning empty DataFrame.")
         return pd.DataFrame()
@@ -87,17 +86,15 @@ def _clean_data_for_analysis(
         df_cleaned[date_col] = pd.to_datetime(df_cleaned[date_col], errors='coerce')
     except Exception as e:
         logger.error(f"Error converting date column '{date_col}' to datetime: {e}", exc_info=True)
-        df_cleaned[date_col] = pd.NaT # Set to NaT on error to allow later dropna
+        df_cleaned[date_col] = pd.NaT
 
-    # Convert PnL column to numeric if specified
     if pnl_col and pnl_col in df_cleaned.columns:
         try:
             df_cleaned[pnl_col] = pd.to_numeric(df_cleaned[pnl_col], errors='coerce')
         except Exception as e:
             logger.error(f"Error converting PnL column '{pnl_col}' to numeric: {e}", exc_info=True)
-            df_cleaned[pnl_col] = np.nan # Set to NaN on error
+            df_cleaned[pnl_col] = np.nan
 
-    # Convert other specified numeric columns
     if numeric_cols_to_convert:
         for col in numeric_cols_to_convert:
             if col in df_cleaned.columns:
@@ -109,7 +106,6 @@ def _clean_data_for_analysis(
             else:
                 logger.debug(f"Numeric column '{col}' for conversion not found in DataFrame.")
 
-    # Convert specified string columns
     if string_cols_to_convert:
         for col in string_cols_to_convert:
             if col in df_cleaned.columns:
@@ -120,19 +116,16 @@ def _clean_data_for_analysis(
             else:
                 logger.debug(f"String column '{col}' for conversion not found in DataFrame.")
 
-    # Define columns that are essential for any row to be valid
-    cols_for_nan_check = [date_col] # Date is always essential
+    cols_for_nan_check = [date_col]
     if pnl_col and pnl_col in df_cleaned.columns: cols_for_nan_check.append(pnl_col)
     if strategy_col and strategy_col in df_cleaned.columns: cols_for_nan_check.append(strategy_col)
     if account_col and account_col in df_cleaned.columns: cols_for_nan_check.append(account_col)
     
-    # Add any other user-specified required columns for NaN check
     if required_cols_to_check_na:
         for rc in required_cols_to_check_na:
             if rc in df_cleaned.columns and rc not in cols_for_nan_check:
                 cols_for_nan_check.append(rc)
     
-    # Filter out columns that don't actually exist in the dataframe before attempting dropna
     valid_cols_for_nan_check = [col for col in cols_for_nan_check if col in df_cleaned.columns]
     if valid_cols_for_nan_check:
         df_cleaned.dropna(subset=valid_cols_for_nan_check, inplace=True)
@@ -144,7 +137,6 @@ def _clean_data_for_analysis(
         logger.info(f"DataFrame became empty after cleaning and NaN drop for columns: {valid_cols_for_nan_check}.")
         return pd.DataFrame()
 
-    # Sort by date if specified
     if sort_by_date and date_col in df_cleaned.columns:
         df_cleaned.sort_values(by=date_col, inplace=True)
     
@@ -162,31 +154,29 @@ def _calculate_drawdown_series_for_aggregated_df(cumulative_pnl_series: pd.Serie
     high_water_mark = cumulative_pnl_series.cummax()
     drawdown_abs_series = high_water_mark - cumulative_pnl_series
     
-    # Calculate percentage drawdown, handling potential division by zero or near-zero HWM
     drawdown_pct_series = pd.Series(
         np.where(
-            high_water_mark.abs() > 1e-9,  # If HWM is significantly non-zero
-            (drawdown_abs_series / high_water_mark.replace(0, np.nan)) * 100.0, # Avoid div by zero if HWM was exactly 0
-            np.where(drawdown_abs_series > 1e-9, 100.0, 0.0) # If HWM is ~0 but drawdown exists, it's effectively 100% loss from that point
+            high_water_mark.abs() > 1e-9, 
+            (drawdown_abs_series / high_water_mark.replace(0, np.nan)) * 100.0, 
+            np.where(drawdown_abs_series > 1e-9, 100.0, 0.0) 
         ),
         index=cumulative_pnl_series.index,
         dtype=float
-    ).fillna(0) # Fill NaNs that might arise from HWM being 0 and drawdown also 0
+    ).fillna(0) 
     
     return drawdown_abs_series.fillna(0), drawdown_pct_series.fillna(0)
 
 
-@st.cache_data # Caching this function as it can be computationally intensive
+@st.cache_data 
 def calculate_metrics_for_df(
-    df_input_tuple: Tuple[List[tuple], List[str]], # Input DataFrame as tuple (data, columns) for caching
+    df_input_tuple: Tuple[List[tuple], List[str]], 
     pnl_col: str,
     date_col: str,
     risk_free_rate: float,
     initial_capital: float
 ) -> Dict[str, Any]:
     """
-    Calculates core performance metrics for a given DataFrame of trades or daily P&L.
-    The input DataFrame is passed as a tuple of its data and columns to be compatible with st.cache_data.
+    Calculates core performance metrics using programmatic keys.
     """
     df_data, df_columns = df_input_tuple
     df_input = pd.DataFrame(data=df_data, columns=df_columns)
@@ -200,7 +190,6 @@ def calculate_metrics_for_df(
         logger.warning(f"Essential columns ('{date_col}', '{pnl_col}') not in DataFrame for metric calculation.")
         return {"error": f"Missing essential columns: {date_col} or {pnl_col}"}
 
-    # Ensure correct data types
     try:
         df_copy[date_col] = pd.to_datetime(df_copy[date_col], errors='coerce')
         df_copy[pnl_col] = pd.to_numeric(df_copy[pnl_col], errors='coerce')
@@ -215,28 +204,29 @@ def calculate_metrics_for_df(
     
     df_copy.sort_values(by=date_col, inplace=True)
 
-    # Use the analysis service to get KPIs
-    kpis = general_analysis_service.get_core_kpis(df_copy, risk_free_rate, initial_capital=initial_capital)
+    kpis_from_service = general_analysis_service.get_core_kpis(df_copy, risk_free_rate, initial_capital=initial_capital)
     
-    if kpis and 'error' not in kpis:
-        # Return a selection of relevant KPIs
+    if kpis_from_service and 'error' not in kpis_from_service:
+        # Return using programmatic keys, ensure all expected keys are present or None
         return {
-            "Total PnL": kpis.get("total_pnl", 0.0),
-            "Total Trades": kpis.get("total_trades", 0), 
-            "Win Rate %": kpis.get("win_rate", 0.0), 
-            "Avg Trade PnL": kpis.get("avg_trade_pnl", 0.0), 
-            "Sharpe Ratio": kpis.get("sharpe_ratio", 0.0),
-            "Sortino Ratio": kpis.get("sortino_ratio", 0.0),
-            "Calmar Ratio": kpis.get("calmar_ratio", 0.0),
-            "Max Drawdown %": kpis.get("max_drawdown_pct", 0.0),
-            "Max Drawdown Abs": kpis.get("max_drawdown_abs", 0.0),
-            "Avg Daily PnL": kpis.get("avg_daily_pnl", 0.0) 
+            "total_pnl": kpis_from_service.get("total_pnl"),
+            "total_trades": kpis_from_service.get("total_trades"),
+            "win_rate": kpis_from_service.get("win_rate"),
+            "avg_trade_pnl": kpis_from_service.get("avg_trade_pnl"),
+            "sharpe_ratio": kpis_from_service.get("sharpe_ratio"),
+            "sortino_ratio": kpis_from_service.get("sortino_ratio"),
+            "calmar_ratio": kpis_from_service.get("calmar_ratio"),
+            "max_drawdown_pct": kpis_from_service.get("max_drawdown_pct"),
+            "max_drawdown_abs": kpis_from_service.get("max_drawdown_abs"),
+            "avg_daily_pnl": kpis_from_service.get("avg_daily_pnl"),
+            "pnl_skewness": kpis_from_service.get("pnl_skewness"), # Added for completeness
+            "pnl_kurtosis": kpis_from_service.get("pnl_kurtosis")  # Added for completeness
         }
-    error_msg = kpis.get('error', 'Unknown error') if kpis else 'KPI calculation failed'
+    error_msg = kpis_from_service.get('error', 'Unknown error') if kpis_from_service else 'KPI calculation service failed'
     logger.warning(f"KPI calculation failed in calculate_metrics_for_df: {error_msg}")
     return {"error": error_msg}
 
-@st.cache_data # Cache optimization logic as it can be intensive
+@st.cache_data 
 def _run_portfolio_optimization_logic(
     portfolio_df_data_tuple: Tuple[List[tuple], List[str]], 
     strategy_col_actual: str, date_col_actual: str, pnl_col_actual: str,
@@ -248,19 +238,13 @@ def _run_portfolio_optimization_logic(
 ) -> Dict[str, Any]:
     """ 
     Encapsulates data preparation and the call to the optimization service.
-    - portfolio_df is passed as a tuple (data, columns) for caching.
-    - selected_strategies are passed as a tuple for caching.
-    - It expects portfolio_df to be pre-filtered by the global date range.
-    - The lookback_days_opt applies *within* this pre-filtered data.
     """
     portfolio_df_data, portfolio_df_columns = portfolio_df_data_tuple
     portfolio_df = pd.DataFrame(data=portfolio_df_data, columns=portfolio_df_columns)
     selected_strategies_for_opt = list(selected_strategies_for_opt_tuple)
 
-    # Filter for selected strategies (portfolio_df is already globally date-filtered)
     opt_df_filtered_strategies = portfolio_df[portfolio_df[strategy_col_actual].isin(selected_strategies_for_opt)].copy()
     
-    # Clean this strategy-filtered data
     opt_df_filtered_strategies = _clean_data_for_analysis(
         opt_df_filtered_strategies, date_col=date_col_actual, pnl_col=pnl_col_actual,
         strategy_col=strategy_col_actual, required_cols_to_check_na=[pnl_col_actual, strategy_col_actual],
@@ -271,9 +255,7 @@ def _run_portfolio_optimization_logic(
         logger.warning("No data for selected strategies in the specified date range after cleaning for optimization.")
         return {"error": "No data for selected strategies in the specified date range after cleaning."}
 
-    # Apply lookback period within the already filtered data
     latest_date_in_data = opt_df_filtered_strategies[date_col_actual].max()
-    # Ensure start_date_lookback doesn't go before the earliest date in the current filtered data
     earliest_date_in_filtered_data = opt_df_filtered_strategies[date_col_actual].min()
     calculated_start_date_lookback = latest_date_in_data - pd.Timedelta(days=lookback_days_opt - 1)
     start_date_lookback = max(calculated_start_date_lookback, earliest_date_in_filtered_data)
@@ -284,12 +266,10 @@ def _run_portfolio_optimization_logic(
         logger.warning("No data within the specified lookback period (relative to the global date range).")
         return {"error": "No data within the specified lookback period (relative to the global date range)."}
 
-    # Pivot P&L data: Date by Strategy, values are sum of PnL
     try:
         daily_pnl_pivot = opt_df_lookback.groupby(
             [opt_df_lookback[date_col_actual].dt.normalize(), strategy_col_actual]
         )[pnl_col_actual].sum().unstack(fill_value=0)
-        # Ensure all selected strategies are columns, even if they had no P&L in the lookback
         daily_pnl_pivot = daily_pnl_pivot.reindex(columns=selected_strategies_for_opt, fill_value=0.0)
     except (KeyError, ValueError, TypeError, AttributeError) as e:
         logger.error(f"Error during P&L pivot for optimization: {e}", exc_info=True)
@@ -299,11 +279,9 @@ def _run_portfolio_optimization_logic(
         logger.error("Initial capital must be a positive value for return calculation in optimization.")
         return {"error": "Initial capital must be a positive value for return calculation."}
     
-    # Calculate daily returns
     daily_returns_for_opt = (daily_pnl_pivot / global_initial_capital).fillna(0)
 
-    # Check for sufficient historical data points
-    min_hist_points_needed = 20 # Common minimum for covariance estimation
+    min_hist_points_needed = 20 
     if optimization_objective_key == "risk_parity" and len(selected_strategies_for_opt) <= 1:
         min_hist_points_needed = 2 
     if daily_returns_for_opt.shape[0] < min_hist_points_needed:
@@ -311,7 +289,6 @@ def _run_portfolio_optimization_logic(
         return {"error": f"Insufficient historical data: Need at least {min_hist_points_needed} data points within lookback, found {daily_returns_for_opt.shape[0]}."}
 
     try:
-        # Call the portfolio analysis service for optimization
         optimization_results = portfolio_specific_service.prepare_and_run_optimization(
             daily_returns_df=daily_returns_for_opt,
             objective=optimization_objective_key,
@@ -333,26 +310,22 @@ def show_portfolio_analysis_page():
     st.title("💼 Portfolio-Level Analysis")
     logger.info("Rendering Portfolio Analysis Page.")
 
-    # Check for processed data in session state
     if 'processed_data' not in st.session_state or st.session_state.processed_data is None or st.session_state.processed_data.empty:
         display_custom_message("Please upload and process data on the main page to view portfolio analysis.", "info")
         logger.info("Portfolio analysis page: No processed data found in session state.")
         return
 
-    base_df_original = st.session_state.processed_data.copy() # Work with a copy
+    base_df_original = st.session_state.processed_data.copy() 
     
-    # Retrieve global settings from session state or config
     plot_theme = st.session_state.get('current_theme', 'dark') 
     risk_free_rate = st.session_state.get('risk_free_rate', RISK_FREE_RATE)
     global_initial_capital = st.session_state.get('initial_capital', 100000.0)
 
-    # Get expected column names from configuration
     account_col_actual = EXPECTED_COLUMNS.get('account_str')
     pnl_col_actual = EXPECTED_COLUMNS.get('pnl')
     date_col_actual = EXPECTED_COLUMNS.get('date')
     strategy_col_actual = EXPECTED_COLUMNS.get('strategy')
 
-    # Validate that all essential column names are configured
     if not all([account_col_actual, pnl_col_actual, date_col_actual, strategy_col_actual]):
         missing_configs = [col_type for col_type, col_val in zip(
             ['account', 'pnl', 'date', 'strategy'],
@@ -360,17 +333,15 @@ def show_portfolio_analysis_page():
         msg = f"Essential column configurations are missing ({', '.join(missing_configs)}) in EXPECTED_COLUMNS. Analysis cannot proceed."
         display_custom_message(msg, "error"); logger.critical(f"Portfolio page: {msg}"); return
         
-    # Validate that these configured columns exist in the DataFrame
     essential_cols_in_df = [account_col_actual, pnl_col_actual, date_col_actual, strategy_col_actual]
     if not all(col in base_df_original.columns for col in essential_cols_in_df):
         missing_cols_in_df = [col for col in essential_cols_in_df if col not in base_df_original.columns]
         msg = f"Essential columns ({', '.join(missing_cols_in_df)}) defined in EXPECTED_COLUMNS are not found in the uploaded data."
         display_custom_message(msg, "error"); logger.error(f"Portfolio page: {msg}. Available columns: {base_df_original.columns.tolist()}"); return
 
-    # Ensure date column is datetime type before any operations
     try:
         base_df_original[date_col_actual] = pd.to_datetime(base_df_original[date_col_actual], errors='coerce')
-        base_df_original.dropna(subset=[date_col_actual], inplace=True) # Drop rows where date conversion failed
+        base_df_original.dropna(subset=[date_col_actual], inplace=True) 
     except Exception as e:
         msg = f"Failed to convert date column '{date_col_actual}' to datetime for global filter setup: {e}."
         display_custom_message(msg, "error"); logger.error(f"Portfolio page: {msg}", exc_info=True); return
@@ -378,19 +349,16 @@ def show_portfolio_analysis_page():
     if base_df_original.empty:
         display_custom_message("No valid date data found after initial conversion. Cannot proceed.", "warning"); return
         
-    # --- Global Date Range Filter ---
     st.sidebar.subheader("Global Date Range Filter")
-    min_data_date = base_df_original[date_col_actual].min().date() # Convert to datetime.date
-    max_data_date = base_df_original[date_col_actual].max().date() # Convert to datetime.date
+    min_data_date = base_df_original[date_col_actual].min().date() 
+    max_data_date = base_df_original[date_col_actual].max().date() 
 
-    # Use session state to remember date filter choices across reruns if desired, or default each time
     start_date_val = st.session_state.get("portfolio_global_start_date", min_data_date)
     end_date_val = st.session_state.get("portfolio_global_end_date", max_data_date)
     
-    # Ensure values are within the data's bounds
     start_date_val = max(min_data_date, start_date_val)
     end_date_val = min(max_data_date, end_date_val)
-    if start_date_val > end_date_val: # If stored state is invalid (e.g. new data), reset
+    if start_date_val > end_date_val: 
         start_date_val = min_data_date
         end_date_val = max_data_date
 
@@ -400,17 +368,16 @@ def show_portfolio_analysis_page():
         value=start_date_val, 
         min_value=min_data_date, 
         max_value=max_data_date, 
-        key="global_start_date_portfolio_v2" # Unique key
+        key="global_start_date_portfolio_v2" 
     )
     end_date_selected = st.sidebar.date_input(
         "End Date:", 
         value=end_date_val, 
-        min_value=start_date_selected, # Dynamically set min based on selected start date
+        min_value=start_date_selected, 
         max_value=max_data_date, 
-        key="global_end_date_portfolio_v2" # Unique key
+        key="global_end_date_portfolio_v2" 
     )
     
-    # Store selected dates in session state
     st.session_state.portfolio_global_start_date = start_date_selected
     st.session_state.portfolio_global_end_date = end_date_selected
 
@@ -418,25 +385,21 @@ def show_portfolio_analysis_page():
     if start_date_selected > end_date_selected:
         st.sidebar.error("Start date cannot be after end date. Please adjust the selection.")
         logger.warning("Global date filter: Start date is after end date.")
-        return # Stop further execution until dates are valid
+        return 
 
-    # Convert selected dates to datetime for filtering DataFrame (inclusive of end_date)
     start_datetime_filter = pd.to_datetime(start_date_selected)
-    end_datetime_filter = pd.to_datetime(end_date_selected) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1) # Ensure full end day is included
+    end_datetime_filter = pd.to_datetime(end_date_selected) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1) 
 
-    # Apply the global date filter to base_df
     base_df_filtered_by_date = base_df_original[
         (base_df_original[date_col_actual] >= start_datetime_filter) & 
         (base_df_original[date_col_actual] <= end_datetime_filter)
-    ].copy() # Use .copy() to avoid SettingWithCopyWarning
+    ].copy() 
 
     if base_df_filtered_by_date.empty:
         display_custom_message(f"No data available for the selected global date range: {start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')}.", "info")
         logger.info("Global date filter resulted in an empty DataFrame.")
         return
-    # --- End Global Date Range Filter Application ---
 
-    # Account Selection (operates on the globally date-filtered data)
     unique_accounts_in_range = sorted(base_df_filtered_by_date[account_col_actual].dropna().astype(str).unique())
     if not unique_accounts_in_range:
         display_custom_message(f"No accounts found in the data for the selected date range: {start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')}.", "info")
@@ -455,29 +418,25 @@ def show_portfolio_analysis_page():
     if not selected_accounts_for_portfolio:
         display_custom_message("Please select at least one account for the portfolio view.", "info"); return
 
-    # Filter by selected accounts
     portfolio_df_uncleaned = base_df_filtered_by_date[base_df_filtered_by_date[account_col_actual].isin(selected_accounts_for_portfolio)].copy()
     if portfolio_df_uncleaned.empty:
         display_custom_message("No data for the selected accounts in the selected date range.", "info"); return
     
-    # Clean the final portfolio_df (date-filtered and account-filtered)
     portfolio_df = _clean_data_for_analysis(
         portfolio_df_uncleaned, date_col=date_col_actual, pnl_col=pnl_col_actual,
         strategy_col=strategy_col_actual, account_col=account_col_actual,
         required_cols_to_check_na=[pnl_col_actual, strategy_col_actual, account_col_actual],
-        string_cols_to_convert=[strategy_col_actual, account_col_actual] # Ensure categorical cols are strings
+        string_cols_to_convert=[strategy_col_actual, account_col_actual] 
     )
     if portfolio_df.empty:
         display_custom_message("No valid data after cleaning for selected accounts and date range.", "warning"); return
 
-    # Define Tabs
     tab_titles = [
         "📈 Overall Performance", "🔗 Inter-Connections", "📊 Account Breakdown",
         "⚖️ Portfolio Optimization", "↔️ Equity Comparison"
     ]
     tab_overall, tab_connections, tab_breakdown, tab_optimization, tab_comparison = st.tabs(tab_titles)
 
-    # --- Overall Performance Tab ---
     with tab_overall:
         st.header(f"Overall Performance ({start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')})")
         portfolio_daily_pnl_series = pd.Series(dtype=float)
@@ -499,24 +458,34 @@ def show_portfolio_analysis_page():
                 drawdown_abs_series, drawdown_pct_series = _calculate_drawdown_series_for_aggregated_df(portfolio_daily_summary_df['cumulative_pnl'])
                 portfolio_daily_summary_df['drawdown_abs'] = drawdown_abs_series
                 portfolio_daily_summary_df['drawdown_pct'] = drawdown_pct_series
-            else: # Ensure columns exist even if empty
+            else: 
                 portfolio_daily_summary_df['drawdown_abs'] = pd.Series(dtype=float)
                 portfolio_daily_summary_df['drawdown_pct'] = pd.Series(dtype=float)
 
             with st.spinner("Calculating selected portfolio KPIs..."):
-                # Pass df as tuple for caching
                 portfolio_kpis_results = calculate_metrics_for_df(
                     (portfolio_daily_summary_df.to_records(index=False).tolist(), portfolio_daily_summary_df.columns.tolist()),
                     pnl_col_actual, date_col_actual, risk_free_rate, global_initial_capital
                 )
             
             if portfolio_kpis_results and 'error' not in portfolio_kpis_results:
-                portfolio_kpi_display_order = ["Total PnL", "Sharpe Ratio", "Sortino Ratio", "Calmar Ratio", "Max Drawdown Abs", "Max Drawdown %", "Avg Daily PnL"]
-                kpis_to_show = {key: portfolio_kpis_results[key] for key in portfolio_kpi_display_order if key in portfolio_kpis_results}
-                if kpis_to_show:
+                # Use programmatic keys for display order
+                portfolio_kpi_display_order = [
+                    "total_pnl", "sharpe_ratio", "sortino_ratio", 
+                    "calmar_ratio", "max_drawdown_abs", "max_drawdown_pct", 
+                    "avg_daily_pnl", "win_rate", "total_trades" 
+                ]
+                kpis_to_show = {
+                    key: portfolio_kpis_results.get(key) 
+                    for key in portfolio_kpi_display_order
+                } # KPIClusterDisplay should handle None values gracefully by checking KPI_CONFIG
+
+                if any(v is not None for v in kpis_to_show.values()): # Check if there's anything to show
                     KPIClusterDisplay(kpis_to_show, KPI_CONFIG, portfolio_kpi_display_order, cols_per_row=3).render()
-                else: display_custom_message("Could not retrieve relevant KPIs for the selected portfolio.", "warning")
-            else: display_custom_message(f"Error calculating KPIs: {portfolio_kpis_results.get('error', 'Unknown error') if portfolio_kpis_results else 'KPI calculation failed'}", "error")
+                else: 
+                    display_custom_message("Could not retrieve relevant KPIs for the selected portfolio (all values are N/A).", "warning")
+            else: 
+                display_custom_message(f"Error calculating KPIs: {portfolio_kpis_results.get('error', 'Unknown error') if portfolio_kpis_results else 'KPI calculation failed'}", "error")
             
             st.subheader("Combined Equity Curve & Drawdown")
             fig_overall_equity = plot_equity_curve_and_drawdown(
@@ -530,7 +499,6 @@ def show_portfolio_analysis_page():
                     st.dataframe(portfolio_daily_summary_df)
 
 
-    # --- Inter-Connections Tab ---
     with tab_connections:
         st.header(f"Inter-Connections ({start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')})")
         
@@ -543,10 +511,8 @@ def show_portfolio_analysis_page():
         )
         selected_corr_period_days = correlation_period_options[selected_corr_period_label]
 
-        # Start with the globally filtered, account-selected portfolio_df
         df_for_correlation_analysis = portfolio_df.copy() 
         if selected_corr_period_days is not None and date_col_actual in df_for_correlation_analysis.columns:
-            # Apply relative lookback within the already filtered data
             latest_date_for_corr = df_for_correlation_analysis[date_col_actual].max()
             earliest_date_for_corr = df_for_correlation_analysis[date_col_actual].min()
             
@@ -556,7 +522,6 @@ def show_portfolio_analysis_page():
         if df_for_correlation_analysis.empty:
             display_custom_message(f"No data available for the selected correlation period: {selected_corr_period_label}", "warning")
         else:
-            # Inter-Strategy Correlation
             st.subheader("🔀 Inter-Strategy P&L Correlation")
             if strategy_col_actual not in df_for_correlation_analysis.columns:
                 display_custom_message(f"Strategy column '{strategy_col_actual}' not found.", "warning")
@@ -589,15 +554,11 @@ def show_portfolio_analysis_page():
                     elif results_strat_corr: display_custom_message(f"Inter-strategy correlation error: {results_strat_corr.get('error')}", "error")
                     else: display_custom_message("Inter-strategy correlation analysis failed to produce results.", "error")
 
-            # Inter-Account Correlation
             st.subheader("🤝 Inter-Account P&L Correlation")
-            # Check based on original selection, as period filter might reduce available accounts
             if len(selected_accounts_for_portfolio) < 2: 
                 st.info("At least two accounts must be selected in the sidebar for inter-account correlation.")
             else:
-                # Use the same df_for_correlation_analysis which is already period-filtered
                 acc_corr_prep_df = df_for_correlation_analysis[[date_col_actual, account_col_actual, pnl_col_actual]].copy()
-                # Further filter for accounts that are actually in selected_accounts_for_portfolio (in case period filter removed some entirely)
                 acc_corr_prep_df = acc_corr_prep_df[acc_corr_prep_df[account_col_actual].isin(selected_accounts_for_portfolio)]
 
                 if len(acc_corr_prep_df[account_col_actual].unique()) < 2:
@@ -626,17 +587,13 @@ def show_portfolio_analysis_page():
                     elif results_acc_corr: display_custom_message(f"Inter-account correlation error: {results_acc_corr.get('error')}", "error")
                     else: display_custom_message("Inter-account correlation analysis failed to produce results.", "error")
 
-    # --- Account Breakdown Tab ---
     with tab_breakdown:
         st.header(f"Account Performance Breakdown ({start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')})")
         account_metrics_list = []
         for acc_name_iter in selected_accounts_for_portfolio:
-            # Use the globally date-filtered base_df, then filter by account for breakdown
-            # This ensures breakdown is for the full history of that account within the global date range
             acc_df_for_breakdown = base_df_filtered_by_date[base_df_filtered_by_date[account_col_actual] == acc_name_iter].copy()
             
             if not acc_df_for_breakdown.empty:
-                # Pass df as tuple for caching
                 metrics_result = calculate_metrics_for_df(
                     (acc_df_for_breakdown.to_records(index=False).tolist(), acc_df_for_breakdown.columns.tolist()),
                     pnl_col_actual, date_col_actual, risk_free_rate, global_initial_capital
@@ -651,11 +608,10 @@ def show_portfolio_analysis_page():
         if account_metrics_list:
             summary_metrics_df = pd.DataFrame(account_metrics_list)
             
-            # P&L Contribution Pie Chart
-            if "Total PnL" in summary_metrics_df.columns:
-                summary_metrics_df["Total PnL Numeric"] = pd.to_numeric(summary_metrics_df["Total PnL"], errors='coerce')
+            if "total_pnl" in summary_metrics_df.columns: # Use programmatic key
+                summary_metrics_df["Total PnL Numeric"] = pd.to_numeric(summary_metrics_df["total_pnl"], errors='coerce')
                 pnl_pie_chart_df = summary_metrics_df[
-                    summary_metrics_df["Total PnL Numeric"].notna() & (summary_metrics_df["Total PnL Numeric"].abs() > 1e-6) # Filter out zero/NaN P&L
+                    summary_metrics_df["Total PnL Numeric"].notna() & (summary_metrics_df["Total PnL Numeric"].abs() > 1e-6) 
                 ][["Account", "Total PnL Numeric"]].copy()
 
                 if not pnl_pie_chart_df.empty:
@@ -668,44 +624,58 @@ def show_portfolio_analysis_page():
                 else: 
                     st.info("No significant P&L contribution data to display in pie chart (all P&L values are zero, NaN, or non-numeric).")
             else: 
-                st.warning("Total PnL column not found for P&L contribution chart.")
+                st.warning("Total PnL (total_pnl) key not found for P&L contribution chart.")
 
-            # Detailed Metrics Table
-            display_cols_for_summary = ["Account", "Total PnL", "Total Trades", "Win Rate %", "Avg Trade PnL", "Max Drawdown %", "Sharpe Ratio"]
-            valid_display_cols_summary = [col for col in display_cols_for_summary if col in summary_metrics_df.columns]
-            summary_display_table_df = summary_metrics_df[valid_display_cols_summary].copy()
+            display_cols_for_summary_keys = ["Account", "total_pnl", "total_trades", "win_rate", "avg_trade_pnl", "max_drawdown_pct", "sharpe_ratio"]
+            # Create a display df with labels for columns
+            summary_display_table_df = pd.DataFrame()
+            summary_display_table_df["Account"] = summary_metrics_df["Account"]
+
+            for key in display_cols_for_summary_keys:
+                if key == "Account": continue
+                if key in summary_metrics_df.columns:
+                    label = KPI_CONFIG.get(key, {}).get("label", key.replace("_", " ").title()) # Get label from KPI_CONFIG or generate
+                    summary_display_table_df[label] = summary_metrics_df[key]
             
-            # Apply formatting for display
-            for col_name, item_format_type in [("Total PnL", "currency"), ("Avg Trade PnL", "currency"), 
-                                               ("Win Rate %", "percentage"), ("Max Drawdown %", "percentage"),
-                                               ("Sharpe Ratio", "float")]:
-                if col_name in summary_display_table_df.columns:
-                    summary_display_table_df[col_name] = pd.to_numeric(summary_display_table_df[col_name], errors='coerce')
+            # Apply formatting for display using KPI_CONFIG types
+            for col_label in summary_display_table_df.columns:
+                if col_label == "Account": continue
+                # Find original key for this label to get its type from KPI_CONFIG
+                original_key = next((k for k, v in KPI_CONFIG.items() if v.get("label") == col_label), None)
+                if not original_key and col_label.lower().replace(" ", "_") in KPI_CONFIG: # Fallback if label was generated
+                    original_key = col_label.lower().replace(" ", "_")
+
+                if original_key and original_key in KPI_CONFIG:
+                    item_format_type = KPI_CONFIG[original_key].get("type")
+                    # Ensure column is numeric before formatting
+                    summary_display_table_df[col_label] = pd.to_numeric(summary_display_table_df[col_label], errors='coerce')
                     if item_format_type == "currency": 
-                        summary_display_table_df[col_name] = summary_display_table_df[col_name].apply(lambda x: format_currency(x) if pd.notna(x) else "N/A")
+                        summary_display_table_df[col_label] = summary_display_table_df[col_label].apply(lambda x: format_currency(x) if pd.notna(x) else "N/A")
                     elif item_format_type == "percentage": 
-                        summary_display_table_df[col_name] = summary_display_table_df[col_name].apply(lambda x: format_percentage(x/100.0 if abs(x) <= 100 else x) if pd.notna(x) else "N/A") # Assuming % is 0-100
+                        # Assuming win_rate and max_drawdown_pct are already in % (0-100) from service
+                        summary_display_table_df[col_label] = summary_display_table_df[col_label].apply(lambda x: format_percentage(x/100.0 if key not in ["win_rate", "max_drawdown_pct"] else x) if pd.notna(x) else "N/A")
                     elif item_format_type == "float": 
-                        summary_display_table_df[col_name] = summary_display_table_df[col_name].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
-            
+                        summary_display_table_df[col_label] = summary_display_table_df[col_label].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+                    elif item_format_type == "integer":
+                         summary_display_table_df[col_label] = summary_display_table_df[col_label].apply(lambda x: f"{int(x):,}" if pd.notna(x) else "N/A")
+
+
             st.dataframe(summary_display_table_df.set_index("Account"), use_container_width=True)
             if not summary_metrics_df.empty:
-                with st.expander("View Raw Account Performance Data (Pre-formatting)"):
+                with st.expander("View Raw Account Performance Data (Programmatic Keys, Pre-formatting)"):
                     st.dataframe(summary_metrics_df.drop(columns=["Total PnL Numeric"], errors='ignore'))
         else: 
             display_custom_message("Could not calculate performance metrics for any of the selected individual accounts in the given date range.", "warning")
 
-    # --- Portfolio Optimization Tab ---
     with tab_optimization:
         st.header(f"Portfolio Optimization ({start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')})")
         
-        # Initialize form state variables
         opt_selected_strategies = []
         opt_objective_key = "" 
         opt_objective_display = "" 
         opt_use_ledoit_wolf = True
         opt_target_return = None
-        opt_lookback_days = 252 # Default, will be adjusted
+        opt_lookback_days = 252 
         opt_num_frontier_points = 25
 
         with st.expander("⚙️ Configure Portfolio Optimization", expanded=True):
@@ -716,8 +686,7 @@ def show_portfolio_analysis_page():
                 if not optimizable_strategies_list:
                      st.info("No distinct strategies available in the selected portfolio/date range for optimization.")
                 else:
-                    # Using a unique key for the form
-                    with st.form("portfolio_optimization_form_v9"): # Incremented key
+                    with st.form("portfolio_optimization_form_v9"): 
                         st.markdown("Select strategies, objective, and constraints for optimization using data from the globally selected date range.")
                         
                         opt_selected_strategies = st.multiselect(
@@ -737,16 +706,14 @@ def show_portfolio_analysis_page():
                         )
                         opt_objective_key = opt_objective_options_map[opt_objective_display]
 
-                        # Covariance & Lookback
                         col_opt_params_1, col_opt_params_2 = st.columns(2)
                         with col_opt_params_1:
                             opt_use_ledoit_wolf = st.checkbox("Use Ledoit-Wolf Covariance", True, key="opt_lw_v9")
                         
                         with col_opt_params_2:
-                            # Adjust lookback max value based on the length of the globally filtered portfolio_df
                             num_unique_days_in_portfolio_df = portfolio_df[date_col_actual].nunique()
-                            max_allowable_lookback = max(20, num_unique_days_in_portfolio_df) # Min 20 days, or all available days
-                            default_opt_lookback = min(252, max_allowable_lookback) # Default to 1 year or max available
+                            max_allowable_lookback = max(20, num_unique_days_in_portfolio_df) 
+                            default_opt_lookback = min(252, max_allowable_lookback) 
 
                             opt_lookback_days = st.number_input(
                                 "Lookback Period (days for optimization):", 
@@ -755,7 +722,6 @@ def show_portfolio_analysis_page():
                                 help=f"Data within the global date range will be used. Max lookback here is {max_allowable_lookback} unique trading days from the filtered data."
                             )
 
-                        # Target Return (conditional) & Frontier Points
                         if opt_objective_key == "minimize_volatility":
                             opt_target_return = st.number_input(
                                 "Target Annualized Return (e.g., 0.10 for 10%):", 
@@ -767,7 +733,6 @@ def show_portfolio_analysis_page():
                         st.markdown("---")
                         st.markdown("##### Per-Strategy Weight Constraints")
 
-                        # Preset Constraints
                         opt_preset_options = {
                             "Default (0-100%)": {"min": 0.0, "max": 100.0, "apply_all": True},
                             "Long Only (Max 30%)": {"min": 0.0, "max": 30.0, "apply_all": True},
@@ -779,8 +744,6 @@ def show_portfolio_analysis_page():
                         )
                         opt_selected_preset = opt_preset_options[opt_selected_preset_label]
 
-                        # Dynamic Current Weights Calculation (for turnover)
-                        # Uses portfolio_df (globally filtered) and opt_lookback_days
                         opt_current_weights_derived = {}
                         if opt_selected_strategies and not portfolio_df.empty:
                             temp_df_curr_weights = portfolio_df[portfolio_df[strategy_col_actual].isin(opt_selected_strategies)].copy()
@@ -792,19 +755,17 @@ def show_portfolio_analysis_page():
 
                             if not temp_df_curr_weights.empty:
                                 pnl_sum_per_strat_cw = temp_df_curr_weights.groupby(strategy_col_actual)[pnl_col_actual].sum()
-                                positive_pnl_sum_cw = pnl_sum_per_strat_cw[pnl_sum_per_strat_cw > 1e-9] # Consider only positive P&L
+                                positive_pnl_sum_cw = pnl_sum_per_strat_cw[pnl_sum_per_strat_cw > 1e-9] 
                                 
                                 if not positive_pnl_sum_cw.empty:
                                     total_positive_pnl_cw = positive_pnl_sum_cw.sum()
-                                    if abs(total_positive_pnl_cw) > 1e-9: # Avoid division by zero
+                                    if abs(total_positive_pnl_cw) > 1e-9: 
                                         opt_current_weights_derived = (positive_pnl_sum_cw / total_positive_pnl_cw).to_dict()
                                 
-                                # Fill missing strategies (if selected but had no positive P&L) with 0 weight
                                 for strat_cw in opt_selected_strategies:
                                     if strat_cw not in opt_current_weights_derived:
                                         opt_current_weights_derived[strat_cw] = 0.0
                             
-                            # Fallback to equal weighting if no P&L data or all P&L is non-positive
                             if not opt_current_weights_derived and opt_selected_strategies:
                                 num_sel_cw = len(opt_selected_strategies)
                                 equal_w_cw = 1.0 / num_sel_cw if num_sel_cw > 0 else 0.0
@@ -821,7 +782,6 @@ def show_portfolio_analysis_page():
                                  st.caption(f"Note: Sum of derived current weights is {sum_derived_cw_val*100:.1f}%. This can occur if P&L data is sparse, mostly negative, or zero for selected strategies over the lookback.")
 
 
-                        # Per-strategy min/max weight inputs
                         opt_asset_bounds_list = [] 
                         opt_min_weight_inputs_dict = {}
 
@@ -841,7 +801,7 @@ def show_portfolio_analysis_page():
                                 with cols_constraints_form[2]:
                                     max_w_input = st.number_input(f"Max W %", 0.0, 100.0, default_max_w, 0.1, key=f"max_w_{strat_name_form}_v9", label_visibility="collapsed")
                                 
-                                if min_w_input > max_w_input: # Immediate feedback and correction
+                                if min_w_input > max_w_input: 
                                     st.warning(f"For {strat_name_form}: Min weight ({min_w_input}%) cannot exceed Max weight ({max_w_input}%). Adjusting Max to {min_w_input}%.", icon="⚠️")
                                     max_w_input = min_w_input 
 
@@ -850,18 +810,14 @@ def show_portfolio_analysis_page():
                         else:
                             st.caption("Select strategies above to configure their individual weight constraints.")
 
-                        # Visual Feedback for Sum of Min Weights (before submission)
                         if opt_asset_bounds_list:
                             sum_min_weights_form_pct = sum(b[0] * 100 for b in opt_asset_bounds_list)
-                            if sum_min_weights_form_pct > 100.0 + 1e-6: # Add tolerance for float precision
+                            if sum_min_weights_form_pct > 100.0 + 1e-6: 
                                 st.warning(f"Sum of Minimum Weight constraints ({sum_min_weights_form_pct:.1f}%) currently exceeds 100%. Optimization might be infeasible if not adjusted.", icon="🚨")
                         
                         submit_optimization_button = st.form_submit_button("🚀 Optimize Portfolio")
 
-        # --- End of Optimization Form ---
-
         if submit_optimization_button and opt_selected_strategies:
-            # Final validation before running optimization
             min_strats_for_obj = 1 if opt_objective_key == "risk_parity" else 2 
             form_constraint_error = False
             if len(opt_selected_strategies) < min_strats_for_obj:
@@ -873,17 +829,15 @@ def show_portfolio_analysis_page():
                 display_custom_message(f"Error: Sum of minimum weight constraints ({sum_min_weights_final_val*100:.1f}%) exceeds 100%. Please adjust constraints.", "error")
                 form_constraint_error = True
             
-            for i_val, strat_name_val in enumerate(opt_selected_strategies): # Check min <= max for each
+            for i_val, strat_name_val in enumerate(opt_selected_strategies): 
                  min_b_val, max_b_val = opt_asset_bounds_list[i_val]
                  if min_b_val > max_b_val:
                      display_custom_message(f"Error for strategy {strat_name_val}: Min weight ({min_b_val*100:.1f}%) cannot be greater than Max weight ({max_b_val*100:.1f}%).", "error")
                      form_constraint_error = True
-                     break # Stop on first error
+                     break 
             
             if not form_constraint_error:
                 with st.spinner("Optimizing portfolio... This may take a moment."):
-                    # Pass portfolio_df (which is already globally date-filtered and account-filtered)
-                    # as tuple (data, columns) for caching compatibility with _run_portfolio_optimization_logic
                     portfolio_df_for_opt_tuple = (portfolio_df.to_records(index=False).tolist(), portfolio_df.columns.tolist())
                     
                     optimization_run_results = _run_portfolio_optimization_logic(
@@ -913,14 +867,14 @@ def show_portfolio_analysis_page():
                         st.dataframe(optimal_weights_display_df[["Weight %"]].style.format("{:.2f}%"))
                         
                         fig_pie_optimal_alloc = px.pie(
-                            optimal_weights_display_df[optimal_weights_display_df['Weight'] > 1e-5], # Filter tiny weights
+                            optimal_weights_display_df[optimal_weights_display_df['Weight'] > 1e-5], 
                             values='Weight', names=optimal_weights_display_df[optimal_weights_display_df['Weight'] > 1e-5].index,
                             title=f'Optimal Allocation ({opt_objective_display})', hole=0.3
                         )
                         fig_pie_optimal_alloc.update_traces(textposition='inside', textinfo='percent+label')
                         st.plotly_chart(_apply_custom_theme(fig_pie_optimal_alloc, plot_theme), use_container_width=True)
 
-                        if opt_current_weights_derived: # If derived weights were calculated
+                        if opt_current_weights_derived: 
                             portfolio_turnover_val = calculate_portfolio_turnover(opt_current_weights_derived, final_optimal_weights)
                             st.metric(label="Portfolio Turnover (vs. Derived Current Weights)", value=format_percentage(portfolio_turnover_val))
                         else:
@@ -934,14 +888,23 @@ def show_portfolio_analysis_page():
                     st.subheader(f"Optimized Portfolio Performance (Annualized) - {opt_objective_display}")
                     optimized_kpis_data = optimization_run_results.get('performance', {})
                     if optimized_kpis_data:
+                        # Use programmatic keys for optimized KPIs as well
                         opt_kpi_order_display = ["expected_annual_return", "annual_volatility", "sharpe_ratio"] 
-                        KPIClusterDisplay(
-                            kpi_results=optimized_kpis_data,
-                            kpi_definitions=KPI_CONFIG, 
-                            kpi_order=opt_kpi_order_display,
-                            cols_per_row=3
-                        ).render()
-                        with st.expander("View Full Optimized Performance Data"):
+                        kpis_to_show_opt = {
+                            key: optimized_kpis_data.get(key)
+                            for key in opt_kpi_order_display
+                        }
+                        if any(v is not None for v in kpis_to_show_opt.values()):
+                            KPIClusterDisplay(
+                                kpi_results=kpis_to_show_opt, # Pass the filtered dict
+                                kpi_definitions=KPI_CONFIG, 
+                                kpi_order=opt_kpi_order_display, # Pass the order list
+                                cols_per_row=3
+                            ).render()
+                        else:
+                             display_custom_message("Optimized performance KPIs are not available.", "warning")
+
+                        with st.expander("View Full Optimized Performance Data (Raw)"):
                             st.dataframe(pd.DataFrame.from_dict(optimized_kpis_data, orient='index', columns=['Value']))
                     else:
                         st.warning("Optimized performance KPIs not found in results.")
@@ -960,9 +923,9 @@ def show_portfolio_analysis_page():
                             fig_risk_contrib_bar.update_yaxes(ticksuffix="%")
                             st.plotly_chart(_apply_custom_theme(fig_risk_contrib_bar, plot_theme), use_container_width=True)
                             with st.expander("View Risk Contribution Data"): st.dataframe(risk_contrib_df)
-                        elif not risk_contrib_data: # Empty dict or list
-                             st.info("Risk contribution data is available but empty (e.g., single asset portfolio or specific optimization objectives like Risk Parity might not populate this).")
-                        else: # Not a dict or unexpected format
+                        elif not risk_contrib_data: 
+                             st.info("Risk contribution data is available but empty.")
+                        else: 
                              st.info("Risk contribution data is not in the expected dictionary format.")
                     
                     if opt_objective_key in ["maximize_sharpe_ratio", "minimize_volatility"]:
@@ -985,11 +948,11 @@ def show_portfolio_analysis_page():
 
                             temp_frontier_plot_df = pd.DataFrame(eff_frontier_data)
                             if not temp_frontier_plot_df.empty:
-                                if min_v_vol_plot is None: 
+                                if min_v_vol_plot is None and 'volatility' in temp_frontier_plot_df: 
                                     min_vol_idx_plot = temp_frontier_plot_df['volatility'].idxmin()
                                     min_v_vol_plot = temp_frontier_plot_df.loc[min_vol_idx_plot, 'volatility']
                                     min_v_ret_plot = temp_frontier_plot_df.loc[min_vol_idx_plot, 'return']
-                                if max_s_vol_plot is None: 
+                                if max_s_vol_plot is None and 'return' in temp_frontier_plot_df and 'volatility' in temp_frontier_plot_df: 
                                     temp_frontier_plot_df['sharpe_calc'] = (temp_frontier_plot_df['return'] - risk_free_rate) / temp_frontier_plot_df['volatility'].replace(0, np.nan)
                                     if not temp_frontier_plot_df['sharpe_calc'].isnull().all():
                                         max_sharpe_idx_plot = temp_frontier_plot_df['sharpe_calc'].idxmax()
@@ -1012,13 +975,9 @@ def show_portfolio_analysis_page():
                     display_custom_message(f"Portfolio Optimization Error: {optimization_run_results.get('error')}", "error")
                 else: 
                     display_custom_message("Portfolio optimization process failed to return valid results.", "error")
-        # Implicit else for `if submit_optimization_button...`: if not submitted, nothing happens here.
 
-
-    # --- Equity Comparison Tab ---
     with tab_comparison:
         st.header(f"Compare Equity Curves ({start_date_selected.strftime('%Y-%m-%d')} to {end_date_selected.strftime('%Y-%m-%d')})")
-        # unique_accounts_in_range is derived from globally date-filtered base_df
         if len(unique_accounts_in_range) < 2:
             st.info("At least two distinct accounts are needed in the selected date range for comparison.")
         else:
@@ -1035,7 +994,6 @@ def show_portfolio_analysis_page():
                 st.warning("Please select two different accounts for a meaningful comparison.")
             else:
                 st.subheader(f"Equity Curve Comparison: {acc1_compare_selected} vs. {acc2_compare_selected}")
-                # Use the globally date-filtered base_df (base_df_filtered_by_date) for comparison data
                 df_acc1_comp_raw = base_df_filtered_by_date[base_df_filtered_by_date[account_col_actual] == acc1_compare_selected]
                 df_acc2_comp_raw = base_df_filtered_by_date[base_df_filtered_by_date[account_col_actual] == acc2_compare_selected]
                 
@@ -1089,39 +1047,40 @@ def show_portfolio_analysis_page():
                         with st.expander("View Combined Equity Comparison Data (Aligned & Forward-Filled)"):
                             st.dataframe(combined_equity_for_comparison_df)
 
-# Standalone execution / testing block
 if __name__ == "__main__":
-    # Configure logging for standalone run if not already configured by a main app.py
     if not logging.getLogger(APP_TITLE if 'APP_TITLE' in globals() else "PortfolioAnalysisPage").hasHandlers():
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # Mock essential configurations if not imported (e.g., running file directly)
     if 'APP_TITLE' not in globals(): APP_TITLE = "PortfolioApp_Standalone_Test" 
     if 'EXPECTED_COLUMNS' not in globals():
         EXPECTED_COLUMNS = {
             'account_str': 'Account', 'pnl': 'PnL', 'date': 'Date', 'strategy': 'Strategy'    
         }
-    if 'RISK_FREE_RATE' not in globals(): RISK_FREE_RATE = 0.01 # Default 1%
+    if 'RISK_FREE_RATE' not in globals(): RISK_FREE_RATE = 0.01
     if 'KPI_CONFIG' not in globals(): 
-        KPI_CONFIG = { # Basic mock for KPI definitions
-            "Total PnL": {"label": "Total PnL", "type": "currency", "description": "Total Profit and Loss"},
-            "Sharpe Ratio": {"label": "Sharpe Ratio", "type": "float", "description": "Risk-adjusted return (annualized)"},
-            "Sortino Ratio": {"label": "Sortino Ratio", "type": "float", "description": "Downside risk-adjusted return"},
-            "Calmar Ratio": {"label": "Calmar Ratio", "type": "float", "description": "Return over Max Drawdown"},
-            "Max Drawdown Abs": {"label": "Max Drawdown (Abs)", "type": "currency", "description": "Largest peak-to-trough decline"},
-            "Max Drawdown %": {"label": "Max Drawdown (%)", "type": "percentage", "description": "Largest peak-to-trough decline in %"},
-            "Avg Daily PnL": {"label": "Avg Daily PnL", "type": "currency", "description": "Average daily profit or loss"},
+        # Ensure KPI_CONFIG uses programmatic keys
+        KPI_CONFIG = { 
+            "total_pnl": {"label": "Total PnL", "type": "currency", "description": "Total Profit and Loss"},
+            "total_trades": {"label": "Total Trades", "type": "integer", "description": "Total number of trades"},
+            "win_rate": {"label": "Win Rate %", "type": "percentage", "description": "Percentage of winning trades"},
+            "avg_trade_pnl": {"label": "Avg Trade PnL", "type": "currency", "description": "Average PnL per trade"},
+            "sharpe_ratio": {"label": "Sharpe Ratio", "type": "float", "description": "Risk-adjusted return (annualized)"},
+            "sortino_ratio": {"label": "Sortino Ratio", "type": "float", "description": "Downside risk-adjusted return (annualized)"},
+            "calmar_ratio": {"label": "Calmar Ratio", "type": "float", "description": "Return over Max Drawdown (annualized)"},
+            "max_drawdown_pct": {"label": "Max Drawdown %", "type": "percentage", "description": "Largest peak-to-trough decline in %"},
+            "max_drawdown_abs": {"label": "Max Drawdown (Abs)", "type": "currency", "description": "Largest peak-to-trough decline in absolute terms"},
+            "avg_daily_pnl": {"label": "Avg Daily PnL", "type": "currency", "description": "Average daily profit or loss"},
+            "pnl_skewness": {"label": "PnL Skewness", "type": "float", "description": "Skewness of PnL distribution"},
+            "pnl_kurtosis": {"label": "PnL Kurtosis", "type": "float", "description": "Kurtosis of PnL distribution"},
             "expected_annual_return": {"label": "Expected Annual Return", "type": "percentage", "description": "Annualized expected return from optimization"},
             "annual_volatility": {"label": "Annual Volatility", "type": "percentage", "description": "Annualized standard deviation of returns from optimization"},
         }
-    if 'COLORS' not in globals(): COLORS = {"primary": "#007bff", "secondary": "#6c757d"} # Mock colors
+    if 'COLORS' not in globals(): COLORS = {"primary": "#007bff", "secondary": "#6c757d"} 
 
-    # Initialize session state for standalone testing if not already done by a main app.py
     if 'app_initialized' not in st.session_state: 
-        # Create more comprehensive sample data for testing all features
         date_rng_start = pd.to_datetime('2022-01-01')
         date_rng_end = pd.to_datetime('2023-12-31')
-        trading_dates = pd.bdate_range(start=date_rng_start, end=date_rng_end) # Business days
+        trading_dates = pd.bdate_range(start=date_rng_start, end=date_rng_end) 
         
         num_entries_per_day_approx = 3
         total_mock_entries = len(trading_dates) * num_entries_per_day_approx
@@ -1132,8 +1091,7 @@ if __name__ == "__main__":
         mock_strategies = ['MomentumStrat', 'MeanReversionStrat', 'ArbitrageStrat', 'TrendFollowStrat', 'ValueInvestStrat']
         mock_accounts = ['PrimaryAccount', 'HedgeFundAccount', 'AlphaCaptureAccount']
         
-        np.random.seed(42) # for reproducibility
-        # Generate PnL with a slight positive drift and some noise
+        np.random.seed(42) 
         mock_pnl_values = np.random.normal(loc=20, scale=300, size=total_mock_entries) + np.linspace(0, 100, total_mock_entries)
 
         sample_data_dict_mock = {
@@ -1143,17 +1101,15 @@ if __name__ == "__main__":
             EXPECTED_COLUMNS['account_str']: np.random.choice(mock_accounts, total_mock_entries)
         }
         st.session_state.processed_data = pd.DataFrame(sample_data_dict_mock)
-        st.session_state.initial_capital = 500000.0 # Example initial capital
+        st.session_state.initial_capital = 500000.0 
         st.session_state.risk_free_rate = RISK_FREE_RATE 
-        st.session_state.current_theme = 'dark' # Default to dark for testing
+        st.session_state.current_theme = 'dark' 
         
-        # Mock user column mapping if other parts of your app rely on it
         st.session_state.user_column_mapping = { 
             key: EXPECTED_COLUMNS[key] for key in EXPECTED_COLUMNS
         }
-        st.session_state.app_initialized = True # Mark as initialized for standalone context
+        st.session_state.app_initialized = True 
         logger.info("Mock data and session state initialized for standalone run of Portfolio Analysis Page.")
         st.sidebar.success("Mock data loaded for testing Portfolio Analysis.")
     
-    # Call the main function to display the page
     show_portfolio_analysis_page()
