@@ -556,7 +556,13 @@ def show_portfolio_analysis_page():
                     st.subheader(f"Optimized Portfolio Performance (Annualized) - {optimization_objective_display_form}")
                     optimized_kpis = opt_results.get('performance', {})
                     if optimized_kpis:
-                        KPIClusterDisplay(optimized_kpis, KPI_CONFIG, ["expected_annual_return", "annual_volatility", "sharpe_ratio"], 3).render()
+                        # Corrected KPIClusterDisplay call
+                        KPIClusterDisplay(
+                            kpi_results=optimized_kpis,
+                            kpi_definitions=KPI_CONFIG,
+                            kpi_order=["expected_annual_return", "annual_volatility", "sharpe_ratio"],
+                            cols_per_row=3 # Explicitly named
+                        ).render()
                         with st.expander("View Optimized Performance Data"): st.dataframe(pd.DataFrame.from_dict(optimized_kpis, orient='index', columns=['Value']))
                     else: st.warning("Optimized performance KPIs not found.")
 
@@ -621,12 +627,11 @@ def show_portfolio_analysis_page():
 
                 for df_raw, acc_name in [(df_acc1_raw, acc1_comp), (df_acc2_raw, acc2_comp)]:
                     if df_raw.empty: continue
-                    # Corrected call to _clean_data_for_analysis using keyword arguments
                     df_cleaned = _clean_data_for_analysis(
                         df_raw, 
                         date_col=date_col_actual, 
                         pnl_col=pnl_col_actual, 
-                        required_cols_to_check_na=[pnl_col_actual] # Pass list to the correct parameter
+                        required_cols_to_check_na=[pnl_col_actual] 
                     )
                     if not df_cleaned.empty:
                         df_cleaned['cumulative_pnl'] = df_cleaned[pnl_col_actual].cumsum()
@@ -638,7 +643,7 @@ def show_portfolio_analysis_page():
                     display_custom_message(f"One or both accounts lack valid P&L data for comparison.", "warning")
                 else:
                     combined_equity_comp_df.sort_values(by=date_col_actual, inplace=True)
-                    combined_equity_comp_df = combined_equity_comp_df.ffill().fillna(0) # Use ffill() directly
+                    combined_equity_comp_df = combined_equity_comp_df.ffill().fillna(0) 
                     fig_comp = go.Figure()
                     if f'Equity_{acc1_comp}' in combined_equity_comp_df:
                         fig_comp.add_trace(go.Scatter(x=combined_equity_comp_df[date_col_actual], y=combined_equity_comp_df[f'Equity_{acc1_comp}'], name=f"{acc1_comp} Equity"))
@@ -653,34 +658,36 @@ if __name__ == "__main__":
     st.set_page_config(layout="wide", page_title="Portfolio Analysis", initial_sidebar_state="expanded")
     if 'APP_TITLE' not in globals(): APP_TITLE = "PortfolioApp_Standalone" 
     
-    # Minimal mock for EXPECTED_COLUMNS and RISK_FREE_RATE if running standalone
     if 'EXPECTED_COLUMNS' not in globals():
         EXPECTED_COLUMNS = {
-            'account_str': 'Account', # Example, adjust to your CSV
-            'pnl': 'PnL',             # Example, adjust to your CSV
-            'date': 'Date',           # Example, adjust to your CSV
-            'strategy': 'Strategy'    # Example, adjust to your CSV
+            'account_str': 'Account', 
+            'pnl': 'PnL',             
+            'date': 'Date',           
+            'strategy': 'Strategy'    
         }
     if 'RISK_FREE_RATE' not in globals():
         RISK_FREE_RATE = 0.01
-    if 'KPI_CONFIG' not in globals(): # KPI_CONFIG might be more complex
-        KPI_CONFIG = {}
-
+    if 'KPI_CONFIG' not in globals(): 
+        KPI_CONFIG = {} # This should ideally be populated with your KPI definitions
 
     if 'app_initialized' not in st.session_state: 
-        # For standalone testing, you might need to mock st.session_state.processed_data
-        # and other session variables like initial_capital, risk_free_rate, current_theme
-        # Example:
+        # Mock data for standalone testing:
         # sample_data = {
-        #     EXPECTED_COLUMNS['date']: pd.to_datetime(['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02']),
-        #     EXPECTED_COLUMNS['pnl']: [10, -5, 20, 10],
-        #     EXPECTED_COLUMNS['strategy']: ['StratA', 'StratB', 'StratA', 'StratB'],
-        #     EXPECTED_COLUMNS['account_str']: ['Acc1', 'Acc1', 'Acc2', 'Acc2']
+        #     EXPECTED_COLUMNS['date']: pd.to_datetime(['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02', '2023-01-03', '2023-01-03']),
+        #     EXPECTED_COLUMNS['pnl']: [10, -5, 20, 10, -15, 25],
+        #     EXPECTED_COLUMNS['strategy']: ['StratA', 'StratB', 'StratA', 'StratB', 'StratA', 'StratB'],
+        #     EXPECTED_COLUMNS['account_str']: ['Acc1', 'Acc1', 'Acc2', 'Acc2', 'Acc1', 'Acc2']
         # }
         # st.session_state.processed_data = pd.DataFrame(sample_data)
         # st.session_state.initial_capital = 100000
-        # st.session_state.risk_free_rate = RISK_FREE_RATE
+        # st.session_state.risk_free_rate = RISK_FREE_RATE # Use the defined or mocked one
         # st.session_state.current_theme = 'dark'
+        # st.session_state.user_column_mapping = { # Mock a basic mapping if your app relies on it early
+        #     'date': EXPECTED_COLUMNS['date'],
+        #     'pnl': EXPECTED_COLUMNS['pnl'],
+        #     'strategy': EXPECTED_COLUMNS['strategy'],
+        #     'account_str': EXPECTED_COLUMNS['account_str']
+        # }
         st.warning("Running page directly. Full app functionality may be limited. Ensure `config.py` variables are accessible or mocked, and `st.session_state.processed_data` is populated for testing.")
     
     show_portfolio_analysis_page()
