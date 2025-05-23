@@ -1,3 +1,4 @@
+# utils/logger.py
 """
 utils/logger.py
 
@@ -31,7 +32,7 @@ try:
     # The logger will be configured by app.py passing parameters from config.py.
     # So, we don't strictly need to import config here if setup_logger always receives them.
     # For fallback/default values if not passed:
-    _DEFAULT_APP_TITLE = "TradingDashboard_Default"
+    _DEFAULT_APP_TITLE = "TradingDashboard_Default" # This will be the default logger name if not specified
     _DEFAULT_LOG_FILE = "logs/trading_dashboard_app_default.log"
     _DEFAULT_LOG_LEVEL = "INFO"
     _DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - [%(module)s:%(funcName)s:%(lineno)d] - %(message)s"
@@ -88,6 +89,8 @@ def setup_logger(
     formatter = logging.Formatter(log_format)
 
     # Clear existing handlers to prevent duplication if any were attached externally
+    # or if this function is somehow called again for the same logger object
+    # before being stored in _loggers (though the check above should prevent this).
     if logger.hasHandlers():
         logger.handlers.clear()
 
@@ -107,7 +110,8 @@ def setup_logger(
                 os.makedirs(log_dir, exist_ok=True)
             except OSError as e:
                 # Fallback to logging to console if directory creation fails
-                logger.error(f"Error creating log directory {log_dir}: {e}. File logging will be disabled.", exc_info=True)
+                # Use a basic print here as logger might not be fully set up for console yet
+                print(f"Error (logger.py): Error creating log directory {log_dir}: {e}. File logging will be disabled for {logger_name}.", file=sys.stderr)
                 log_file = None # Disable file logging for this call
 
         if log_file: # Check again in case it was disabled
@@ -123,11 +127,13 @@ def setup_logger(
                 logger.addHandler(file_handler)
             except Exception as e:
                 # Use a basic print here if logger itself is failing for file handler
-                print(f"Critical Error: Failed to set up file handler for {log_file}: {e}", file=sys.stderr)
+                print(f"Critical Error (logger.py): Failed to set up file handler for {log_file} (logger: {logger_name}): {e}", file=sys.stderr)
                 # The console handler (if enabled) should still work.
 
     # Set propagation to False if this is the main app logger and you don't want
     # logs to go to the root logger if it has handlers.
+    # For module-specific loggers, this is also often desired to avoid duplicate messages
+    # if the root logger is also configured with handlers.
     logger.propagate = False
 
     _loggers[logger_name] = logger # Store configured logger
@@ -139,7 +145,7 @@ if __name__ == "__main__":
     # This will use the default config values defined in this file.
     main_app_logger = setup_logger(
         logger_name="MainAppTest",
-        log_file="logs/main_app_test.log",
+        log_file="logs/main_app_test.log", # Example specific file
         level="DEBUG"
     )
     main_app_logger.debug("This is a debug message from MainAppTest logger.")
@@ -147,7 +153,7 @@ if __name__ == "__main__":
 
     module_logger = setup_logger(
         logger_name="ModuleSpecificTest",
-        log_file="logs/module_test.log",
+        log_file="logs/module_test.log", # Example specific file
         level="INFO",
         console_output=False # Test disabling console for this one
     )
@@ -155,7 +161,12 @@ if __name__ == "__main__":
     module_logger.warning("This warning also only to file for ModuleSpecificTest.")
 
     # Attempting to get the same logger should return the configured one without re-adding handlers
-    retrieved_main_logger = setup_logger(logger_name="MainAppTest")
+    retrieved_main_logger = setup_logger(logger_name="MainAppTest") # Will use existing
     retrieved_main_logger.info("Info message from retrieved MainAppTest logger (should not have duplicate handlers).")
+    
+    # Test logger using only default name (which uses _DEFAULT_LOG_FILE)
+    default_named_logger = setup_logger() # Uses _DEFAULT_APP_TITLE
+    default_named_logger.info(f"This message is from the default logger: {default_named_logger.name}")
 
-    print(f"Log files for testing should be at: logs/main_app_test.log and logs/module_test.log")
+
+    print(f"Log files for testing should be at: logs/main_app_test.log, logs/module_test.log, and potentially {_DEFAULT_LOG_FILE}")
