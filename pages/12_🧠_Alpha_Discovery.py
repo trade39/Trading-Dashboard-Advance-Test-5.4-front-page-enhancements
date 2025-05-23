@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from utils.logger import get_logger
+from utils.logger import setup_logger # Corrected import
 from utils.common_utils import (
     ensure_data_loaded,
     get_numeric_columns,
@@ -18,7 +18,9 @@ from analytics.ml_alpha_discovery import run_feature_importance_analysis, run_cl
 from analytics.statistical_alpha_analyzer import calculate_correlations, perform_t_test_for_groups, plot_distribution
 # from config import ALPHA_DISCOVERY_CONFIG # Example: For future use
 
-logger = get_logger(__name__)
+# Corrected logger initialization
+logger = setup_logger(logger_name=__name__)
+
 
 def show_alpha_discovery_page():
     """
