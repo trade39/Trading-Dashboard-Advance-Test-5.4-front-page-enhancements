@@ -65,8 +65,6 @@ logger = logging.getLogger(APP_TITLE)
 statistical_service = StatisticalAnalysisService()
 
 # --- Constants for Conceptual Column Keys ---
-# These keys are used with `get_column_name` to retrieve actual DataFrame column names.
-# They are often aligned with keys in EXPECTED_COLUMNS or PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.
 PNL_KEY = 'pnl'
 DATE_KEY = 'date'
 STRATEGY_KEY = 'strategy'
@@ -123,45 +121,31 @@ def get_column_name(conceptual_key: str, df_columns: Optional[pd.Index] = None) 
     if df_columns is not None and actual_col and actual_col not in df_columns:
         logger.warning(f"Conceptual key '{conceptual_key}' maps to '{actual_col}', but it's not in DataFrame columns: {df_columns.tolist()}")
         return None
-    elif not actual_col: # conceptual_key not in EXPECTED_COLUMNS
+    elif not actual_col: 
         logger.warning(f"Conceptual key '{conceptual_key}' not found in EXPECTED_COLUMNS mapping.")
         return None
         
     return actual_col
 
-@st.cache_data # Cache the results of this potentially expensive function
+@st.cache_data 
 def calculate_performance_summary_by_category(
     df: pd.DataFrame, category_col: str, pnl_col: str, win_col: str,
     calculate_cis_for: Optional[List[str]] = None
 ) -> pd.DataFrame:
     """
     Calculates a detailed performance summary grouped by a specified category.
-
-    Args:
-        df (pd.DataFrame): The input DataFrame containing trade data.
-        category_col (str): The name of the column to group by.
-        pnl_col (str): The name of the Profit and Loss (PnL) column.
-        win_col (str): The name of the boolean column indicating a winning trade.
-        calculate_cis_for (Optional[List[str]]): List of metrics for which to calculate 
-                                                 bootstrap confidence intervals (e.g., ["Average PnL", "Win Rate %"]).
-
-    Returns:
-        pd.DataFrame: A DataFrame summarizing performance metrics for each category group,
-                      including Total PnL, Total Trades, Win Rate, Expectancy, Average PnL,
-                      and optionally, confidence intervals for Average PnL and Win Rate.
-                      Returns an empty DataFrame if essential columns are missing or errors occur.
+    Includes Total PnL, Total Trades, Win Rate, Expectancy, Average PnL,
+    and optionally, confidence intervals for Average PnL and Win Rate.
     """
     if calculate_cis_for is None:
         calculate_cis_for = []
 
-    # Validate essential columns
     if category_col not in df.columns or pnl_col not in df.columns or win_col not in df.columns:
         logger.error(f"Missing required columns for performance summary: category='{category_col}', pnl='{pnl_col}', win='{win_col}'")
         return pd.DataFrame()
 
-    df_copy = df.copy() # Work on a copy to avoid modifying the original DataFrame
+    df_copy = df.copy() 
 
-    # Ensure win_col is boolean. If not, try to derive it from pnl_col.
     if not pd.api.types.is_bool_dtype(df_copy[win_col]):
         if pd.api.types.is_numeric_dtype(df_copy[pnl_col]):
             logger.info(f"Win column '{win_col}' is not boolean. Creating it from PnL column '{pnl_col}' (PnL > 0).")
@@ -170,46 +154,36 @@ def calculate_performance_summary_by_category(
             logger.error(f"Cannot create boolean win column: PnL column '{pnl_col}' is not numeric, and win column '{win_col}' is not boolean.")
             return pd.DataFrame()
 
-    # Group data by the specified category, filling NaN categories with 'N/A'
-    # observed=False ensures all categories are present even if filtered out in the current view
     df_grouped = df_copy.fillna({category_col: 'N/A'}).groupby(category_col, observed=False)
-    
     summary_data = []
 
     for name_of_group, group_df in df_grouped:
         total_trades = len(group_df)
-        if total_trades == 0:  # Skip empty groups
-            continue
+        if total_trades == 0: continue
 
         total_pnl = group_df[pnl_col].sum()
         avg_pnl = group_df[pnl_col].mean()
-
         num_wins = group_df[win_col].sum()
         num_losses = total_trades - num_wins
         win_rate_pct = (num_wins / total_trades) * 100 if total_trades > 0 else 0.0
 
-        # Initialize CI variables
         avg_pnl_ci_lower, avg_pnl_ci_upper = np.nan, np.nan
         win_rate_ci_lower, win_rate_ci_upper = np.nan, np.nan
 
-        # Calculate Confidence Intervals if requested and group size is sufficient
-        if total_trades >= 10: # Minimum trades for meaningful CI
+        if total_trades >= 10: 
             try:
                 if "Average PnL" in calculate_cis_for:
                     avg_pnl_bs_results = statistical_service.calculate_bootstrap_ci(
                         data_series=group_df[pnl_col], statistic_func=np.mean,
-                        n_iterations=BOOTSTRAP_ITERATIONS // 4, confidence_level=CONFIDENCE_LEVEL # Reduce iterations for faster UI
+                        n_iterations=BOOTSTRAP_ITERATIONS // 4, confidence_level=CONFIDENCE_LEVEL
                     )
                     if 'error' not in avg_pnl_bs_results:
                         avg_pnl_ci_lower = avg_pnl_bs_results['lower_bound']
                         avg_pnl_ci_upper = avg_pnl_bs_results['upper_bound']
 
                 if "Win Rate %" in calculate_cis_for:
-                    # Statistic function for win rate (as percentage)
                     win_rate_stat_func = lambda x_series: (np.sum(x_series > 0) / len(x_series)) * 100 if len(x_series) > 0 else 0.0
-                    # Bootstrap CI for win rate based on PnL values (determining win/loss)
                     data_for_win_rate_bs = group_df[pnl_col] 
-                    
                     win_rate_bs_results = statistical_service.calculate_bootstrap_ci(
                         data_series=data_for_win_rate_bs, statistic_func=win_rate_stat_func,
                         n_iterations=BOOTSTRAP_ITERATIONS // 4, confidence_level=CONFIDENCE_LEVEL
@@ -221,16 +195,10 @@ def calculate_performance_summary_by_category(
                 logger.warning(f"Error during bootstrapping for group '{name_of_group}' in category '{category_col}': {e_bs}")
 
         loss_rate_pct = (num_losses / total_trades) * 100 if total_trades > 0 else 0.0
-        
-        # Calculate average win/loss amounts
         wins_df = group_df[group_df[win_col]]
-        # Ensure losses are actually < 0 for avg_loss_amount calculation
         losses_df = group_df[~group_df[win_col] & (group_df[pnl_col] < 0)] 
-        
         avg_win_amount = wins_df[pnl_col].sum() / num_wins if num_wins > 0 else 0.0
         avg_loss_amount = abs(losses_df[pnl_col].sum()) / num_losses if num_losses > 0 else 0.0
-        
-        # Calculate Expectancy
         expectancy = (avg_win_amount * (win_rate_pct / 100.0)) - (avg_loss_amount * (loss_rate_pct / 100.0))
 
         summary_data.append({
@@ -242,7 +210,7 @@ def calculate_performance_summary_by_category(
     
     summary_df = pd.DataFrame(summary_data)
     if not summary_df.empty:
-        summary_df = summary_df.sort_values(by="Total PnL", ascending=False) # Default sort
+        summary_df = summary_df.sort_values(by="Total PnL", ascending=False) 
     return summary_df
 
 def display_data_table_with_checkbox(
@@ -252,17 +220,7 @@ def display_data_table_with_checkbox(
     dataframe_kwargs: Optional[Dict] = None,
     default_checked: bool = False
 ):
-    """
-    Displays a Streamlit checkbox that, when checked, shows a DataFrame.
-
-    Args:
-        df_to_display (pd.DataFrame): The DataFrame to display.
-        checkbox_label (str): The label for the checkbox.
-        unique_key (str): A unique key for the Streamlit checkbox widget.
-        dataframe_kwargs (Optional[Dict]): Additional keyword arguments to pass to st.dataframe.
-                                           Defaults to {'use_container_width': True, 'hide_index': True}.
-        default_checked (bool): Whether the checkbox should be checked by default.
-    """
+    """Displays a Streamlit checkbox that, when checked, shows a DataFrame."""
     if dataframe_kwargs is None:
         dataframe_kwargs = {'use_container_width': True, 'hide_index': True}
 
@@ -274,10 +232,9 @@ def display_data_table_with_checkbox(
 # --- Helper Functions for Rendering Sections ---
 def render_strategy_performance_insights(
     df: pd.DataFrame, pnl_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # kwargs will capture any extra arguments like win_col_actual, date_col_actual if passed
-    st.header("💡 1. Strategy Performance Insights")
+    st.header("💡 Strategy Performance Insights") # Changed from "1." to just the title for cleaner tab view
     with st.expander("Strategy Metrics", expanded=False):
         col1a, col1b = st.columns(2)
         with col1a:
@@ -298,7 +255,7 @@ def render_strategy_performance_insights(
             trade_plan_col_actual = get_column_name(TRADE_PLAN_KEY, df.columns)
             if trade_plan_col_actual and trade_result_col_actual in df.columns:
                 result_by_plan_data = pd.crosstab(df[trade_plan_col_actual].fillna('N/A'), df[trade_result_col_actual].fillna('N/A'))
-                for col in ['WIN', 'LOSS', 'BREAKEVEN']: # Ensure all result columns exist
+                for col in ['WIN', 'LOSS', 'BREAKEVEN']: 
                     if col not in result_by_plan_data.columns: result_by_plan_data[col] = 0
                 result_by_plan_data = result_by_plan_data[['WIN', 'LOSS', 'BREAKEVEN']]
                 
@@ -318,7 +275,7 @@ def render_strategy_performance_insights(
         st.markdown("---")
         rr_col_actual = get_column_name(RR_CSV_KEY, df.columns)
         direction_col_actual = get_column_name(DIRECTION_KEY, df.columns)
-        strategy_col_actual_for_rr = get_column_name(STRATEGY_KEY, df.columns) # Re-get for this specific plot
+        strategy_col_actual_for_rr = get_column_name(STRATEGY_KEY, df.columns) 
         if all(c is not None and c in df.columns for c in [strategy_col_actual_for_rr, rr_col_actual, direction_col_actual]):
             try:
                 df_rr_heatmap_prep = df[[strategy_col_actual_for_rr, rr_col_actual, direction_col_actual]].copy()
@@ -340,9 +297,9 @@ def render_strategy_performance_insights(
 
 def render_temporal_analysis(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, date_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    st.header("⏳ 2. Temporal Analysis")
+    st.header("⏳ Temporal Analysis")
     with st.expander("Time-Based Performance", expanded=False):
         col2a, col2b = st.columns(2)
         with col2a:
@@ -353,15 +310,13 @@ def render_temporal_analysis(
                     monthly_win_rate_series = df.groupby(month_num_col_actual, observed=False)[win_col_actual].mean() * 100
                     month_map_df = df[[month_num_col_actual, month_name_col_actual]].drop_duplicates().sort_values(month_num_col_actual)
                     month_mapping = pd.Series(month_map_df[month_name_col_actual].values, index=month_map_df[month_num_col_actual]).to_dict()
-                    # Sort by month number before renaming index to ensure correct order
                     monthly_win_rate_data = monthly_win_rate_series.sort_index().rename(index=month_mapping)
-
 
                     if not monthly_win_rate_data.empty:
                         fig_monthly_wr = plot_value_over_time(series=monthly_win_rate_data, series_name="Monthly Win Rate", title="Win Rate by Month", x_axis_title="Month", y_axis_title="Win Rate (%)", theme=plot_theme)
                         if fig_monthly_wr: st.plotly_chart(fig_monthly_wr, use_container_width=True)
                         display_data_table_with_checkbox(
-                            monthly_win_rate_data.reset_index().rename(columns={'index': 'Month', month_num_col_actual: 'Month Name', win_col_actual: 'Win Rate (%)'}), # Adjusted for potential index name
+                            monthly_win_rate_data.reset_index().rename(columns={'index': 'Month', month_num_col_actual: 'Month Name', win_col_actual: 'Win Rate (%)'}), 
                             "View Data: Win Rate by Month", f"{section_key_prefix}_view_monthly_wr"
                         )
                 except Exception as e_mwr: logger.error(f"Error in Monthly Win Rate: {e_mwr}", exc_info=True)
@@ -382,17 +337,15 @@ def render_temporal_analysis(
                         )
                 except Exception as e_sess_tf: logger.error(f"Error in Session/TF Heatmap: {e_sess_tf}", exc_info=True)
         st.markdown("---")
-        if date_col_actual and pnl_col_actual: # date_col_actual is used here
+        if date_col_actual and pnl_col_actual: 
             try:
-                # Ensure date_col_actual is datetime before .dt accessor
                 df_calendar = df.copy()
                 if not pd.api.types.is_datetime64_any_dtype(df_calendar[date_col_actual]):
                      df_calendar[date_col_actual] = pd.to_datetime(df_calendar[date_col_actual], errors='coerce')
                 df_calendar = df_calendar.dropna(subset=[date_col_actual])
 
-
                 daily_pnl_df_agg = df_calendar.groupby(df_calendar[date_col_actual].dt.normalize())[pnl_col_actual].sum().reset_index()
-                daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'}) # Standardize for PnLCalendarComponent
+                daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'}) 
                 available_years = sorted(daily_pnl_df_agg['date'].dt.year.unique(), reverse=True)
                 if available_years:
                     selected_year = st.selectbox("Select Year for P&L Calendar:", options=available_years, index=0, key=f"{section_key_prefix}_calendar_year_select")
@@ -405,9 +358,9 @@ def render_temporal_analysis(
 
 def render_market_context_impact(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    st.header("🌍 3. Market Context Impact")
+    st.header("🌍 Market Context Impact")
     with st.expander("Market Condition Effects", expanded=False):
         col3a, col3b = st.columns(2)
         with col3a:
@@ -434,16 +387,15 @@ def render_market_context_impact(
                 )
                 if fig_pnl_by_market: st.plotly_chart(fig_pnl_by_market, use_container_width=True)
                 
-                # For summary stats, we use a specific key for the checkbox
                 if st.checkbox(f"Show Summary Statistics for PnL by Market Condition", key=f"{section_key_prefix}_market_cond_stats"):
                     market_cond_pnl_summary = df.groupby(market_cond_col_actual, observed=False)[pnl_col_actual].describe()
                     st.dataframe(market_cond_pnl_summary, use_container_width=True)
         st.markdown("---")
         market_sent_col_actual = get_column_name(MARKET_SENTIMENT_KEY, df.columns)
-        if market_sent_col_actual and win_col_actual in df.columns: # win_col_actual is used here
+        if market_sent_col_actual and win_col_actual in df.columns: 
             try:
                 sentiment_win_rate_data = df.groupby(market_sent_col_actual, observed=False)[win_col_actual].mean().reset_index()
-                sentiment_win_rate_data[win_col_actual] *= 100 # Convert to percentage
+                sentiment_win_rate_data[win_col_actual] *= 100 
                 if not sentiment_win_rate_data.empty:
                     fig_sent_wr = px.bar(sentiment_win_rate_data, x=market_sent_col_actual, y=win_col_actual,
                                          title=f"Win Rate by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(MARKET_SENTIMENT_KEY, MARKET_SENTIMENT_KEY).replace('_',' ').title()}",
@@ -459,21 +411,20 @@ def render_market_context_impact(
             except Exception as e_sent_wr: logger.error(f"Error generating Market Sentiment vs Win Rate: {e_sent_wr}", exc_info=True)
 
 def render_behavioral_factors(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    st.header("🤔 4. Behavioral Factors")
+    st.header("🤔 Behavioral Factors")
     with st.expander("Trader Psychology & Compliance", expanded=False):
         col4a, col4b = st.columns(2)
         with col4a:
             psych_col_actual = get_column_name(PSYCHOLOGICAL_FACTORS_KEY, df.columns)
             if psych_col_actual and trade_result_col_actual in df.columns:
                 df_psych = df.copy()
-                # Process psychological factors: take the first factor if comma-separated
                 if df_psych[psych_col_actual].dtype == 'object':
                     df_psych[psych_col_actual] = df_psych[psych_col_actual].astype(str).str.split(',').str[0].str.strip().fillna('N/A')
                 
                 psych_result_data = pd.crosstab(df_psych[psych_col_actual], df_psych[trade_result_col_actual])
-                for col in ['WIN', 'LOSS', 'BREAKEVEN']: # Ensure all result columns exist
+                for col in ['WIN', 'LOSS', 'BREAKEVEN']: 
                     if col not in psych_result_data.columns: psych_result_data[col] = 0
                 psych_result_data = psych_result_data[['WIN', 'LOSS', 'BREAKEVEN']]
 
@@ -493,7 +444,7 @@ def render_behavioral_factors(
             compliance_col_actual = get_column_name(COMPLIANCE_CHECK_KEY, df.columns)
             if compliance_col_actual:
                 compliance_data = df[compliance_col_actual].fillna('N/A').value_counts().reset_index()
-                compliance_data.columns = [compliance_col_actual, 'count'] # Rename columns for clarity
+                compliance_data.columns = [compliance_col_actual, 'count'] 
                 fig_compliance = plot_donut_chart(
                     df=compliance_data, category_col=compliance_col_actual, value_col='count',
                     title=f"{PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(COMPLIANCE_CHECK_KEY, COMPLIANCE_CHECK_KEY).replace('_',' ').title()} Outcomes", theme=plot_theme,
@@ -506,9 +457,9 @@ def render_behavioral_factors(
                 )
 
 def render_capital_risk_insights(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    st.header("💰 5. Capital & Risk Insights")
+    st.header("💰 Capital & Risk Insights")
     with st.expander("Capital Management and Drawdown", expanded=False):
         col5a, col5b = st.columns(2)
         with col5a:
@@ -565,9 +516,9 @@ def render_capital_risk_insights(
 
 def render_exit_directional_insights(
     df: pd.DataFrame, win_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    st.header("🚪 6. Exit & Directional Insights")
+    st.header("🚪 Exit & Directional Insights")
     with st.expander("Trade Exits and Directional Bias", expanded=False):
         col6a, col6b = st.columns(2)
         with col6a:
@@ -587,9 +538,9 @@ def render_exit_directional_insights(
                 )
         with col6b:
             direction_col_actual_wr = get_column_name(DIRECTION_KEY, df.columns)
-            if direction_col_actual_wr and win_col_actual in df.columns: # win_col_actual is used here
+            if direction_col_actual_wr and win_col_actual in df.columns: 
                 dir_wr_data = df.groupby(direction_col_actual_wr, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
-                dir_wr_data['mean'] *= 100 # Convert to percentage
+                dir_wr_data['mean'] *= 100 
                 dir_wr_data.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
                 fig_dir_wr = plot_win_rate_analysis(
                     df=dir_wr_data, category_col=direction_col_actual_wr, win_rate_col='Win Rate (%)', trades_col='Total Trades',
@@ -645,7 +596,7 @@ def render_exit_directional_insights(
 def render_performance_summary_table(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, section_key_prefix: str
 ):
-    st.header("📊 7. Performance Summary by Custom Category")
+    st.header("📊 Performance Summary by Custom Category")
     with st.expander("View Performance Table with Confidence Intervals", expanded=True): 
         available_categories_for_table: Dict[str, str] = {}
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
@@ -710,8 +661,7 @@ def render_dynamic_category_visualizer(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, 
     plot_theme: str, section_key_prefix: str
 ):
-    st.markdown("---")
-    st.header("🔬 8. Dynamic Category Visualizer")
+    st.header("🔬 Dynamic Category Visualizer") # Removed "8."
     with st.expander("Explore Data Dynamically with Statistical Tests", expanded=True):
         available_categories_for_dynamic_plot: Dict[str, str] = {}
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
@@ -907,7 +857,9 @@ def show_categorical_analysis_page():
         return
 
     df = st.session_state.filtered_data
-    plot_theme = st.session_state.get('current_theme', PLOTLY_THEME_DARK if st.session_state.get('theme', 'dark') == 'dark' else PLOTLY_THEME_LIGHT)
+    # Ensure plot_theme is correctly determined based on session_state theme
+    current_ui_theme = st.session_state.get('theme', 'dark') # Default to dark if not set
+    plot_theme = PLOTLY_THEME_DARK if current_ui_theme == 'dark' else PLOTLY_THEME_LIGHT
 
 
     pnl_col_actual = get_column_name(PNL_KEY, df.columns)
@@ -922,23 +874,29 @@ def show_categorical_analysis_page():
         display_custom_message(f"Essential PnL column ('{EXPECTED_COLUMNS.get(PNL_KEY, PNL_KEY)}') not found. Analysis cannot proceed.", "error")
         logger.error(f"Essential PnL column ('{EXPECTED_COLUMNS.get(PNL_KEY, PNL_KEY)}') not found in DataFrame columns: {df.columns.tolist()}")
         return
+    
+    # Ensure 'win' column exists or is created
     if win_col_actual not in df.columns:
-        logger.warning(f"Engineered Win column ('{win_col_actual}') not found. Some analyses may be affected or default to PnL > 0.")
+        logger.warning(f"Engineered Win column ('{win_col_actual}') not found.")
         if pnl_col_actual and pd.api.types.is_numeric_dtype(df[pnl_col_actual]):
             df[win_col_actual] = df[pnl_col_actual] > 0
             logger.info(f"Created '{win_col_actual}' column based on '{pnl_col_actual}' > 0.")
         else:
             display_custom_message(f"Engineered Win column ('{win_col_actual}') not found and could not be created. Some analyses will be impacted.", "warning")
+            # For functions that strictly need 'win', they might fail if it's still not present.
+            # However, calculate_performance_summary_by_category handles this internally.
 
+    # Ensure 'trade_result_processed' column exists or is created
     if trade_result_col_actual not in df.columns:
-        logger.warning(f"Engineered Trade Result column ('{trade_result_col_actual}') not found. Some analyses may be affected.")
-        if pnl_col_actual and win_col_actual in df.columns : 
+        logger.warning(f"Engineered Trade Result column ('{trade_result_col_actual}') not found.")
+        # Create a fallback if pnl_col and win_col (which might have just been created) are available
+        if pnl_col_actual and win_col_actual in df.columns: 
              df[trade_result_col_actual] = np.select(
                 [df[pnl_col_actual] > 0, df[pnl_col_actual] < 0],
                 ['WIN', 'LOSS'],
                 default='BREAKEVEN'
             )
-             logger.info(f"Created '{trade_result_col_actual}' column based on PnL.")
+             logger.info(f"Created '{trade_result_col_actual}' column based on PnL and Win columns.")
         else:
             display_custom_message(f"Engineered Trade Result column ('{trade_result_col_actual}') not found and could not be created. Some analyses will be impacted.", "warning")
 
@@ -947,28 +905,66 @@ def show_categorical_analysis_page():
 
     common_render_args = {
         "pnl_col_actual": pnl_col_actual,
-        "win_col_actual": win_col_actual,
-        "trade_result_col_actual": trade_result_col_actual,
-        "date_col_actual": date_col_actual,
+        "win_col_actual": win_col_actual, # Now always included
+        "trade_result_col_actual": trade_result_col_actual, # Now always included
+        "date_col_actual": date_col_actual, # Now always included
         "plot_theme": plot_theme,
     }
 
-    render_strategy_performance_insights(df, **common_render_args, section_key_prefix="s1")
-    render_temporal_analysis(df, **common_render_args, section_key_prefix="s2")
-    render_market_context_impact(df, **common_render_args, section_key_prefix="s3")
-    render_behavioral_factors(df, **common_render_args, section_key_prefix="s4")
-    render_capital_risk_insights(df, **common_render_args, section_key_prefix="s5")
-    render_exit_directional_insights(df, **common_render_args, section_key_prefix="s6")
+    # Define tabs
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📈 Strategy & Execution", 
+        "🌍 Contextual Analysis", 
+        "👤 Trader & Risk", 
+        "🛠️ Custom Analysis"
+    ])
 
-    if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
-        render_performance_summary_table(df, pnl_col_actual, win_col_actual, section_key_prefix="s7")
-    else:
-        display_custom_message("Cannot render Performance Summary Table due to missing PnL or Win columns.", "warning")
+    with tab1:
+        # Ensure necessary args are available before calling
+        if pnl_col_actual and trade_result_col_actual in df.columns:
+             render_strategy_performance_insights(df, **common_render_args, section_key_prefix="s1")
+        else:
+            display_custom_message("Strategy performance insights cannot be rendered due to missing PnL or Trade Result columns.", "warning", "s1_strat_warn")
 
-    if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
-         render_dynamic_category_visualizer(df, pnl_col_actual, win_col_actual, plot_theme, section_key_prefix="s8")
-    else:
-        display_custom_message("Cannot render Dynamic Category Visualizer due to missing PnL or Win columns.", "warning")
+        if win_col_actual in df.columns and trade_result_col_actual in df.columns:
+            render_exit_directional_insights(df, **common_render_args, section_key_prefix="s6")
+        else:
+            display_custom_message("Exit & directional insights cannot be rendered due to missing Win or Trade Result columns.", "warning", "s1_exit_warn")
+
+
+    with tab2:
+        if pnl_col_actual and win_col_actual in df.columns and date_col_actual and trade_result_col_actual in df.columns:
+            render_temporal_analysis(df, **common_render_args, section_key_prefix="s2")
+        else:
+            display_custom_message("Temporal analysis cannot be rendered due to missing essential columns (PnL, Win, Date, or Trade Result).", "warning", "s2_temporal_warn")
+
+        if pnl_col_actual and win_col_actual in df.columns and trade_result_col_actual in df.columns:
+            render_market_context_impact(df, **common_render_args, section_key_prefix="s3")
+        else:
+            display_custom_message("Market context impact cannot be rendered due to missing PnL, Win, or Trade Result columns.", "warning", "s2_market_warn")
+
+    with tab3:
+        if trade_result_col_actual in df.columns:
+            render_behavioral_factors(df, **common_render_args, section_key_prefix="s4")
+        else:
+            display_custom_message("Behavioral factors cannot be rendered due to missing Trade Result column.", "warning", "s3_behav_warn")
+        
+        if trade_result_col_actual in df.columns:
+            render_capital_risk_insights(df, **common_render_args, section_key_prefix="s5")
+        else:
+            display_custom_message("Capital & risk insights cannot be rendered due to missing Trade Result column.", "warning", "s3_caprisk_warn")
+
+
+    with tab4:
+        if pnl_col_actual and win_col_actual in df.columns:
+            render_performance_summary_table(df, pnl_col_actual, win_col_actual, section_key_prefix="s7")
+        else:
+            display_custom_message("Performance Summary Table cannot be rendered due to missing PnL or Win columns.", "warning", "s4_summary_warn")
+
+        if pnl_col_actual and win_col_actual in df.columns:
+             render_dynamic_category_visualizer(df, pnl_col_actual, win_col_actual, plot_theme, section_key_prefix="s8")
+        else:
+            display_custom_message("Dynamic Category Visualizer cannot be rendered due to missing PnL or Win columns.", "warning", "s4_dynamic_warn")
 
 
 if __name__ == "__main__":
