@@ -1,337 +1,213 @@
-# pages/12_🧠_Alpha_Discovery.py
+# analytics/ml_alpha_discovery.py
 """
-Streamlit page for Alpha Discovery using statistical and ML techniques.
+Handles Machine Learning based alpha discovery analyses.
 """
-import streamlit as st
 import pandas as pd
 import numpy as np
+import streamlit as st
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report, r2_score, mean_squared_error
+import plotly.express as px
 
 from utils.logger import setup_logger # Corrected import
-from utils.common_utils import (
-    ensure_data_loaded,
-    get_numeric_columns,
-    get_categorical_columns,
-    get_non_numeric_columns
-)
-# Assuming analytics modules are structured as shown previously
-from analytics.ml_alpha_discovery import run_feature_importance_analysis, run_clustering_analysis
-from analytics.statistical_alpha_analyzer import calculate_correlations, perform_t_test_for_groups, plot_distribution
-# from config import ALPHA_DISCOVERY_CONFIG # Example: For future use
 
-# Corrected logger initialization
+# Corrected logger initialization:
+# Each module gets its own logger instance, configured by setup_logger.
+# It will use the default settings from setup_logger's signature 
+# (e.g. _DEFAULT_LOG_FILE, _DEFAULT_LOG_LEVEL from utils/logger.py)
+# unless a logger with this specific name (__name__) was already configured 
+# (e.g., by app.py with different parameters for this specific module name, which is less common).
 logger = setup_logger(logger_name=__name__)
 
-
-def show_alpha_discovery_page():
+@st.cache_data(show_spinner="Running Feature Importance Analysis...")
+def run_feature_importance_analysis(X: pd.DataFrame, y: pd.Series, problem_type="classification", test_size=0.2, random_state=42):
     """
-    Renders the Alpha Discovery page.
+    Trains a RandomForest model and returns feature importances.
+
+    Args:
+        X (pd.DataFrame): DataFrame of feature variables.
+        y (pd.Series): Series of the target variable.
+        problem_type (str): "classification" or "regression".
+        test_size (float): Proportion of the dataset to include in the test split.
+        random_state (int): Controls the shuffling applied to the data before applying the split.
+
+    Returns:
+        pd.DataFrame: DataFrame with features and their importance scores.
+        plotly.graph_objects.Figure: Plotly figure for feature importances.
+        str: Classification report or regression metrics.
+        object: Trained model.
     """
-    st.set_page_config(layout="wide", page_title="Alpha Discovery", page_icon="🧠")
-    st.title("🧠 Alpha Discovery")
-    st.markdown("""
-    Explore your trading data to uncover potential patterns and signals (alpha) 
-    using statistical analysis and machine learning models.
-    """)
+    logger.info(f"Starting feature importance analysis. Problem type: {problem_type}, X_shape: {X.shape}, y_shape: {y.shape}")
 
-    if not ensure_data_loaded():
-        return
+    if X.empty or y.empty:
+        logger.warning("Input data X or y is empty for feature importance analysis.")
+        return pd.DataFrame(), None, "Input data is empty.", None
 
-    df_processed = st.session_state.get('df_processed', pd.DataFrame())
-    if df_processed.empty: # Double check, ensure_data_loaded should catch this
-        st.warning("No processed data available. Please upload and process data first.")
-        return
-
-    # --- Configuration Note ---
-    # Advanced parameters for models (e.g., n_estimators, test_size for RandomForest)
-    # could be loaded from a `config.py` file or set via `st.sidebar.expander("Advanced Settings")`.
-    # Example:
-    # from config import RF_N_ESTIMATORS, RF_TEST_SIZE
-    # rf_n_estimators = st.sidebar.number_input("RF Estimators", value=RF_N_ESTIMATORS)
-
-    # --- Page Layout ---
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Exploratory Data Analysis (EDA)",
-        "🔗 Correlation Analysis",
-        "🔬 Hypothesis Testing",
-        "🤖 Machine Learning Insights"
-    ])
-
-    # --- 1. Exploratory Data Analysis (EDA) ---
-    with tab1:
-        st.header("📊 Exploratory Data Analysis")
-        st.markdown("Understand the distribution of individual variables.")
-        
-        eda_cols = get_numeric_columns(df_processed)
-        if not eda_cols:
-            st.info("No numeric columns available for EDA distribution plots.")
-        else:
-            eda_col_select = st.selectbox(
-                "Select a numeric column for distribution analysis:",
-                options=eda_cols,
-                key="eda_col_select",
-                help="Choose a column to see its statistical distribution."
-            )
-            if eda_col_select:
-                try:
-                    dist_fig = plot_distribution(df_processed, eda_col_select)
-                    if dist_fig:
-                        st.plotly_chart(dist_fig, use_container_width=True)
-                    else:
-                        st.warning(f"Could not generate distribution plot for {eda_col_select}.")
-                except Exception as e:
-                    logger.error(f"Error in EDA distribution plot for {eda_col_select}: {e}", exc_info=True)
-                    st.error(f"An error occurred while generating the distribution plot: {e}")
-
-    # --- 2. Correlation Analysis ---
-    with tab2:
-        st.header("🔗 Correlation Analysis")
-        st.markdown("Identify linear relationships between numeric variables.")
-        
-        corr_method = st.selectbox(
-            "Select correlation method:",
-            options=['pearson', 'kendall', 'spearman'],
-            key="corr_method_select",
-            help="Pearson: standard correlation. Kendall/Spearman: rank-based, non-parametric."
-        )
-        
-        if st.button("Calculate Correlation Matrix", key="corr_button"):
+    # Preprocessing: Ensure all data is numeric, handle NaNs
+    X_processed = X.copy()
+    for col in X_processed.columns:
+        if X_processed[col].dtype == 'object' or pd.api.types.is_categorical_dtype(X_processed[col]):
             try:
-                corr_matrix, corr_fig = calculate_correlations(df_processed, method=corr_method)
-                if corr_matrix is not None and not corr_matrix.empty:
-                    st.subheader("Correlation Matrix")
-                    st.dataframe(corr_matrix.style.background_gradient(cmap='coolwarm', axis=None).format("{:.2f}"))
-                    if corr_fig:
-                        st.plotly_chart(corr_fig, use_container_width=True)
-                    # --- Plotting Note ---
-                    # For more complex or customized plots, consider moving logic to `plotting.py`.
-                    # Example: from plotting import plot_custom_heatmap
-                    # plot_custom_heatmap(corr_matrix)
-                elif corr_matrix is not None and corr_matrix.empty and df_processed.select_dtypes(include=np.number).empty:
-                     st.info("No numeric columns found in the data to calculate correlations.")
-                elif corr_matrix is not None and corr_matrix.empty:
-                    st.warning("Correlation matrix is empty. This might be due to no numeric columns with variance.")
-                else:
-                    st.warning("Could not calculate correlations. Check data or logs.")
-            except Exception as e:
-                logger.error(f"Error in correlation analysis: {e}", exc_info=True)
-                st.error(f"An error occurred during correlation analysis: {e}")
+                # Attempt to convert to numeric if possible (e.g., '123', '12.3')
+                X_processed[col] = pd.to_numeric(X_processed[col])
+                logger.info(f"Column '{col}' converted to numeric.")
+            except ValueError:
+                # If direct conversion fails, use one-hot encoding for non-binary categorical
+                if X_processed[col].nunique() > 2:
+                    logger.info(f"Applying one-hot encoding to column '{col}'.")
+                    X_processed = pd.get_dummies(X_processed, columns=[col], prefix=col, dummy_na=False)
+                else: # Binary categorical, use label encoding
+                    logger.info(f"Applying label encoding to binary column '{col}'.")
+                    le = LabelEncoder()
+                    X_processed[col] = le.fit_transform(X_processed[col].astype(str)) # astype(str) to handle mixed types or NaNs
+        elif pd.api.types.is_datetime64_any_dtype(X_processed[col]):
+            logger.info(f"Converting datetime column '{col}' to numeric (timestamp).")
+            X_processed[col] = X_processed[col].astype(np.int64) // 10**9 # Convert to Unix timestamp
 
-    # --- 3. Hypothesis Testing (Example: T-test) ---
-    with tab3:
-        st.header("🔬 Hypothesis Testing")
-        st.markdown("Test statistical hypotheses about your data. Example: Is there a significant difference in Profit/Loss between two trade types?")
+    # Align X and y after potential row changes from one-hot encoding (though less likely here)
+    # More critically, handle NaNs after all conversions
+    X_processed = X_processed.fillna(X_processed.median(numeric_only=True)) # Impute with median for simplicity
 
-        numeric_cols_ht = get_numeric_columns(df_processed)
-        # For group_col, allow selection from categorical or reasonably low-cardinality numeric/object columns
-        potential_group_cols = [col for col in df_processed.columns if df_processed[col].nunique() < 20 and col not in numeric_cols_ht] + get_categorical_columns(df_processed)
-        potential_group_cols = sorted(list(set(potential_group_cols)))
-
-
-        if not numeric_cols_ht:
-            st.info("No numeric columns available for hypothesis testing value.")
-        elif not potential_group_cols:
-            st.info("No suitable columns available for grouping in hypothesis tests.")
-        else:
-            ht_value_col = st.selectbox(
-                "Select Value Column (Numeric):",
-                options=numeric_cols_ht,
-                key="ht_value_col",
-                help="The numeric variable you want to test (e.g., 'Profit/Loss')."
-            )
-            ht_group_col = st.selectbox(
-                "Select Group Column (Categorical/Low Cardinality):",
-                options=potential_group_cols,
-                key="ht_group_col",
-                help="The column that defines the groups to compare (e.g., 'Strategy', 'DayOfWeek')."
-            )
-
-            if ht_value_col and ht_group_col and ht_value_col != ht_group_col:
-                if st.button(f"Perform T-test/ANOVA for '{ht_value_col}' by '{ht_group_col}'", key="ht_button"):
-                    try:
-                        ht_summary, ht_fig = perform_t_test_for_groups(df_processed, ht_value_col, ht_group_col)
-                        if ht_summary:
-                            st.subheader("Hypothesis Test Results")
-                            st.text(ht_summary)
-                            if ht_fig:
-                                st.plotly_chart(ht_fig, use_container_width=True)
-                        else:
-                            st.warning("Could not perform hypothesis test. Check inputs or logs.")
-                    except Exception as e:
-                        logger.error(f"Error in hypothesis testing: {e}", exc_info=True)
-                        st.error(f"An error occurred during hypothesis testing: {e}")
-            elif ht_value_col == ht_group_col and ht_value_col is not None:
-                 st.warning("Value column and Group column cannot be the same.")
+    # Ensure y is numeric for regression or properly encoded for classification
+    y_processed = y.copy()
+    if problem_type == "classification":
+        if not pd.api.types.is_numeric_dtype(y_processed):
+            le_y = LabelEncoder()
+            y_processed = pd.Series(le_y.fit_transform(y_processed.astype(str)), index=y.index, name=y.name)
+            logger.info(f"Target variable '{y.name}' label encoded for classification.")
+    elif problem_type == "regression":
+        if not pd.api.types.is_numeric_dtype(y_processed):
+            try:
+                y_processed = pd.to_numeric(y_processed)
+                logger.info(f"Target variable '{y.name}' converted to numeric for regression.")
+            except ValueError:
+                logger.error(f"Target variable '{y.name}' could not be converted to numeric for regression.")
+                return pd.DataFrame(), None, f"Target variable '{y.name}' is non-numeric and could not be converted.", None
+        y_processed = y_processed.fillna(y_processed.median())
 
 
-    # --- 4. Machine Learning Insights ---
-    with tab4:
-        st.header("🤖 Machine Learning Insights")
-        st.markdown("Use ML models to find predictive features or segment data.")
-
-        # --- Feature Importance ---
-        st.subheader("🔍 Feature Importance Analysis")
-        st.markdown("""
-        Identifies which features are most predictive of a target variable using a RandomForest model.
-        This can help in understanding drivers of P&L, win/loss, etc.
-        """)
-
-        all_cols = df_processed.columns.tolist()
-        
-        # Try to find a default target (e.g., PnL, Profit, Return)
-        default_target_candidates = ['profit/loss', 'pnl', 'profit', 'return', 'target', 'outcome', 'gain']
-        target_col_ml = None
-        for cand_base in default_target_candidates:
-            for col in all_cols: # Case-insensitive check
-                if cand_base == col.lower():
-                    target_col_ml = col
-                    break
-            if target_col_ml:
-                break
-        if not target_col_ml and all_cols: # Fallback to last column if no candidate found
-            target_col_ml = all_cols[-1] if all_cols else None
-
-        target_col_ml = st.selectbox(
-            "Select Target Variable for ML:",
-            options=all_cols,
-            index=all_cols.index(target_col_ml) if target_col_ml and target_col_ml in all_cols else 0,
-            key="ml_target_select",
-            help="The variable the ML model will try to predict or explain."
-        )
-
-        if target_col_ml:
-            potential_features_ml = [col for col in all_cols if col != target_col_ml]
-            
-            # Attempt to pre-select sensible features (numeric or low-cardinality categorical)
-            default_features_ml = get_numeric_columns(df_processed, exclude=[target_col_ml])
-            non_numeric_options = get_non_numeric_columns(df_processed, exclude=[target_col_ml])
-            for col in non_numeric_options:
-                if df_processed[col].nunique() < 10: # Add low-cardinality non-numeric as potential features
-                    default_features_ml.append(col)
-            default_features_ml = [f for f in default_features_ml if f in potential_features_ml]
-
-
-            feature_cols_ml = st.multiselect(
-                "Select Feature Variables for ML:",
-                options=potential_features_ml,
-                default=default_features_ml,
-                key="ml_features_select",
-                help="Variables used by the model to predict the target. Non-numeric categorical features will be one-hot encoded if not binary."
-            )
-
-            problem_type_options = ["classification", "regression"]
-            # Auto-detect problem type based on target variable
-            default_problem_type = "regression"
-            if pd.api.types.is_numeric_dtype(df_processed[target_col_ml]):
-                if df_processed[target_col_ml].nunique() < 10 or \
-                   (df_processed[target_col_ml].dropna().apply(float.is_integer).all() and df_processed[target_col_ml].nunique() < 20) : # Heuristic for few unique numeric values
-                    default_problem_type = "classification"
-            else: # Non-numeric is likely classification
-                default_problem_type = "classification"
-
-            problem_type_ml = st.radio(
-                "Select Problem Type:",
-                options=problem_type_options,
-                index=problem_type_options.index(default_problem_type),
-                key="ml_problem_type",
-                horizontal=True,
-                help="Classification for discrete outcomes (e.g., win/loss), Regression for continuous values (e.g., P&L amount)."
-            )
-
-            if feature_cols_ml:
-                if st.button("Run Feature Importance Analysis", key="ml_run_button"):
-                    X = df_processed[feature_cols_ml]
-                    y = df_processed[target_col_ml]
-                    try:
-                        importances_df, importances_fig, model_report, _ = run_feature_importance_analysis(X, y, problem_type=problem_type_ml)
-                        
-                        if importances_df is not None and not importances_df.empty:
-                            st.write("Model Performance / Report:")
-                            st.text(model_report)
-                            st.dataframe(importances_df)
-                            if importances_fig:
-                                st.plotly_chart(importances_fig, use_container_width=True)
-                        elif importances_df is not None and importances_df.empty and model_report:
-                             st.info(f"Feature importance analysis ran, but no importances were generated. Model report: {model_report}")
-                        else:
-                            st.warning(f"Could not run feature importance analysis. Report: {model_report}")
-                    except Exception as e:
-                        logger.error(f"Error in ML feature importance: {e}", exc_info=True)
-                        st.error(f"An error occurred during ML analysis: {e}")
-            else:
-                st.info("Please select at least one feature variable for ML analysis.")
-        else:
-            st.info("Please select a target variable for ML analysis.")
-
-        # --- Clustering Analysis ---
-        st.subheader("🧩 Clustering Analysis (K-Means)")
-        st.markdown("""
-        Segment your data into distinct groups (clusters) based on selected features.
-        This can help identify different trading regimes or behavioral patterns.
-        """)
-        
-        potential_cluster_features = get_numeric_columns(df_processed) # K-Means typically uses numeric features
-        
-        if not potential_cluster_features:
-            st.info("No numeric features available for clustering analysis.")
-        else:
-            cluster_features_select = st.multiselect(
-                "Select Features for Clustering:",
-                options=potential_cluster_features,
-                default=potential_cluster_features[:min(len(potential_cluster_features), 3)], # Default to first 3 numeric
-                key="cluster_features_select",
-                help="Numeric features to be used for K-Means clustering."
-            )
-            
-            n_clusters = st.slider(
-                "Number of Clusters (K):",
-                min_value=2,
-                max_value=10,
-                value=3,
-                step=1,
-                key="n_clusters_slider"
-            )
-
-            if cluster_features_select and len(cluster_features_select) >=1: # K-Means needs at least 1 feature
-                if st.button("Run Clustering Analysis", key="cluster_run_button"):
-                    X_cluster = df_processed[cluster_features_select]
-                    try:
-                        df_with_clusters, cluster_fig, _ = run_clustering_analysis(X_cluster, n_clusters=n_clusters)
-                        if df_with_clusters is not None and 'cluster' in df_with_clusters.columns:
-                            st.write("Data with Cluster Labels (sample):")
-                            st.dataframe(df_with_clusters.head())
-                            
-                            # Display cluster sizes
-                            st.write("Cluster Sizes:")
-                            st.dataframe(df_with_clusters['cluster'].value_counts().sort_index().to_frame())
-
-                            if cluster_fig:
-                                st.plotly_chart(cluster_fig, use_container_width=True)
-                            else:
-                                st.info("Clustering analysis complete. No plot generated (requires >=2 features).")
-                            
-                            # Add clustered data to session state for potential use in other pages or further analysis
-                            st.session_state.df_clustered = df_with_clusters 
-                            st.success("Clustering complete. `df_clustered` added to session state.")
-                        else:
-                            st.warning("Clustering analysis did not produce cluster labels. Check selected features or logs.")
-                    except Exception as e:
-                        logger.error(f"Error in Clustering analysis: {e}", exc_info=True)
-                        st.error(f"An error occurred during clustering analysis: {e}")
-            else:
-                st.info("Please select at least one numeric feature for clustering.")
-
-
-if __name__ == "__main__":
-    # This is for local development/testing of the page
-    # You would typically run the main app.py
-    # For testing, you might need to mock st.session_state or load sample data
-    # Example:
-    # if 'df_processed' not in st.session_state:
-    #     st.session_state.df_processed = pd.DataFrame(
-    #         np.random.rand(100, 5), columns=[f'Feature_{i}' for i in range(5)]
-    #     )
-    #     st.session_state.df_processed['Category'] = np.random.choice(['A', 'B', 'C'], 100)
-    #     st.session_state.df_processed['Target_Class'] = np.random.randint(0, 2, 100)
-    #     st.session_state.df_processed['Target_Reg'] = np.random.rand(100) * 10
+    # Align X and y after preprocessing (drop rows with NaNs in y if any persist)
+    common_index = X_processed.index.intersection(y_processed.index)
+    X_processed = X_processed.loc[common_index]
+    y_processed = y_processed.loc[common_index]
     
-    show_alpha_discovery_page()
+    if X_processed.empty or y_processed.empty:
+        logger.warning("Data became empty after preprocessing and alignment.")
+        return pd.DataFrame(), None, "Data empty after preprocessing.", None
+
+    X_train, X_test, y_train, y_test = train_test_split(X_processed, y_processed, test_size=test_size, random_state=random_state, stratify=y_processed if problem_type=="classification" and y_processed.nunique() > 1 else None)
+
+    model = None
+    report_or_metrics = ""
+
+    try:
+        if problem_type == "classification":
+            model = RandomForestClassifier(random_state=random_state, n_estimators=100, class_weight='balanced')
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)
+            report_or_metrics = classification_report(y_test, predictions, output_dict=False, zero_division=0)
+            logger.info("Classification model trained and evaluated.")
+        elif problem_type == "regression":
+            model = RandomForestRegressor(random_state=random_state, n_estimators=100)
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)
+            r2 = r2_score(y_test, predictions)
+            mse = mean_squared_error(y_test, predictions)
+            report_or_metrics = f"R-squared: {r2:.4f}\nMean Squared Error: {mse:.4f}"
+            logger.info("Regression model trained and evaluated.")
+        else:
+            logger.error(f"Unsupported problem type: {problem_type}")
+            return pd.DataFrame(), None, f"Unsupported problem type: {problem_type}", None
+
+        importances = model.feature_importances_
+        feature_names = X_processed.columns
+        
+        # Ensure feature_names and importances are aligned if X_processed changed columns
+        if len(feature_names) != len(importances):
+             logger.error(f"Mismatch in feature names ({len(feature_names)}) and importances ({len(importances)}) count. This can happen if one-hot encoding drastically changes column structure mid-process.")
+             # Fallback or re-align if possible. For now, error out.
+             return pd.DataFrame(), None, "Feature name and importance count mismatch after model training.", None
+
+
+        importances_df = pd.DataFrame({'feature': feature_names, 'importance': importances})
+        importances_df = importances_df.sort_values(by='importance', ascending=False).reset_index(drop=True)
+        
+        fig = px.bar(importances_df.head(20), x='importance', y='feature', orientation='h', title='Top 20 Feature Importances')
+        fig.update_layout(yaxis={'categoryorder':'total ascending'})
+        
+        logger.info(f"Feature importance analysis completed. Top feature: {importances_df.iloc[0]['feature'] if not importances_df.empty else 'N/A'}")
+        return importances_df, fig, report_or_metrics, model
+
+    except Exception as e:
+        logger.error(f"Error during feature importance analysis: {e}", exc_info=True)
+        return pd.DataFrame(), None, f"An error occurred: {str(e)}", None
+
+# Example of another ML analysis function you might add
+@st.cache_data(show_spinner="Running Clustering Analysis...")
+def run_clustering_analysis(X: pd.DataFrame, n_clusters=3, random_state=42):
+    """
+    Performs K-Means clustering on the data.
+
+    Args:
+        X (pd.DataFrame): DataFrame of features for clustering.
+        n_clusters (int): The number of clusters to form.
+        random_state (int): Determines random number generation for centroid initialization.
+
+    Returns:
+        pd.DataFrame: Original DataFrame with an added 'cluster' column.
+        plotly.graph_objects.Figure: Scatter plot of clusters (if 2D/3D feasible).
+        object: Trained KMeans model.
+    """
+    from sklearn.cluster import KMeans
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.impute import SimpleImputer
+    logger.info(f"Starting clustering analysis with {n_clusters} clusters.")
+
+    if X.empty:
+        logger.warning("Input data X is empty for clustering analysis.")
+        return pd.DataFrame(), None, None
+    
+    X_processed = X.copy()
+    # Select only numeric columns for K-Means
+    numeric_cols = X_processed.select_dtypes(include=np.number).columns
+    if len(numeric_cols) < 1: # Need at least one numeric column
+        logger.warning("No numeric columns found for clustering.")
+        return X, None, None # Return original X, no figure, no model
+    
+    X_numeric = X_processed[numeric_cols]
+
+    # Impute missing values
+    imputer = SimpleImputer(strategy='median')
+    X_imputed = imputer.fit_transform(X_numeric)
+    
+    # Scale data
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_imputed)
+    
+    X_scaled_df = pd.DataFrame(X_scaled, columns=X_numeric.columns, index=X_numeric.index)
+
+    try:
+        kmeans = KMeans(n_clusters=n_clusters, random_state=random_state, n_init='auto')
+        cluster_labels = kmeans.fit_predict(X_scaled_df)
+        
+        X_with_clusters = X.copy() # Start with original X to preserve all columns
+        X_with_clusters['cluster'] = cluster_labels
+        
+        fig = None
+        if X_scaled_df.shape[1] >= 2: # Can create a 2D scatter plot
+            fig = px.scatter(X_scaled_df, x=X_scaled_df.columns[0], y=X_scaled_df.columns[1], 
+                             color=cluster_labels, title=f'K-Means Clustering ({n_clusters} clusters)',
+                             labels={'color': 'Cluster'})
+            if X_scaled_df.shape[1] >= 3: # Add 3rd dimension if available
+                 fig = px.scatter_3d(X_scaled_df, x=X_scaled_df.columns[0], y=X_scaled_df.columns[1], z=X_scaled_df.columns[2],
+                             color=cluster_labels, title=f'K-Means Clustering ({n_clusters} clusters)',
+                             labels={'color': 'Cluster'})
+        
+        logger.info("Clustering analysis completed.")
+        return X_with_clusters, fig, kmeans
+        
+    except Exception as e:
+        logger.error(f"Error during clustering analysis: {e}", exc_info=True)
+        return X, None, None # Return original X if error
