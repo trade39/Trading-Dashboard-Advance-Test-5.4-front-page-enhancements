@@ -9,9 +9,11 @@ from scipy import stats
 import plotly.express as px
 import plotly.figure_factory as ff
 
-from utils.logger import get_logger
+from utils.logger import setup_logger # Corrected import
 
-logger = get_logger(__name__)
+# Corrected logger initialization
+logger = setup_logger(logger_name=__name__)
+
 
 @st.cache_data(show_spinner="Calculating Correlations...")
 def calculate_correlations(df: pd.DataFrame, method='pearson'):
