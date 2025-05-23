@@ -243,40 +243,37 @@ def calculate_performance_summary_by_category(
         summary_df = summary_df.sort_values(by="Total PnL", ascending=False) # Default sort
     return summary_df
 
-def display_data_table_with_checkbox(
+def display_data_table_with_expander(
     df_to_display: pd.DataFrame, 
-    checkbox_label: str, 
-    unique_key: str, 
+    expander_label: str, 
+    unique_key: str, # Keep unique key for expander state
     dataframe_kwargs: Optional[Dict] = None,
-    default_checked: bool = False
+    expanded_by_default: bool = False
 ):
     """
-    Displays a Streamlit checkbox that, when checked, shows a DataFrame.
+    Displays a Streamlit expander that, when expanded, shows a DataFrame.
 
     Args:
         df_to_display (pd.DataFrame): The DataFrame to display.
-        checkbox_label (str): The label for the checkbox.
-        unique_key (str): A unique key for the Streamlit checkbox widget.
+        expander_label (str): The label for the expander.
+        unique_key (str): A unique key for the Streamlit expander widget.
         dataframe_kwargs (Optional[Dict]): Additional keyword arguments to pass to st.dataframe.
                                              Defaults to {'use_container_width': True, 'hide_index': True}.
-        default_checked (bool): Whether the checkbox should be checked by default.
+        expanded_by_default (bool): Whether the expander should be open by default.
     """
     if dataframe_kwargs is None:
         dataframe_kwargs = {'use_container_width': True, 'hide_index': True}
 
     if not df_to_display.empty:
-        if st.checkbox(checkbox_label, key=unique_key, value=default_checked):
+        with st.expander(expander_label, expanded=expanded_by_default): # Removed key for now, as expander state is not directly tied to a session_state key like checkbox
             st.dataframe(df_to_display, **dataframe_kwargs)
 
 
 # --- Helper Functions for Rendering Sections ---
 def render_strategy_performance_insights(
     df: pd.DataFrame, pnl_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # kwargs will capture any extra arguments like win_col_actual, date_col_actual if passed
-    # st.header("💡 1. Strategy Performance Insights") # Removed header
-    # with st.expander("Strategy Metrics", expanded=False): # Removed expander
     col1a, col1b = st.columns(2)
     with col1a:
         strategy_col_actual = get_column_name(STRATEGY_KEY, df.columns)
@@ -288,15 +285,15 @@ def render_strategy_performance_insights(
                 title_prefix="Average PnL by", aggregation_func='mean', theme=plot_theme, is_data_aggregated=True
             )
             if fig_avg_pnl_strategy: st.plotly_chart(fig_avg_pnl_strategy, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 avg_pnl_strategy_data, "View Data: Average PnL by Strategy", 
-                f"{section_key_prefix}_view_avg_pnl_strategy"
+                f"{section_key_prefix}_exp_avg_pnl_strategy" # Ensure unique key if needed for state
             )
     with col1b:
         trade_plan_col_actual = get_column_name(TRADE_PLAN_KEY, df.columns)
         if trade_plan_col_actual and trade_result_col_actual in df.columns:
             result_by_plan_data = pd.crosstab(df[trade_plan_col_actual].fillna('N/A'), df[trade_result_col_actual].fillna('N/A'))
-            for col in ['WIN', 'LOSS', 'BREAKEVEN']: # Ensure all result columns exist
+            for col in ['WIN', 'LOSS', 'BREAKEVEN']: 
                 if col not in result_by_plan_data.columns: result_by_plan_data[col] = 0
             result_by_plan_data = result_by_plan_data[['WIN', 'LOSS', 'BREAKEVEN']]
             
@@ -309,14 +306,14 @@ def render_strategy_performance_insights(
                 is_data_aggregated=True
             )
             if fig_result_by_plan: st.plotly_chart(fig_result_by_plan, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 result_by_plan_data.reset_index(), f"View Data: {trade_result_col_actual.replace('_',' ').title()} by Trade Plan",
-                f"{section_key_prefix}_view_result_by_plan"
+                f"{section_key_prefix}_exp_result_by_plan"
             )
     st.markdown("---")
     rr_col_actual = get_column_name(RR_CSV_KEY, df.columns)
     direction_col_actual = get_column_name(DIRECTION_KEY, df.columns)
-    strategy_col_actual_for_rr = get_column_name(STRATEGY_KEY, df.columns) # Re-get for this specific plot
+    strategy_col_actual_for_rr = get_column_name(STRATEGY_KEY, df.columns) 
     if all(c is not None and c in df.columns for c in [strategy_col_actual_for_rr, rr_col_actual, direction_col_actual]):
         try:
             df_rr_heatmap_prep = df[[strategy_col_actual_for_rr, rr_col_actual, direction_col_actual]].copy()
@@ -330,18 +327,16 @@ def render_strategy_performance_insights(
             if not pivot_rr_data.empty:
                 fig_rr_heatmap = plot_heatmap(df_pivot=pivot_rr_data, title=f"Average R:R by Strategy and Direction", color_scale="Viridis", theme=plot_theme, text_format=".2f")
                 if fig_rr_heatmap: st.plotly_chart(fig_rr_heatmap, use_container_width=True)
-                display_data_table_with_checkbox(
+                display_data_table_with_expander( # UPDATED
                     pivot_rr_data.reset_index(), "View Data: Average R:R by Strategy and Direction",
-                    f"{section_key_prefix}_view_rr_heatmap"
+                    f"{section_key_prefix}_exp_rr_heatmap"
                 )
         except Exception as e_rr_heatmap: logger.error(f"Error in R:R Heatmap: {e_rr_heatmap}", exc_info=True)
 
 def render_temporal_analysis(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, date_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # st.header("⏳ 2. Temporal Analysis") # Removed header
-    # with st.expander("Time-Based Performance", expanded=False): # Removed expander
     col2a, col2b = st.columns(2)
     with col2a:
         month_num_col_actual = get_column_name(TRADE_MONTH_NUM_KEY, df.columns)
@@ -351,16 +346,14 @@ def render_temporal_analysis(
                 monthly_win_rate_series = df.groupby(month_num_col_actual, observed=False)[win_col_actual].mean() * 100
                 month_map_df = df[[month_num_col_actual, month_name_col_actual]].drop_duplicates().sort_values(month_num_col_actual)
                 month_mapping = pd.Series(month_map_df[month_name_col_actual].values, index=month_map_df[month_num_col_actual]).to_dict()
-                # Sort by month number before renaming index to ensure correct order
                 monthly_win_rate_data = monthly_win_rate_series.sort_index().rename(index=month_mapping)
-
 
                 if not monthly_win_rate_data.empty:
                     fig_monthly_wr = plot_value_over_time(series=monthly_win_rate_data, series_name="Monthly Win Rate", title="Win Rate by Month", x_axis_title="Month", y_axis_title="Win Rate (%)", theme=plot_theme)
                     if fig_monthly_wr: st.plotly_chart(fig_monthly_wr, use_container_width=True)
-                    display_data_table_with_checkbox(
-                        monthly_win_rate_data.reset_index().rename(columns={'index': 'Month', month_num_col_actual: 'Month Name', win_col_actual: 'Win Rate (%)'}), # Adjusted for potential index name
-                        "View Data: Win Rate by Month", f"{section_key_prefix}_view_monthly_wr"
+                    display_data_table_with_expander( # UPDATED
+                        monthly_win_rate_data.reset_index().rename(columns={'index': 'Month', month_num_col_actual: 'Month Name', win_col_actual: 'Win Rate (%)'}), 
+                        "View Data: Win Rate by Month", f"{section_key_prefix}_exp_monthly_wr"
                     )
             except Exception as e_mwr: logger.error(f"Error in Monthly Win Rate: {e_mwr}", exc_info=True)
     with col2b:
@@ -374,23 +367,21 @@ def render_temporal_analysis(
                 if not pivot_session_tf_data.empty:
                     fig_session_tf_heatmap = plot_heatmap(df_pivot=pivot_session_tf_data, title=f"Trade Count by Session and Time Frame", color_scale="Blues", theme=plot_theme, text_format=".0f")
                     if fig_session_tf_heatmap: st.plotly_chart(fig_session_tf_heatmap, use_container_width=True)
-                    display_data_table_with_checkbox(
+                    display_data_table_with_expander( # UPDATED
                         pivot_session_tf_data.reset_index(), "View Data: Trade Count by Session and Time Frame",
-                        f"{section_key_prefix}_view_session_tf_heatmap"
+                        f"{section_key_prefix}_exp_session_tf_heatmap"
                     )
             except Exception as e_sess_tf: logger.error(f"Error in Session/TF Heatmap: {e_sess_tf}", exc_info=True)
     st.markdown("---")
-    if date_col_actual and pnl_col_actual: # date_col_actual is used here
+    if date_col_actual and pnl_col_actual: 
         try:
-            # Ensure date_col_actual is datetime before .dt accessor
             df_calendar = df.copy()
             if not pd.api.types.is_datetime64_any_dtype(df_calendar[date_col_actual]):
                 df_calendar[date_col_actual] = pd.to_datetime(df_calendar[date_col_actual], errors='coerce')
             df_calendar = df_calendar.dropna(subset=[date_col_actual])
 
-
             daily_pnl_df_agg = df_calendar.groupby(df_calendar[date_col_actual].dt.normalize())[pnl_col_actual].sum().reset_index()
-            daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'}) # Standardize for PnLCalendarComponent
+            daily_pnl_df_agg = daily_pnl_df_agg.rename(columns={date_col_actual: 'date', pnl_col_actual: 'pnl'}) 
             available_years = sorted(daily_pnl_df_agg['date'].dt.year.unique(), reverse=True)
             if available_years:
                 selected_year = st.selectbox("Select Year for P&L Calendar:", options=available_years, index=0, key=f"{section_key_prefix}_calendar_year_select")
@@ -403,10 +394,8 @@ def render_temporal_analysis(
 
 def render_market_context_impact(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # st.header("🌍 3. Market Context Impact") # Removed header
-    # with st.expander("Market Condition Effects", expanded=False): # Removed expander
     col3a, col3b = st.columns(2)
     with col3a:
         event_type_col_actual = get_column_name(EVENT_TYPE_KEY, df.columns)
@@ -419,9 +408,9 @@ def render_market_context_impact(
                 is_data_aggregated=True
             )
             if fig_result_by_event: st.plotly_chart(fig_result_by_event, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 result_by_event_data, f"View Data: {trade_result_col_actual.replace('_',' ').title()} Count by Event Type",
-                f"{section_key_prefix}_view_result_by_event"
+                f"{section_key_prefix}_exp_result_by_event"
             )
     with col3b:
         market_cond_col_actual = get_column_name(MARKET_CONDITIONS_KEY, df.columns)
@@ -432,16 +421,17 @@ def render_market_context_impact(
             )
             if fig_pnl_by_market: st.plotly_chart(fig_pnl_by_market, use_container_width=True)
             
-            # For summary stats, we use a specific key for the checkbox
-            if st.checkbox(f"Show Summary Statistics for PnL by Market Condition", key=f"{section_key_prefix}_market_cond_stats"):
-                market_cond_pnl_summary = df.groupby(market_cond_col_actual, observed=False)[pnl_col_actual].describe()
-                st.dataframe(market_cond_pnl_summary, use_container_width=True)
+            # For summary stats, using expander directly
+            with st.expander(f"View Summary Statistics for PnL by Market Condition", expanded=False):
+                 market_cond_pnl_summary = df.groupby(market_cond_col_actual, observed=False)[pnl_col_actual].describe()
+                 st.dataframe(market_cond_pnl_summary, use_container_width=True)
+
     st.markdown("---")
     market_sent_col_actual = get_column_name(MARKET_SENTIMENT_KEY, df.columns)
-    if market_sent_col_actual and win_col_actual in df.columns: # win_col_actual is used here
+    if market_sent_col_actual and win_col_actual in df.columns: 
         try:
             sentiment_win_rate_data = df.groupby(market_sent_col_actual, observed=False)[win_col_actual].mean().reset_index()
-            sentiment_win_rate_data[win_col_actual] *= 100 # Convert to percentage
+            sentiment_win_rate_data[win_col_actual] *= 100 
             if not sentiment_win_rate_data.empty:
                 fig_sent_wr = px.bar(sentiment_win_rate_data, x=market_sent_col_actual, y=win_col_actual,
                                      title=f"Win Rate by {PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(MARKET_SENTIMENT_KEY, MARKET_SENTIMENT_KEY).replace('_',' ').title()}",
@@ -450,28 +440,25 @@ def render_market_context_impact(
                 if fig_sent_wr: 
                     fig_sent_wr.update_yaxes(ticksuffix="%")
                     st.plotly_chart(_apply_custom_theme(fig_sent_wr, plot_theme), use_container_width=True)
-                display_data_table_with_checkbox(
+                display_data_table_with_expander( # UPDATED
                     sentiment_win_rate_data.rename(columns={win_col_actual: "Win Rate (%)"}), "View Data: Win Rate by Market Sentiment",
-                    f"{section_key_prefix}_view_sent_wr_data"
+                    f"{section_key_prefix}_exp_sent_wr_data"
                 )
         except Exception as e_sent_wr: logger.error(f"Error generating Market Sentiment vs Win Rate: {e_sent_wr}", exc_info=True)
 
 def render_behavioral_factors(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # st.header("🤔 4. Behavioral Factors") # Removed header
-    # with st.expander("Trader Psychology & Compliance", expanded=False): # Removed expander
     col4a, col4b = st.columns(2)
     with col4a:
         psych_col_actual = get_column_name(PSYCHOLOGICAL_FACTORS_KEY, df.columns)
         if psych_col_actual and trade_result_col_actual in df.columns:
             df_psych = df.copy()
-            # Process psychological factors: take the first factor if comma-separated
             if df_psych[psych_col_actual].dtype == 'object':
                 df_psych[psych_col_actual] = df_psych[psych_col_actual].astype(str).str.split(',').str[0].str.strip().fillna('N/A')
             
             psych_result_data = pd.crosstab(df_psych[psych_col_actual], df_psych[trade_result_col_actual])
-            for col in ['WIN', 'LOSS', 'BREAKEVEN']: # Ensure all result columns exist
+            for col in ['WIN', 'LOSS', 'BREAKEVEN']: 
                 if col not in psych_result_data.columns: psych_result_data[col] = 0
             psych_result_data = psych_result_data[['WIN', 'LOSS', 'BREAKEVEN']]
 
@@ -483,31 +470,29 @@ def render_behavioral_factors(
                 is_data_aggregated=True
             )
             if fig_psych_result: st.plotly_chart(fig_psych_result, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 psych_result_data.reset_index(), "View Data: Trade Result by Dominant Psychological Factor",
-                f"{section_key_prefix}_view_psych_result"
+                f"{section_key_prefix}_exp_psych_result"
             )
     with col4b:
         compliance_col_actual = get_column_name(COMPLIANCE_CHECK_KEY, df.columns)
         if compliance_col_actual:
             compliance_data = df[compliance_col_actual].fillna('N/A').value_counts().reset_index()
-            compliance_data.columns = [compliance_col_actual, 'count'] # Rename columns for clarity
+            compliance_data.columns = [compliance_col_actual, 'count'] 
             fig_compliance = plot_donut_chart(
                 df=compliance_data, category_col=compliance_col_actual, value_col='count',
                 title=f"{PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(COMPLIANCE_CHECK_KEY, COMPLIANCE_CHECK_KEY).replace('_',' ').title()} Outcomes", theme=plot_theme,
                 is_data_aggregated=True
             )
             if fig_compliance: st.plotly_chart(fig_compliance, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 compliance_data, "View Data: Compliance Outcomes",
-                f"{section_key_prefix}_view_compliance_data"
+                f"{section_key_prefix}_exp_compliance_data"
             )
 
 def render_capital_risk_insights(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # st.header("💰 5. Capital & Risk Insights") # Removed header
-    # with st.expander("Capital Management and Drawdown", expanded=False): # Removed expander
     col5a, col5b = st.columns(2)
     with col5a:
         initial_bal_col_actual = get_column_name(INITIAL_BALANCE_KEY, df.columns)
@@ -522,9 +507,9 @@ def render_capital_risk_insights(
                 theme=plot_theme, color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')}
             )
             if fig_bal_dd: st.plotly_chart(fig_bal_dd, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 scatter_df_view, "View Data: Drawdown vs. Initial Balance",
-                f"{section_key_prefix}_view_bal_dd_scatter"
+                f"{section_key_prefix}_exp_bal_dd_scatter"
             )
     with col5b:
         trade_plan_col_actual_dd = get_column_name(TRADE_PLAN_KEY, df.columns) 
@@ -538,9 +523,9 @@ def render_capital_risk_insights(
                 title_prefix="Average Drawdown by", aggregation_func='mean', theme=plot_theme, is_data_aggregated=True
             )
             if fig_avg_dd_plan: st.plotly_chart(fig_avg_dd_plan, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 avg_dd_plan_data, "View Data: Average Drawdown by Trade Plan",
-                f"{section_key_prefix}_view_avg_dd_plan"
+                f"{section_key_prefix}_exp_avg_dd_plan"
             )
     st.markdown("---")
     drawdown_csv_col_actual_hist = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns) 
@@ -555,18 +540,16 @@ def render_capital_risk_insights(
                 theme=plot_theme, nbins=30
             )
             if fig_dd_hist: st.plotly_chart(fig_dd_hist, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 df_dd_hist.rename(columns={drawdown_csv_col_actual_hist: "Drawdown Value"}), 
                 "View Data: Drawdown Distribution (raw values)",
-                f"{section_key_prefix}_view_dd_hist_raw"
+                f"{section_key_prefix}_exp_dd_hist_raw"
             )
 
 def render_exit_directional_insights(
     df: pd.DataFrame, win_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
+    plot_theme: str, section_key_prefix: str, **kwargs 
 ):
-    # st.header("🚪 6. Exit & Directional Insights") # Removed header
-    # with st.expander("Trade Exits and Directional Bias", expanded=False): # Removed expander
     col6a, col6b = st.columns(2)
     with col6a:
         exit_type_col_actual = get_column_name(EXIT_TYPE_CSV_KEY, df.columns)
@@ -579,24 +562,24 @@ def render_exit_directional_insights(
                 is_data_aggregated=True
             )
             if fig_exit_type: st.plotly_chart(fig_exit_type, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 exit_type_data, "View Data: Exit Type Distribution",
-                f"{section_key_prefix}_view_exit_type_dist"
+                f"{section_key_prefix}_exp_exit_type_dist"
             )
     with col6b:
         direction_col_actual_wr = get_column_name(DIRECTION_KEY, df.columns)
-        if direction_col_actual_wr and win_col_actual in df.columns: # win_col_actual is used here
+        if direction_col_actual_wr and win_col_actual in df.columns: 
             dir_wr_data = df.groupby(direction_col_actual_wr, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
-            dir_wr_data['mean'] *= 100 # Convert to percentage
+            dir_wr_data['mean'] *= 100 
             dir_wr_data.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
             fig_dir_wr = plot_win_rate_analysis(
                 df=dir_wr_data, category_col=direction_col_actual_wr, win_rate_col='Win Rate (%)', trades_col='Total Trades',
                 title_prefix="Win Rate by", theme=plot_theme, is_data_aggregated=True
             )
             if fig_dir_wr: st.plotly_chart(fig_dir_wr, use_container_width=True)
-            display_data_table_with_checkbox(
+            display_data_table_with_expander( # UPDATED
                 dir_wr_data, "View Data: Win Rate by Direction",
-                f"{section_key_prefix}_view_dir_wr_data"
+                f"{section_key_prefix}_exp_dir_wr_data"
             )
     st.markdown("---")
     time_frame_col_actual_facet = get_column_name(TIME_FRAME_KEY, df.columns)
@@ -631,9 +614,9 @@ def render_exit_directional_insights(
                                 color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')}
                             )
                             if fig_result_dir_tf: st.plotly_chart(_apply_custom_theme(fig_result_dir_tf, plot_theme), use_container_width=True)
-                            display_data_table_with_checkbox(
+                            display_data_table_with_expander( # UPDATED
                                 df_grouped_facet_data, "View Data: Faceted Trade Results",
-                                f"{section_key_prefix}_view_faceted_results"
+                                f"{section_key_prefix}_exp_faceted_results"
                             )
                         else: display_custom_message("No data for Trade Result by Direction and selected Time Frames after grouping.", "info")
                     except Exception as e_gbtf: logger.error(f"Error in Trade Result by Direction and Time Frame: {e_gbtf}", exc_info=True)
@@ -643,8 +626,6 @@ def render_exit_directional_insights(
 def render_performance_summary_table(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, section_key_prefix: str
 ):
-    # st.header("📊 7. Performance Summary by Custom Category") # Removed header
-    # with st.expander("View Performance Table with Confidence Intervals", expanded=True): # Removed expander
     available_categories_for_table: Dict[str, str] = {}
     for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
         actual_col = get_column_name(conceptual_key, df.columns)
@@ -708,9 +689,6 @@ def render_dynamic_category_visualizer(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, 
     plot_theme: str, section_key_prefix: str
 ):
-    # st.markdown("---") # Removed markdown
-    # st.header("🔬 8. Dynamic Category Visualizer") # Removed header
-    # with st.expander("Explore Data Dynamically with Statistical Tests", expanded=True): # Removed expander
     available_categories_for_dynamic_plot: Dict[str, str] = {}
     for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
         actual_col = get_column_name(conceptual_key, df.columns)
@@ -850,10 +828,10 @@ def render_dynamic_category_visualizer(
 
                 if fig_dynamic:
                     st.plotly_chart(fig_dynamic, use_container_width=True)
-                    display_data_table_with_checkbox(
+                    display_data_table_with_expander( # UPDATED
                         dynamic_plot_df_for_view.reset_index(drop=True), 
                         f"View Data for: {title_dynamic}", 
-                        f"{section_key_prefix}_view_data_dynamic_{selected_cat_display_name_dynamic}_{selected_metric_dynamic}"
+                        f"{section_key_prefix}_exp_data_dynamic_{selected_cat_display_name_dynamic}_{selected_metric_dynamic}"
                     )
                 
                 category_groups_for_test = df_dynamic_plot_data[actual_selected_category_col].dropna().unique()
@@ -951,7 +929,6 @@ def show_categorical_analysis_page():
         "plot_theme": plot_theme,
     }
 
-    # Define tab names
     tab_titles = [
         "💡 Strategy Insights",
         "⏳ Temporal Analysis",
@@ -991,14 +968,14 @@ def show_categorical_analysis_page():
 
     with tab7:
         st.subheader("Performance Summary by Custom Category")
-        if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
+        if pnl_col_actual and win_col_actual in df.columns : 
             render_performance_summary_table(df, pnl_col_actual, win_col_actual, section_key_prefix="s7")
         else:
             display_custom_message("Cannot render Performance Summary Table due to missing PnL or Win columns.", "warning")
 
     with tab8:
         st.subheader("Dynamic Category Visualizer")
-        if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
+        if pnl_col_actual and win_col_actual in df.columns : 
             render_dynamic_category_visualizer(df, pnl_col_actual, win_col_actual, plot_theme, section_key_prefix="s8")
         else:
             display_custom_message("Cannot render Dynamic Category Visualizer due to missing PnL or Win columns.", "warning")
