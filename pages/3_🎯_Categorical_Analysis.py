@@ -246,16 +246,17 @@ def calculate_performance_summary_by_category(
 def display_data_table_with_expander(
     df_to_display: pd.DataFrame, 
     expander_label: str, 
-    unique_key: str, # Keep unique key for expander state
+    unique_key: str, 
     dataframe_kwargs: Optional[Dict] = None,
     expanded_by_default: bool = False
 ):
     """
     Displays a Streamlit expander that, when expanded, shows a DataFrame.
+    Includes an eye emoji in the label.
 
     Args:
         df_to_display (pd.DataFrame): The DataFrame to display.
-        expander_label (str): The label for the expander.
+        expander_label (str): The label for the expander (without emoji).
         unique_key (str): A unique key for the Streamlit expander widget.
         dataframe_kwargs (Optional[Dict]): Additional keyword arguments to pass to st.dataframe.
                                              Defaults to {'use_container_width': True, 'hide_index': True}.
@@ -265,7 +266,9 @@ def display_data_table_with_expander(
         dataframe_kwargs = {'use_container_width': True, 'hide_index': True}
 
     if not df_to_display.empty:
-        with st.expander(expander_label, expanded=expanded_by_default): # Removed key for now, as expander state is not directly tied to a session_state key like checkbox
+        # Prepend eye emoji to the label
+        label_with_emoji = f"👁️ {expander_label}"
+        with st.expander(label_with_emoji, expanded=expanded_by_default):
             st.dataframe(df_to_display, **dataframe_kwargs)
 
 
@@ -285,9 +288,9 @@ def render_strategy_performance_insights(
                 title_prefix="Average PnL by", aggregation_func='mean', theme=plot_theme, is_data_aggregated=True
             )
             if fig_avg_pnl_strategy: st.plotly_chart(fig_avg_pnl_strategy, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 avg_pnl_strategy_data, "View Data: Average PnL by Strategy", 
-                f"{section_key_prefix}_exp_avg_pnl_strategy" # Ensure unique key if needed for state
+                f"{section_key_prefix}_exp_avg_pnl_strategy" 
             )
     with col1b:
         trade_plan_col_actual = get_column_name(TRADE_PLAN_KEY, df.columns)
@@ -306,7 +309,7 @@ def render_strategy_performance_insights(
                 is_data_aggregated=True
             )
             if fig_result_by_plan: st.plotly_chart(fig_result_by_plan, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 result_by_plan_data.reset_index(), f"View Data: {trade_result_col_actual.replace('_',' ').title()} by Trade Plan",
                 f"{section_key_prefix}_exp_result_by_plan"
             )
@@ -327,7 +330,7 @@ def render_strategy_performance_insights(
             if not pivot_rr_data.empty:
                 fig_rr_heatmap = plot_heatmap(df_pivot=pivot_rr_data, title=f"Average R:R by Strategy and Direction", color_scale="Viridis", theme=plot_theme, text_format=".2f")
                 if fig_rr_heatmap: st.plotly_chart(fig_rr_heatmap, use_container_width=True)
-                display_data_table_with_expander( # UPDATED
+                display_data_table_with_expander( 
                     pivot_rr_data.reset_index(), "View Data: Average R:R by Strategy and Direction",
                     f"{section_key_prefix}_exp_rr_heatmap"
                 )
@@ -351,7 +354,7 @@ def render_temporal_analysis(
                 if not monthly_win_rate_data.empty:
                     fig_monthly_wr = plot_value_over_time(series=monthly_win_rate_data, series_name="Monthly Win Rate", title="Win Rate by Month", x_axis_title="Month", y_axis_title="Win Rate (%)", theme=plot_theme)
                     if fig_monthly_wr: st.plotly_chart(fig_monthly_wr, use_container_width=True)
-                    display_data_table_with_expander( # UPDATED
+                    display_data_table_with_expander( 
                         monthly_win_rate_data.reset_index().rename(columns={'index': 'Month', month_num_col_actual: 'Month Name', win_col_actual: 'Win Rate (%)'}), 
                         "View Data: Win Rate by Month", f"{section_key_prefix}_exp_monthly_wr"
                     )
@@ -367,7 +370,7 @@ def render_temporal_analysis(
                 if not pivot_session_tf_data.empty:
                     fig_session_tf_heatmap = plot_heatmap(df_pivot=pivot_session_tf_data, title=f"Trade Count by Session and Time Frame", color_scale="Blues", theme=plot_theme, text_format=".0f")
                     if fig_session_tf_heatmap: st.plotly_chart(fig_session_tf_heatmap, use_container_width=True)
-                    display_data_table_with_expander( # UPDATED
+                    display_data_table_with_expander( 
                         pivot_session_tf_data.reset_index(), "View Data: Trade Count by Session and Time Frame",
                         f"{section_key_prefix}_exp_session_tf_heatmap"
                     )
@@ -408,7 +411,7 @@ def render_market_context_impact(
                 is_data_aggregated=True
             )
             if fig_result_by_event: st.plotly_chart(fig_result_by_event, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 result_by_event_data, f"View Data: {trade_result_col_actual.replace('_',' ').title()} Count by Event Type",
                 f"{section_key_prefix}_exp_result_by_event"
             )
@@ -421,8 +424,7 @@ def render_market_context_impact(
             )
             if fig_pnl_by_market: st.plotly_chart(fig_pnl_by_market, use_container_width=True)
             
-            # For summary stats, using expander directly
-            with st.expander(f"View Summary Statistics for PnL by Market Condition", expanded=False):
+            with st.expander(f"👁️ View Summary Statistics for PnL by Market Condition", expanded=False): # UPDATED with emoji
                  market_cond_pnl_summary = df.groupby(market_cond_col_actual, observed=False)[pnl_col_actual].describe()
                  st.dataframe(market_cond_pnl_summary, use_container_width=True)
 
@@ -440,7 +442,7 @@ def render_market_context_impact(
                 if fig_sent_wr: 
                     fig_sent_wr.update_yaxes(ticksuffix="%")
                     st.plotly_chart(_apply_custom_theme(fig_sent_wr, plot_theme), use_container_width=True)
-                display_data_table_with_expander( # UPDATED
+                display_data_table_with_expander( 
                     sentiment_win_rate_data.rename(columns={win_col_actual: "Win Rate (%)"}), "View Data: Win Rate by Market Sentiment",
                     f"{section_key_prefix}_exp_sent_wr_data"
                 )
@@ -470,7 +472,7 @@ def render_behavioral_factors(
                 is_data_aggregated=True
             )
             if fig_psych_result: st.plotly_chart(fig_psych_result, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 psych_result_data.reset_index(), "View Data: Trade Result by Dominant Psychological Factor",
                 f"{section_key_prefix}_exp_psych_result"
             )
@@ -485,7 +487,7 @@ def render_behavioral_factors(
                 is_data_aggregated=True
             )
             if fig_compliance: st.plotly_chart(fig_compliance, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 compliance_data, "View Data: Compliance Outcomes",
                 f"{section_key_prefix}_exp_compliance_data"
             )
@@ -507,7 +509,7 @@ def render_capital_risk_insights(
                 theme=plot_theme, color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')}
             )
             if fig_bal_dd: st.plotly_chart(fig_bal_dd, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 scatter_df_view, "View Data: Drawdown vs. Initial Balance",
                 f"{section_key_prefix}_exp_bal_dd_scatter"
             )
@@ -523,7 +525,7 @@ def render_capital_risk_insights(
                 title_prefix="Average Drawdown by", aggregation_func='mean', theme=plot_theme, is_data_aggregated=True
             )
             if fig_avg_dd_plan: st.plotly_chart(fig_avg_dd_plan, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 avg_dd_plan_data, "View Data: Average Drawdown by Trade Plan",
                 f"{section_key_prefix}_exp_avg_dd_plan"
             )
@@ -540,7 +542,7 @@ def render_capital_risk_insights(
                 theme=plot_theme, nbins=30
             )
             if fig_dd_hist: st.plotly_chart(fig_dd_hist, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 df_dd_hist.rename(columns={drawdown_csv_col_actual_hist: "Drawdown Value"}), 
                 "View Data: Drawdown Distribution (raw values)",
                 f"{section_key_prefix}_exp_dd_hist_raw"
@@ -562,7 +564,7 @@ def render_exit_directional_insights(
                 is_data_aggregated=True
             )
             if fig_exit_type: st.plotly_chart(fig_exit_type, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 exit_type_data, "View Data: Exit Type Distribution",
                 f"{section_key_prefix}_exp_exit_type_dist"
             )
@@ -577,7 +579,7 @@ def render_exit_directional_insights(
                 title_prefix="Win Rate by", theme=plot_theme, is_data_aggregated=True
             )
             if fig_dir_wr: st.plotly_chart(fig_dir_wr, use_container_width=True)
-            display_data_table_with_expander( # UPDATED
+            display_data_table_with_expander( 
                 dir_wr_data, "View Data: Win Rate by Direction",
                 f"{section_key_prefix}_exp_dir_wr_data"
             )
@@ -614,7 +616,7 @@ def render_exit_directional_insights(
                                 color_discrete_map={'WIN': COLORS.get('green'), 'LOSS': COLORS.get('red'), 'BREAKEVEN': COLORS.get('gray')}
                             )
                             if fig_result_dir_tf: st.plotly_chart(_apply_custom_theme(fig_result_dir_tf, plot_theme), use_container_width=True)
-                            display_data_table_with_expander( # UPDATED
+                            display_data_table_with_expander( 
                                 df_grouped_facet_data, "View Data: Faceted Trade Results",
                                 f"{section_key_prefix}_exp_faceted_results"
                             )
@@ -828,7 +830,7 @@ def render_dynamic_category_visualizer(
 
                 if fig_dynamic:
                     st.plotly_chart(fig_dynamic, use_container_width=True)
-                    display_data_table_with_expander( # UPDATED
+                    display_data_table_with_expander( 
                         dynamic_plot_df_for_view.reset_index(drop=True), 
                         f"View Data for: {title_dynamic}", 
                         f"{section_key_prefix}_exp_data_dynamic_{selected_cat_display_name_dynamic}_{selected_metric_dynamic}"
