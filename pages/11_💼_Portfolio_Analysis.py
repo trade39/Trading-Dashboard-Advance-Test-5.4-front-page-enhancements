@@ -292,14 +292,16 @@ def show_portfolio_analysis_page():
     if portfolio_df_uncleaned.empty:
         display_custom_message("No data for the selected accounts.", "info"); return
     
+    # Clean portfolio_df once for all tabs that use it
     portfolio_df = _clean_data_for_analysis(
         portfolio_df_uncleaned, date_col=date_col_actual, pnl_col=pnl_col_actual,
         strategy_col=strategy_col_actual, account_col=account_col_actual,
         required_cols_to_check_na=[pnl_col_actual, strategy_col_actual, account_col_actual],
         string_cols_to_convert=[strategy_col_actual, account_col_actual]
     )
-    if portfolio_df.empty:
+    if portfolio_df.empty: # Check after cleaning
         display_custom_message("No valid data after cleaning for selected accounts.", "warning"); return
+
 
     tab_titles = [
         "📈 Overall Performance", "🔗 Inter-Connections", "📊 Account Breakdown",
@@ -445,7 +447,7 @@ def show_portfolio_analysis_page():
                 if col in summary_table_df_display.columns:
                     summary_table_df_display[col] = pd.to_numeric(summary_table_df_display[col], errors='coerce')
                     if item_type == "currency": summary_table_df_display[col] = summary_table_df_display[col].apply(lambda x: format_currency(x) if pd.notna(x) else "N/A")
-                    elif item_type == "percentage": summary_table_df_display[col] = summary_table_df_display[col].apply(lambda x: format_percentage(x/100.0) if pd.notna(x) else "N/A")
+                    elif item_type == "percentage": summary_table_df_display[col] = summary_table_df_display[col].apply(lambda x: format_percentage(x/100.0) if pd.notna(x) else "N/A") # Assuming input is 0-100
                     elif item_type == "float": summary_table_df_display[col] = summary_table_df_display[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
             
             st.dataframe(summary_table_df_display.set_index("Account"), use_container_width=True)
@@ -456,15 +458,17 @@ def show_portfolio_analysis_page():
 
     with tab_optimization:
         st.header("Portfolio Optimization")
+        # Initialize form variables (some will be defined inside the form)
         selected_strategies_for_opt_form = []
         optimization_objective_form_key = "" 
         optimization_objective_display_form = "" 
         use_ledoit_wolf_covariance_form = True
         target_return_input_form = None
-        lookback_days_opt_form = 252
-        num_frontier_points_input_form = 25
+        lookback_days_opt_form = 252 # Default, will be input
+        num_frontier_points_input_form = 25 # Default, will be input
         asset_bounds_input_form = []
         current_weights_input_for_turnover_form = {}
+
 
         with st.expander("⚙️ Configure Portfolio Optimization", expanded=True):
             if strategy_col_actual not in portfolio_df.columns:
@@ -474,139 +478,270 @@ def show_portfolio_analysis_page():
                 if not optimizable_strategies:
                      st.info("No strategies available in selected portfolio for optimization.")
                 else:
-                    with st.form("portfolio_optimization_form_v6"): 
+                    with st.form("portfolio_optimization_form_v7"): # Incremented form key due to significant changes
                         st.markdown("Select strategies, objective, and constraints for optimization.")
                         selected_strategies_for_opt_form = st.multiselect(
                             "Select Strategies:", options=optimizable_strategies,
-                            default=optimizable_strategies[:min(len(optimizable_strategies), 5)], key="opt_strat_sel_v6"
+                            default=optimizable_strategies[:min(len(optimizable_strategies), 5)], key="opt_strat_sel_v7"
                         )
                         optimization_objective_options_map = {
                             "Maximize Sharpe Ratio": "maximize_sharpe_ratio", "Minimize Volatility": "minimize_volatility", "Risk Parity": "risk_parity"
                         }
                         optimization_objective_display_form = st.selectbox(
-                            "Objective:", options=list(optimization_objective_options_map.keys()), index=0, key="opt_obj_v6"
+                            "Objective:", options=list(optimization_objective_options_map.keys()), index=0, key="opt_obj_v7"
                         )
                         optimization_objective_form_key = optimization_objective_options_map[optimization_objective_display_form]
 
-                        use_ledoit_wolf_covariance_form = st.checkbox("Use Ledoit-Wolf Covariance", True, key="opt_lw_v6")
+                        use_ledoit_wolf_covariance_form = st.checkbox("Use Ledoit-Wolf Covariance", True, key="opt_lw_v7")
                         if optimization_objective_form_key == "minimize_volatility":
-                            target_return_input_form = st.number_input("Target Annualized Return (e.g., 0.10 for 10%):", -1.0, 2.0, 0.10, 0.01, "%.2f", key="opt_tr_v6")
+                            target_return_input_form = st.number_input("Target Annualized Return (e.g., 0.10 for 10%):", -1.0, 2.0, 0.10, 0.01, "%.2f", key="opt_tr_v7")
                         
                         max_lookback = max(20, len(portfolio_df[date_col_actual].unique())) if date_col_actual in portfolio_df and not portfolio_df.empty else 20
-                        lookback_days_opt_form = st.number_input("Lookback (days):", 20, max_lookback, min(252, max_lookback), 10, key="opt_lb_v6")
+                        lookback_days_opt_form = st.number_input("Lookback (days):", 20, max_lookback, min(252, max_lookback), 10, key="opt_lb_v7")
                         if optimization_objective_form_key in ["maximize_sharpe_ratio", "minimize_volatility"]:
-                            num_frontier_points_input_form = st.number_input("Frontier Points:", 10, 100, 25, 5, key="opt_fp_v6")
+                            num_frontier_points_input_form = st.number_input("Frontier Points:", 10, 100, 25, 5, key="opt_fp_v7")
 
-                        st.markdown("##### Per-Strategy Weight Constraints (Min/Max %)")
-                        asset_bounds_input_form = []
-                        current_weights_input_for_turnover_form = {}
+                        # --- Dynamic Current Weights Derivation ---
+                        derived_current_weights_pct_map = {} # Map: {strategy_name: weight_pct}
+                        if selected_strategies_for_opt_form and not portfolio_df.empty and date_col_actual in portfolio_df and pnl_col_actual in portfolio_df:
+                            latest_date_in_data_for_weights = portfolio_df[date_col_actual].max()
+                            # Ensure lookback_days_opt_form is positive
+                            lookback_days_for_current_w = max(1, lookback_days_opt_form)
+                            start_date_lookback_for_weights = latest_date_in_data_for_weights - pd.Timedelta(days=lookback_days_for_current_w - 1)
+
+                            relevant_df_for_weights = portfolio_df[
+                                (portfolio_df[strategy_col_actual].isin(selected_strategies_for_opt_form)) &
+                                (portfolio_df[date_col_actual] >= start_date_lookback_for_weights)
+                            ]
+
+                            if not relevant_df_for_weights.empty:
+                                pnl_per_strategy_in_lookback = relevant_df_for_weights.groupby(strategy_col_actual)[pnl_col_actual].sum()
+                                total_pnl_selected_in_lookback = pnl_per_strategy_in_lookback.sum()
+
+                                if total_pnl_selected_in_lookback > 1e-9: # Use small epsilon to avoid division by zero if PnL is tiny positive
+                                    for strat_name, strat_pnl in pnl_per_strategy_in_lookback.items():
+                                        derived_current_weights_pct_map[strat_name] = (strat_pnl / total_pnl_selected_in_lookback) * 100.0
+                                else: # Fallback: Equal weighting if total P&L is not positive
+                                    num_sel_strats = len(selected_strategies_for_opt_form)
+                                    if num_sel_strats > 0:
+                                        equal_weight_pct = 100.0 / num_sel_strats
+                                        for strat_name in selected_strategies_for_opt_form:
+                                            derived_current_weights_pct_map[strat_name] = equal_weight_pct
+                            else: # Fallback if no relevant P&L data for selected period/strategies
+                                num_sel_strats = len(selected_strategies_for_opt_form)
+                                if num_sel_strats > 0:
+                                    equal_weight_pct = 100.0 / num_sel_strats
+                                    for strat_name in selected_strategies_for_opt_form:
+                                        derived_current_weights_pct_map[strat_name] = equal_weight_pct
+                        else: # Fallback if no strategies selected or portfolio_df is unsuitable
+                             num_sel_strats = len(selected_strategies_for_opt_form)
+                             if num_sel_strats > 0:
+                                equal_weight_pct = 100.0 / num_sel_strats
+                                for strat_name in selected_strategies_for_opt_form:
+                                    derived_current_weights_pct_map[strat_name] = equal_weight_pct
+
+
+                        # --- Preset Constraints ---
+                        preset_options = {
+                            "Custom": {"description": "Manually define all constraints."},
+                            "Long Only (Max 30% / Strategy)": {"min": 0.0, "max": 30.0, "description": "Min weight 0%, Max weight 30% for each selected strategy."},
+                            "Diversified (Min 5%, Max 50% / Strategy)": {"min": 5.0, "max": 50.0, "description": "Min weight 5%, Max weight 50% for each selected strategy."}
+                        }
+                        preset_col1, preset_col2 = st.columns([1,2])
+                        selected_preset_name = preset_col1.selectbox(
+                            "Constraint Presets:", list(preset_options.keys()), key="opt_preset_v7",
+                            help="Select a preset to quickly apply common weight constraints. You can still adjust them individually."
+                        )
+                        preset_col2.caption(preset_options[selected_preset_name].get("description", ""))
+                        chosen_preset = preset_options[selected_preset_name]
+
+                        st.markdown("##### Per-Strategy Weights (Current Auto / Min % / Max %)")
+                        asset_bounds_input_form = [] # List of (min_bound, max_bound) tuples
+                        current_weights_input_for_turnover_form = {} # Dict: {strategy_name: current_weight_fraction}
+                        total_min_weight_pct_form = 0.0 # For immediate visual feedback of sum of mins
+
                         if selected_strategies_for_opt_form:
-                            num_sel = len(selected_strategies_for_opt_form)
-                            def_w = 100.0 / num_sel if num_sel > 0 else 0.0
-                            for strat in selected_strategies_for_opt_form:
+                            for strat_name_loop in selected_strategies_for_opt_form:
                                 cols = st.columns(3)
-                                cur = cols[0].number_input(f"Cur W % ({strat})", 0.0, 100.0, def_w, 1.0, "%.1f", key=f"cur_w_{strat}_v6")
-                                min_ = cols[1].number_input(f"Min W % ({strat})", 0.0, 100.0, 0.0, 1.0, "%.1f", key=f"min_w_{strat}_v6")
-                                max_ = cols[2].number_input(f"Max W % ({strat})", 0.0, 100.0, 100.0, 1.0, "%.1f", key=f"max_w_{strat}_v6")
-                                if min_ > max_: max_ = min_
-                                asset_bounds_input_form.append((min_ / 100.0, max_ / 100.0))
-                                current_weights_input_for_turnover_form[strat] = cur / 100.0
-                        else: st.caption("Select strategies to set weights.")
+                                
+                                # Current Weight (Derived, Display Only)
+                                default_current_w_pct = derived_current_weights_pct_map.get(strat_name_loop, 0.0)
+                                current_weights_input_for_turnover_form[strat_name_loop] = default_current_w_pct / 100.0
+                                cols[0].text_input(
+                                    label=f"Cur. W % ({strat_name_loop})",
+                                    value=f"{default_current_w_pct:.1f}% (auto)",
+                                    disabled=True,
+                                    key=f"disp_cur_w_{strat_name_loop}_v7_auto"
+                                )
+
+                                # Min/Max Weights with Preset Logic
+                                min_input_key = f"min_w_input_{strat_name_loop}_v7"
+                                max_input_key = f"max_w_input_{strat_name_loop}_v7"
+
+                                current_ss_min = st.session_state.get(min_input_key, 0.0)
+                                current_ss_max = st.session_state.get(max_input_key, 100.0)
+                                
+                                val_min_to_set = current_ss_min
+                                val_max_to_set = current_ss_max
+
+                                if selected_preset_name != "Custom":
+                                    val_min_to_set = chosen_preset.get("min", 0.0)
+                                    val_max_to_set = chosen_preset.get("max", 100.0)
+                                
+                                min_w_pct = cols[1].number_input(
+                                    f"Min W % ({strat_name_loop})", 0.0, 100.0,
+                                    value=val_min_to_set,
+                                    step=1.0, format="%.1f", key=min_input_key
+                                )
+                                max_w_pct = cols[2].number_input(
+                                    f"Max W % ({strat_name_loop})", 0.0, 100.0,
+                                    value=val_max_to_set,
+                                    step=1.0, format="%.1f", key=max_input_key
+                                )
+                                
+                                # Visual feedback for Min > Max for this strategy
+                                final_min_for_bounds_pct = min_w_pct
+                                final_max_for_bounds_pct = max_w_pct
+                                if min_w_pct > max_w_pct:
+                                    cols[1].warning(f"Min ({min_w_pct:.1f}%) > Max ({max_w_pct:.1f}%). Max will be set to Min for optimization.", icon="⚠️")
+                                    final_max_for_bounds_pct = min_w_pct # Correct for bounds calculation
+
+                                asset_bounds_input_form.append((final_min_for_bounds_pct / 100.0, final_max_for_bounds_pct / 100.0))
+                                total_min_weight_pct_form += min_w_pct # Sum of user-intended min_w_pct
+                        else:
+                            st.caption("Select strategies to configure weights and constraints.")
+
+                        # Visual feedback for Sum of Min Weights > 100% (shown within the form)
+                        if selected_strategies_for_opt_form and total_min_weight_pct_form > 100.0 + 1e-6: # Epsilon for float
+                            st.warning(
+                                f"The sum of minimum weight constraints ({total_min_weight_pct_form:.1f}%) "
+                                f"exceeds 100%. Please adjust individual minimum weights.",
+                                icon="⚠️"
+                            )
+                        
                         submit_optimization_button = st.form_submit_button("Optimize Portfolio")
 
-        if submit_optimization_button and selected_strategies_for_opt_form:
-            min_strats = 1 if optimization_objective_form_key == "risk_parity" else 2
-            sum_cur_w = sum(current_weights_input_for_turnover_form.values())
-            if not (0.999 < sum_cur_w < 1.001) and sum_cur_w != 0.0 and current_weights_input_for_turnover_form:
-                display_custom_message(f"Sum of 'Current Weight %' ({sum_cur_w*100:.1f}%) should be ~100% or 0%.", "warning")
-            if len(selected_strategies_for_opt_form) < min_strats:
-                display_custom_message(f"Select at least {min_strats} strategies for '{optimization_objective_display_form}'.", "warning")
-            elif asset_bounds_input_form and sum(b[0] for b in asset_bounds_input_form) > 1.0 + 1e-6 :
-                display_custom_message(f"Sum of min weight constraints ({sum(b[0]*100 for b in asset_bounds_input_form):.1f}%) > 100%.", "error")
+        if 'submit_optimization_button' in locals() and submit_optimization_button and selected_strategies_for_opt_form:
+            min_strats_needed = 1 if optimization_objective_form_key == "risk_parity" else 2
+            
+            # Check sum of derived current weights (should be ~100% or 0%)
+            # sum_cur_w_final = sum(current_weights_input_for_turnover_form.values())
+            # if not (0.999 < sum_cur_w_final < 1.001) and sum_cur_w_final != 0.0 and current_weights_input_for_turnover_form:
+            #     display_custom_message(f"Sum of derived 'Current Weights %' ({sum_cur_w_final*100:.1f}%) is not ~100% or 0%. This might indicate an issue in derivation.", "warning")
+            # This warning is less likely to trigger if derivation logic is correct.
+
+            if len(selected_strategies_for_opt_form) < min_strats_needed:
+                display_custom_message(f"Select at least {min_strats_needed} distinct strategies for '{optimization_objective_display_form}'.", "warning")
+            elif asset_bounds_input_form and sum(b[0] for b in asset_bounds_input_form) > 1.0 + 1e-6 : # Sum of min bounds (as fractions)
+                display_custom_message(f"Sum of minimum weight constraints ({sum(b[0]*100 for b in asset_bounds_input_form):.1f}%) exceeds 100%. Optimization halted.", "error")
             else:
-                with st.spinner("Optimizing portfolio..."):
-                    portfolio_df_tuple_for_opt = (portfolio_df.to_records(index=False).tolist(), portfolio_df.columns.tolist())
-                    opt_results = _run_portfolio_optimization_logic(
-                        portfolio_df_data_tuple=portfolio_df_tuple_for_opt, strategy_col_actual=strategy_col_actual,
-                        date_col_actual=date_col_actual, pnl_col_actual=pnl_col_actual,
-                        selected_strategies_for_opt_tuple=tuple(selected_strategies_for_opt_form),
-                        lookback_days_opt=lookback_days_opt_form, global_initial_capital=global_initial_capital,
-                        optimization_objective_key=optimization_objective_form_key, risk_free_rate=risk_free_rate,
-                        target_return_val=target_return_input_form, num_frontier_points=num_frontier_points_input_form,
-                        use_ledoit_wolf=use_ledoit_wolf_covariance_form, asset_bounds_list_of_tuples=asset_bounds_input_form
-                    )
-                
-                if opt_results and 'error' not in opt_results:
-                    st.success(f"Optimization ({optimization_objective_display_form}) Complete!")
-                    st.subheader("Optimal Portfolio Weights")
-                    optimal_weights_dict = opt_results.get('optimal_weights', {})
-                    if optimal_weights_dict:
-                        weights_df = pd.DataFrame.from_dict(optimal_weights_dict, orient='index', columns=['Weight'])
-                        weights_df["Weight %"] = (weights_df["Weight"] * 100)
-                        st.dataframe(weights_df[["Weight %"]].style.format("{:.2f}%"))
-                        with st.expander("View Optimal Weights Data (Numeric)"): st.dataframe(weights_df)
-                        fig_pie = px.pie(weights_df[weights_df['Weight'] > 1e-5], values='Weight', names=weights_df[weights_df['Weight'] > 1e-5].index, title=f'Optimal Allocation ({optimization_objective_display_form})', hole=0.3)
-                        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-                        st.plotly_chart(_apply_custom_theme(fig_pie, plot_theme), use_container_width=True)
-                        if current_weights_input_for_turnover_form:
-                            turnover = calculate_portfolio_turnover(current_weights_input_for_turnover_form, optimal_weights_dict)
-                            st.metric(label="Portfolio Turnover", value=format_percentage(turnover))
-                    else: st.warning("Optimal weights not found in results.")
-
-                    st.subheader(f"Optimized Portfolio Performance (Annualized) - {optimization_objective_display_form}")
-                    optimized_kpis = opt_results.get('performance', {})
-                    if optimized_kpis:
-                        # Corrected KPIClusterDisplay call
-                        KPIClusterDisplay(
-                            kpi_results=optimized_kpis,
-                            kpi_definitions=KPI_CONFIG,
-                            kpi_order=["expected_annual_return", "annual_volatility", "sharpe_ratio"],
-                            cols_per_row=3 # Explicitly named
-                        ).render()
-                        with st.expander("View Optimized Performance Data"): st.dataframe(pd.DataFrame.from_dict(optimized_kpis, orient='index', columns=['Value']))
-                    else: st.warning("Optimized performance KPIs not found.")
-
-                    if "risk_contributions" in opt_results and opt_results["risk_contributions"]:
-                        st.subheader("Risk Contributions to Portfolio Variance")
-                        rc_data = opt_results["risk_contributions"]
-                        if rc_data:
-                            rc_df = pd.DataFrame.from_dict(rc_data, orient='index', columns=['Risk Contribution %']).sort_values(by="Risk Contribution %", ascending=False)
-                            fig_rc = px.bar(rc_df, x=rc_df.index, y="Risk Contribution %", title="Percentage Risk Contribution", labels={"Risk Contribution %": "Risk Contrib. (%)"}, color="Risk Contribution %", color_continuous_scale=px.colors.sequential.Oranges_r)
-                            fig_rc.update_yaxes(ticksuffix="%")
-                            st.plotly_chart(_apply_custom_theme(fig_rc, plot_theme), use_container_width=True)
-                            with st.expander("View Risk Contribution Data"): st.dataframe(rc_df)
-                        else: st.info("Risk contribution data is empty.")
+                # Check individual bounds again (min <= max) as a final server-side check, though corrected for `asset_bounds_list_of_tuples`
+                invalid_bounds_exist = any(min_b > max_b + 1e-6 for min_b, max_b in asset_bounds_input_form) # Check if any min is strictly greater than max
+                if invalid_bounds_exist: # This case should be handled by correction, but as a safeguard
+                     display_custom_message("Invalid weight constraints found (a min weight > max weight) even after attempted correction. Please review.", "error")
+                else:
+                    with st.spinner("Optimizing portfolio..."):
+                        # Ensure portfolio_df is passed correctly; it's defined outside the form
+                        portfolio_df_tuple_for_opt = (portfolio_df.to_records(index=False).tolist(), portfolio_df.columns.tolist())
+                        opt_results = _run_portfolio_optimization_logic(
+                            portfolio_df_data_tuple=portfolio_df_tuple_for_opt, strategy_col_actual=strategy_col_actual,
+                            date_col_actual=date_col_actual, pnl_col_actual=pnl_col_actual,
+                            selected_strategies_for_opt_tuple=tuple(selected_strategies_for_opt_form), # from form
+                            lookback_days_opt=lookback_days_opt_form, # from form
+                            global_initial_capital=global_initial_capital, # from session_state
+                            optimization_objective_key=optimization_objective_form_key, # from form
+                            risk_free_rate=risk_free_rate, # from session_state
+                            target_return_val=target_return_input_form, # from form (if applicable)
+                            num_frontier_points=num_frontier_points_input_form, # from form (if applicable)
+                            use_ledoit_wolf=use_ledoit_wolf_covariance_form, # from form
+                            asset_bounds_list_of_tuples=asset_bounds_input_form # from form (potentially corrected)
+                        )
                     
-                    if optimization_objective_form_key in ["maximize_sharpe_ratio", "minimize_volatility"]:
-                        st.subheader("Efficient Frontier")
-                        frontier_data = opt_results.get("efficient_frontier")
-                        if frontier_data and frontier_data.get('volatility') and frontier_data.get('return'):
-                            perf_data = opt_results.get('performance', {})
-                            max_s_vol, max_s_ret, min_v_vol, min_v_ret = None, None, None, None
-                            if optimization_objective_form_key == "maximize_sharpe_ratio":
-                                max_s_vol, max_s_ret = perf_data.get('annual_volatility'), perf_data.get('expected_annual_return')
-                            else: 
-                                temp_f_df = pd.DataFrame(frontier_data)
-                                if not temp_f_df.empty and 'volatility' in temp_f_df and temp_f_df['volatility'].gt(1e-9).any():
-                                    temp_f_df['sharpe'] = (temp_f_df['return'] - risk_free_rate) / temp_f_df['volatility'].replace(0, np.nan)
-                                    if not temp_f_df['sharpe'].isnull().all():
-                                        idx = temp_f_df['sharpe'].idxmax()
-                                        max_s_vol, max_s_ret = temp_f_df.loc[idx, 'volatility'], temp_f_df.loc[idx, 'return']
+                    if opt_results and 'error' not in opt_results:
+                        st.success(f"Optimization ({optimization_objective_display_form}) Complete!")
+                        st.subheader("Optimal Portfolio Weights")
+                        optimal_weights_dict = opt_results.get('optimal_weights', {})
+                        if optimal_weights_dict:
+                            weights_df = pd.DataFrame.from_dict(optimal_weights_dict, orient='index', columns=['Weight'])
+                            weights_df["Weight %"] = (weights_df["Weight"] * 100)
+                            st.dataframe(weights_df[["Weight %"]].style.format("{:.2f}%"))
+                            with st.expander("View Optimal Weights Data (Numeric)"): st.dataframe(weights_df)
                             
-                            temp_f_df_min_vol = pd.DataFrame(frontier_data) 
-                            if not temp_f_df_min_vol.empty and 'volatility' in temp_f_df_min_vol:
-                                idx = temp_f_df_min_vol['volatility'].idxmin()
-                                min_v_vol, min_v_ret = temp_f_df_min_vol.loc[idx, 'volatility'], temp_f_df_min_vol.loc[idx, 'return']
+                            # Filter for weights > 1e-5 for pie chart to avoid clutter
+                            weights_for_pie = weights_df[weights_df['Weight'] > 1e-5]
+                            if not weights_for_pie.empty:
+                                fig_pie = px.pie(weights_for_pie, values='Weight', names=weights_for_pie.index, title=f'Optimal Allocation ({optimization_objective_display_form})', hole=0.3)
+                                fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+                                st.plotly_chart(_apply_custom_theme(fig_pie, plot_theme), use_container_width=True)
+                            else:
+                                st.info("No strategies with significant weight in the optimal allocation to display in pie chart.")
 
-                            frontier_fig = plot_efficient_frontier(frontier_data['volatility'], frontier_data['return'], max_s_vol, max_s_ret, min_v_vol, min_v_ret, theme=plot_theme)
-                            if frontier_fig:
-                                st.plotly_chart(frontier_fig, use_container_width=True)
-                                if not pd.DataFrame(frontier_data).empty:
-                                    with st.expander("View Efficient Frontier Data"): st.dataframe(pd.DataFrame(frontier_data))
-                            else: display_custom_message("Could not generate Efficient Frontier plot.", "warning")
-                        else: display_custom_message("Efficient Frontier data not available/incomplete.", "info")
-                elif opt_results: display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
-                else: display_custom_message("Portfolio optimization failed.", "error")
+                            if current_weights_input_for_turnover_form: # This is now derived
+                                turnover = calculate_portfolio_turnover(current_weights_input_for_turnover_form, optimal_weights_dict)
+                                st.metric(label="Portfolio Turnover", value=format_percentage(turnover))
+                            else:
+                                st.info("Current weights were not available for turnover calculation.")
+                        else: st.warning("Optimal weights not found in results.")
+
+                        st.subheader(f"Optimized Portfolio Performance (Annualized) - {optimization_objective_display_form}")
+                        optimized_kpis = opt_results.get('performance', {})
+                        if optimized_kpis:
+                            KPIClusterDisplay(
+                                kpi_results=optimized_kpis,
+                                kpi_definitions=KPI_CONFIG,
+                                kpi_order=["expected_annual_return", "annual_volatility", "sharpe_ratio"], # Ensure these keys exist in optimized_kpis
+                                cols_per_row=3
+                            ).render()
+                            with st.expander("View Optimized Performance Data"): st.dataframe(pd.DataFrame.from_dict(optimized_kpis, orient='index', columns=['Value']))
+                        else: st.warning("Optimized performance KPIs not found.")
+
+                        if "risk_contributions" in opt_results and opt_results["risk_contributions"]:
+                            st.subheader("Risk Contributions to Portfolio Variance")
+                            rc_data = opt_results["risk_contributions"]
+                            if isinstance(rc_data, dict) and rc_data: # Check if dict and not empty
+                                rc_df = pd.DataFrame.from_dict(rc_data, orient='index', columns=['Risk Contribution %']).sort_values(by="Risk Contribution %", ascending=False)
+                                fig_rc = px.bar(rc_df, x=rc_df.index, y="Risk Contribution %", title="Percentage Risk Contribution", labels={"Risk Contribution %": "Risk Contrib. (%)"}, color="Risk Contribution %", color_continuous_scale=px.colors.sequential.Oranges_r)
+                                fig_rc.update_yaxes(ticksuffix="%")
+                                st.plotly_chart(_apply_custom_theme(fig_rc, plot_theme), use_container_width=True)
+                                with st.expander("View Risk Contribution Data"): st.dataframe(rc_df)
+                            elif not rc_data: # Handles empty dict or other falsey values
+                                st.info("Risk contribution data is empty or not available for this objective.")
+                            else: # Not a dict, or unexpected format
+                                st.warning(f"Risk contribution data is in an unexpected format: {type(rc_data)}")
+                        
+                        if optimization_objective_form_key in ["maximize_sharpe_ratio", "minimize_volatility"]:
+                            st.subheader("Efficient Frontier")
+                            frontier_data = opt_results.get("efficient_frontier")
+                            if isinstance(frontier_data, dict) and frontier_data.get('volatility') and frontier_data.get('return'):
+                                perf_data = opt_results.get('performance', {})
+                                max_s_vol, max_s_ret, min_v_vol, min_v_ret = None, None, None, None
+                                
+                                # Determine Max Sharpe point for annotation
+                                temp_f_df_for_max_s = pd.DataFrame(frontier_data)
+                                if not temp_f_df_for_max_s.empty and 'volatility' in temp_f_df_for_max_s and 'return' in temp_f_df_for_max_s:
+                                    # Avoid division by zero or NaN if volatility is zero or very small
+                                    vol_for_sharpe = temp_f_df_for_max_s['volatility'].replace(0, np.nan)
+                                    temp_f_df_for_max_s['sharpe'] = (temp_f_df_for_max_s['return'] - risk_free_rate) / vol_for_sharpe
+                                    if not temp_f_df_for_max_s['sharpe'].isnull().all():
+                                        idx_max_s = temp_f_df_for_max_s['sharpe'].idxmax()
+                                        max_s_vol, max_s_ret = temp_f_df_for_max_s.loc[idx_max_s, 'volatility'], temp_f_df_for_max_s.loc[idx_max_s, 'return']
+
+                                # Determine Min Volatility point for annotation
+                                temp_f_df_for_min_v = pd.DataFrame(frontier_data)
+                                if not temp_f_df_for_min_v.empty and 'volatility' in temp_f_df_for_min_v:
+                                    idx_min_v = temp_f_df_for_min_v['volatility'].idxmin()
+                                    min_v_vol, min_v_ret = temp_f_df_for_min_v.loc[idx_min_v, 'volatility'], temp_f_df_for_min_v.loc[idx_min_v, 'return']
+
+                                frontier_fig = plot_efficient_frontier(frontier_data['volatility'], frontier_data['return'], max_s_vol, max_s_ret, min_v_vol, min_v_ret, theme=plot_theme)
+                                if frontier_fig:
+                                    st.plotly_chart(frontier_fig, use_container_width=True)
+                                    if not pd.DataFrame(frontier_data).empty:
+                                        with st.expander("View Efficient Frontier Data"): st.dataframe(pd.DataFrame(frontier_data))
+                                else: display_custom_message("Could not generate Efficient Frontier plot.", "warning")
+                            else: display_custom_message("Efficient Frontier data not available/incomplete for this objective.", "info")
+                    elif opt_results: display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
+                    else: display_custom_message("Portfolio optimization failed due to an unexpected issue.", "error")
+
 
     with tab_comparison:
         st.header("Compare Equity Curves of Any Two Accounts")
@@ -668,26 +803,41 @@ if __name__ == "__main__":
     if 'RISK_FREE_RATE' not in globals():
         RISK_FREE_RATE = 0.01
     if 'KPI_CONFIG' not in globals(): 
-        KPI_CONFIG = {} # This should ideally be populated with your KPI definitions
+        KPI_CONFIG = { # Basic example for KPIClusterDisplay
+            "expected_annual_return": {"label": "Exp. Annual Return", "format_type": "percentage_scalar"},
+            "annual_volatility": {"label": "Annual Volatility", "format_type": "percentage_scalar"},
+            "sharpe_ratio": {"label": "Sharpe Ratio", "format_type": "float"},
+            "total_pnl": {"label": "Total PnL", "format_type": "currency"},
+            "sortino_ratio": {"label": "Sortino Ratio", "format_type": "float"},
+            "calmar_ratio": {"label": "Calmar Ratio", "format_type": "float"},
+            "max_drawdown_abs": {"label": "Max Drawdown (Abs)", "format_type": "currency"},
+            "max_drawdown_pct": {"label": "Max Drawdown (%)", "format_type": "percentage_scalar"},
+            "avg_daily_pnl": {"label": "Avg Daily PnL", "format_type": "currency"},
+            "pnl_skewness": {"label": "PnL Skewness", "format_type": "float"},
+            "pnl_kurtosis": {"label": "PnL Kurtosis", "format_type": "float"},
+        }
+
 
     if 'app_initialized' not in st.session_state: 
         # Mock data for standalone testing:
-        # sample_data = {
-        #     EXPECTED_COLUMNS['date']: pd.to_datetime(['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02', '2023-01-03', '2023-01-03']),
-        #     EXPECTED_COLUMNS['pnl']: [10, -5, 20, 10, -15, 25],
-        #     EXPECTED_COLUMNS['strategy']: ['StratA', 'StratB', 'StratA', 'StratB', 'StratA', 'StratB'],
-        #     EXPECTED_COLUMNS['account_str']: ['Acc1', 'Acc1', 'Acc2', 'Acc2', 'Acc1', 'Acc2']
-        # }
-        # st.session_state.processed_data = pd.DataFrame(sample_data)
-        # st.session_state.initial_capital = 100000
-        # st.session_state.risk_free_rate = RISK_FREE_RATE # Use the defined or mocked one
-        # st.session_state.current_theme = 'dark'
-        # st.session_state.user_column_mapping = { # Mock a basic mapping if your app relies on it early
-        #     'date': EXPECTED_COLUMNS['date'],
-        #     'pnl': EXPECTED_COLUMNS['pnl'],
-        #     'strategy': EXPECTED_COLUMNS['strategy'],
-        #     'account_str': EXPECTED_COLUMNS['account_str']
-        # }
-        st.warning("Running page directly. Full app functionality may be limited. Ensure `config.py` variables are accessible or mocked, and `st.session_state.processed_data` is populated for testing.")
+        date_rng = pd.to_datetime(['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02', '2023-01-03', '2023-01-03'] * 10)
+        sample_data = {
+            EXPECTED_COLUMNS['date']: date_rng,
+            EXPECTED_COLUMNS['pnl']: np.random.randn(len(date_rng)) * 100,
+            EXPECTED_COLUMNS['strategy']: ['StratA', 'StratB', 'StratA', 'StratB', 'StratC', 'StratA'] * (len(date_rng)//6),
+            EXPECTED_COLUMNS['account_str']: ['Acc1', 'Acc1', 'Acc2', 'Acc2', 'Acc1', 'Acc2'] * (len(date_rng)//6)
+        }
+        st.session_state.processed_data = pd.DataFrame(sample_data)
+        st.session_state.initial_capital = 1000000 # Increased for more realistic returns
+        st.session_state.risk_free_rate = RISK_FREE_RATE 
+        st.session_state.current_theme = 'dark'
+        st.session_state.user_column_mapping = { 
+            'date': EXPECTED_COLUMNS['date'],
+            'pnl': EXPECTED_COLUMNS['pnl'],
+            'strategy': EXPECTED_COLUMNS['strategy'],
+            'account_str': EXPECTED_COLUMNS['account_str']
+        }
+        st.session_state.app_initialized = True # Mark as initialized
+        logger.info("Mock data loaded for standalone testing.")
     
     show_portfolio_analysis_page()
