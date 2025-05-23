@@ -11,9 +11,15 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, r2_score, mean_squared_error
 import plotly.express as px
 
-from utils.logger import get_logger
+from utils.logger import setup_logger # Corrected import
 
-logger = get_logger(__name__)
+# Corrected logger initialization:
+# Each module gets its own logger instance, configured by setup_logger.
+# It will use the default settings from setup_logger's signature 
+# (e.g. _DEFAULT_LOG_FILE, _DEFAULT_LOG_LEVEL from utils/logger.py)
+# unless a logger with this specific name (__name__) was already configured 
+# (e.g., by app.py with different parameters for this specific module name, which is less common).
+logger = setup_logger(logger_name=__name__)
 
 @st.cache_data(show_spinner="Running Feature Importance Analysis...")
 def run_feature_importance_analysis(X: pd.DataFrame, y: pd.Series, problem_type="classification", test_size=0.2, random_state=42):
