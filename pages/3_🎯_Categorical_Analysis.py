@@ -274,8 +274,9 @@ def display_data_table_with_checkbox(
 # --- Helper Functions for Rendering Sections ---
 def render_strategy_performance_insights(
     df: pd.DataFrame, pnl_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str
+    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
+    # kwargs will capture any extra arguments like win_col_actual, date_col_actual if passed
     st.header("💡 1. Strategy Performance Insights")
     with st.expander("Strategy Metrics", expanded=False):
         col1a, col1b = st.columns(2)
@@ -339,7 +340,7 @@ def render_strategy_performance_insights(
 
 def render_temporal_analysis(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, date_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
     st.header("⏳ 2. Temporal Analysis")
     with st.expander("Time-Based Performance", expanded=False):
@@ -381,7 +382,7 @@ def render_temporal_analysis(
                         )
                 except Exception as e_sess_tf: logger.error(f"Error in Session/TF Heatmap: {e_sess_tf}", exc_info=True)
         st.markdown("---")
-        if date_col_actual and pnl_col_actual:
+        if date_col_actual and pnl_col_actual: # date_col_actual is used here
             try:
                 # Ensure date_col_actual is datetime before .dt accessor
                 df_calendar = df.copy()
@@ -404,7 +405,7 @@ def render_temporal_analysis(
 
 def render_market_context_impact(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, 
-    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str
+    trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
     st.header("🌍 3. Market Context Impact")
     with st.expander("Market Condition Effects", expanded=False):
@@ -439,7 +440,7 @@ def render_market_context_impact(
                     st.dataframe(market_cond_pnl_summary, use_container_width=True)
         st.markdown("---")
         market_sent_col_actual = get_column_name(MARKET_SENTIMENT_KEY, df.columns)
-        if market_sent_col_actual and win_col_actual in df.columns:
+        if market_sent_col_actual and win_col_actual in df.columns: # win_col_actual is used here
             try:
                 sentiment_win_rate_data = df.groupby(market_sent_col_actual, observed=False)[win_col_actual].mean().reset_index()
                 sentiment_win_rate_data[win_col_actual] *= 100 # Convert to percentage
@@ -458,7 +459,7 @@ def render_market_context_impact(
             except Exception as e_sent_wr: logger.error(f"Error generating Market Sentiment vs Win Rate: {e_sent_wr}", exc_info=True)
 
 def render_behavioral_factors(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
     st.header("🤔 4. Behavioral Factors")
     with st.expander("Trader Psychology & Compliance", expanded=False):
@@ -505,7 +506,7 @@ def render_behavioral_factors(
                 )
 
 def render_capital_risk_insights(
-    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str
+    df: pd.DataFrame, trade_result_col_actual: str, plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
     st.header("💰 5. Capital & Risk Insights")
     with st.expander("Capital Management and Drawdown", expanded=False):
@@ -515,7 +516,7 @@ def render_capital_risk_insights(
             drawdown_csv_col_actual = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns)
             if initial_bal_col_actual and drawdown_csv_col_actual and trade_result_col_actual in df.columns:
                 scatter_data_cols = [initial_bal_col_actual, drawdown_csv_col_actual, trade_result_col_actual]
-                scatter_df_view = df[scatter_data_cols].dropna().copy() # Use .copy() if further modifications are made to scatter_df_view
+                scatter_df_view = df[scatter_data_cols].dropna().copy() 
                 
                 fig_bal_dd = plot_scatter_plot(
                     df=scatter_df_view, x_col=initial_bal_col_actual, y_col=drawdown_csv_col_actual, color_col=trade_result_col_actual,
@@ -528,13 +529,13 @@ def render_capital_risk_insights(
                     f"{section_key_prefix}_view_bal_dd_scatter"
                 )
         with col5b:
-            trade_plan_col_actual_dd = get_column_name(TRADE_PLAN_KEY, df.columns) # Re-get for this specific plot context
-            drawdown_csv_col_actual_avg = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns) # Re-get
+            trade_plan_col_actual_dd = get_column_name(TRADE_PLAN_KEY, df.columns) 
+            drawdown_csv_col_actual_avg = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns) 
             if trade_plan_col_actual_dd and drawdown_csv_col_actual_avg:
                 avg_dd_plan_data = df.groupby(trade_plan_col_actual_dd, observed=False)[drawdown_csv_col_actual_avg].mean().reset_index()
                 avg_dd_plan_data = avg_dd_plan_data.sort_values(by=drawdown_csv_col_actual_avg, ascending=True)
                 
-                fig_avg_dd_plan = plot_pnl_by_category( # Reusing plot_pnl_by_category for a generic category vs value plot
+                fig_avg_dd_plan = plot_pnl_by_category( 
                     df=avg_dd_plan_data, category_col=trade_plan_col_actual_dd, pnl_col=drawdown_csv_col_actual_avg,
                     title_prefix="Average Drawdown by", aggregation_func='mean', theme=plot_theme, is_data_aggregated=True
                 )
@@ -544,13 +545,13 @@ def render_capital_risk_insights(
                     f"{section_key_prefix}_view_avg_dd_plan"
                 )
         st.markdown("---")
-        drawdown_csv_col_actual_hist = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns) # Re-get
+        drawdown_csv_col_actual_hist = get_column_name(DRAWDOWN_VALUE_CSV_KEY, df.columns) 
         if drawdown_csv_col_actual_hist:
             df_dd_hist = df[[drawdown_csv_col_actual_hist]].copy()
             df_dd_hist[drawdown_csv_col_actual_hist] = pd.to_numeric(df_dd_hist[drawdown_csv_col_actual_hist], errors='coerce')
             df_dd_hist.dropna(subset=[drawdown_csv_col_actual_hist], inplace=True)
             if not df_dd_hist.empty:
-                fig_dd_hist = plot_pnl_distribution( # plot_pnl_distribution can be used for any numeric distribution
+                fig_dd_hist = plot_pnl_distribution( 
                     df=df_dd_hist, pnl_col=drawdown_csv_col_actual_hist, 
                     title=f"{PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.get(DRAWDOWN_VALUE_CSV_KEY, DRAWDOWN_VALUE_CSV_KEY).replace('_',' ').title()} Distribution",
                     theme=plot_theme, nbins=30
@@ -564,7 +565,7 @@ def render_capital_risk_insights(
 
 def render_exit_directional_insights(
     df: pd.DataFrame, win_col_actual: str, trade_result_col_actual: str, 
-    plot_theme: str, section_key_prefix: str
+    plot_theme: str, section_key_prefix: str, **kwargs # Added **kwargs
 ):
     st.header("🚪 6. Exit & Directional Insights")
     with st.expander("Trade Exits and Directional Bias", expanded=False):
@@ -586,7 +587,7 @@ def render_exit_directional_insights(
                 )
         with col6b:
             direction_col_actual_wr = get_column_name(DIRECTION_KEY, df.columns)
-            if direction_col_actual_wr and win_col_actual in df.columns:
+            if direction_col_actual_wr and win_col_actual in df.columns: # win_col_actual is used here
                 dir_wr_data = df.groupby(direction_col_actual_wr, observed=False)[win_col_actual].agg(['mean', 'count']).reset_index()
                 dir_wr_data['mean'] *= 100 # Convert to percentage
                 dir_wr_data.rename(columns={'mean': 'Win Rate (%)', 'count': 'Total Trades'}, inplace=True)
@@ -601,7 +602,7 @@ def render_exit_directional_insights(
                 )
         st.markdown("---")
         time_frame_col_actual_facet = get_column_name(TIME_FRAME_KEY, df.columns)
-        direction_col_actual_facet = get_column_name(DIRECTION_KEY, df.columns) # Re-get
+        direction_col_actual_facet = get_column_name(DIRECTION_KEY, df.columns) 
         if direction_col_actual_facet and time_frame_col_actual_facet and trade_result_col_actual in df.columns:
             unique_time_frames = sorted(df[time_frame_col_actual_facet].astype(str).dropna().unique())
             if not unique_time_frames:
@@ -645,10 +646,8 @@ def render_performance_summary_table(
     df: pd.DataFrame, pnl_col_actual: str, win_col_actual: str, section_key_prefix: str
 ):
     st.header("📊 7. Performance Summary by Custom Category")
-    with st.expander("View Performance Table with Confidence Intervals", expanded=True): # Expanded by default for visibility
+    with st.expander("View Performance Table with Confidence Intervals", expanded=True): 
         available_categories_for_table: Dict[str, str] = {}
-        # Populate available categories from PERFORMANCE_TABLE_SELECTABLE_CATEGORIES
-        # ensuring the actual column exists and has non-empty, non-whitespace data
         for conceptual_key, display_name in PERFORMANCE_TABLE_SELECTABLE_CATEGORIES.items():
             actual_col = get_column_name(conceptual_key, df.columns)
             if actual_col and actual_col in df.columns and not df[actual_col].dropna().astype(str).str.strip().empty:
@@ -687,7 +686,6 @@ def render_performance_summary_table(
                                                    "Win Rate %", "Win Rate % CI", "Expectancy $"]
                         summary_df_display = summary_df[[col for col in cols_to_display_summary if col in summary_df.columns]].copy()
                         
-                        # Apply formatting for display
                         if "Total PnL" in summary_df_display.columns: summary_df_display["Total PnL"] = summary_df_display["Total PnL"].apply(lambda x: format_currency(x) if pd.notna(x) else "N/A")
                         if "Average PnL" in summary_df_display.columns: summary_df_display["Average PnL"] = summary_df_display["Average PnL"].apply(lambda x: format_currency(x) if pd.notna(x) else "N/A")
                         if "Win Rate %" in summary_df_display.columns: summary_df_display["Win Rate %"] = summary_df_display["Win Rate %"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "N/A")
@@ -777,7 +775,6 @@ def render_dynamic_category_visualizer(
 
         if actual_selected_category_col:
             df_dynamic_plot_data_source = df.copy()
-            # Apply Top/Bottom N filtering
             if filter_type_dynamic != "Show All" and selected_metric_dynamic != "PnL Distribution" and selected_chart_type_dynamic in ["Bar Chart", "Donut Chart"]:
                 if not df_dynamic_plot_data_source.empty:
                     if not pnl_col_actual or pnl_col_actual not in df_dynamic_plot_data_source.columns: 
@@ -804,9 +801,9 @@ def render_dynamic_category_visualizer(
                         else: df_dynamic_plot_data = df_dynamic_plot_data_source[df_dynamic_plot_data_source[actual_selected_category_col].isin(top_n_cat_names)].copy()
                     else: 
                         logger.warning(f"Could not rank categories for Top/Bottom N based on {sort_metric_for_top_n}.")
-                        df_dynamic_plot_data = pd.DataFrame() # Ensure it's an empty df
+                        df_dynamic_plot_data = pd.DataFrame() 
                 else: df_dynamic_plot_data = pd.DataFrame()
-            else: df_dynamic_plot_data = df_dynamic_plot_data_source # No filtering, use the source
+            else: df_dynamic_plot_data = df_dynamic_plot_data_source 
 
             fig_dynamic = None
             title_dynamic = f"{selected_metric_dynamic} by {selected_cat_display_name_dynamic}"
@@ -819,7 +816,6 @@ def render_dynamic_category_visualizer(
             else:
                 logger.debug(f"Dynamic Plot: Category='{actual_selected_category_col}', Metric='{selected_metric_dynamic}', Chart='{selected_chart_type_dynamic}'")
                 try:
-                    # Plotting logic based on selected metric and chart type
                     if selected_metric_dynamic == "Total PnL":
                         dynamic_plot_df_for_view = df_dynamic_plot_data.groupby(actual_selected_category_col, observed=False)[pnl_col_actual].sum().reset_index()
                         if selected_chart_type_dynamic == "Bar Chart":
@@ -862,22 +858,21 @@ def render_dynamic_category_visualizer(
                             f"{section_key_prefix}_view_data_dynamic_{selected_cat_display_name_dynamic}_{selected_metric_dynamic}"
                         )
                     
-                    # Statistical Tests
                     category_groups_for_test = df_dynamic_plot_data[actual_selected_category_col].dropna().unique()
                     if "Others" in category_groups_for_test: category_groups_for_test = [cat for cat in category_groups_for_test if cat != "Others"]
                     
                     if len(category_groups_for_test) >= 2:
-                        if selected_metric_dynamic == "Average PnL" and selected_chart_type_dynamic == "Bar Chart": # ANOVA suitable for comparing means of multiple groups
+                        if selected_metric_dynamic == "Average PnL" and selected_chart_type_dynamic == "Bar Chart": 
                             st.markdown("##### ANOVA F-test (Difference in Average PnL across categories)")
                             avg_pnl_data_for_anova = [df_dynamic_plot_data[df_dynamic_plot_data[actual_selected_category_col] == group][pnl_col_actual].dropna().values for group in category_groups_for_test]
-                            avg_pnl_data_for_anova_filtered = [g_data for g_data in avg_pnl_data_for_anova if len(g_data) >= 2] # ANOVA needs at least 2 obs per group
-                            if len(avg_pnl_data_for_anova_filtered) >= 2: # And at least 2 groups
+                            avg_pnl_data_for_anova_filtered = [g_data for g_data in avg_pnl_data_for_anova if len(g_data) >= 2] 
+                            if len(avg_pnl_data_for_anova_filtered) >= 2: 
                                 anova_results = statistical_service.run_hypothesis_test(data1=avg_pnl_data_for_anova_filtered, test_type='anova')
                                 if 'error' in anova_results: st.caption(f"ANOVA Test Error: {anova_results['error']}")
                                 else: st.metric(label="ANOVA P-value", value=f"{anova_results.get('p_value', np.nan):.4f}", help=anova_results.get('interpretation', 'Lower p-value suggests significant difference in means.'))
                             else: st.caption("ANOVA Test: Not enough groups with sufficient data (min 2 groups, 2 obs/group).")
                         
-                        elif selected_metric_dynamic == "Win Rate (%)" and selected_chart_type_dynamic == "Bar Chart": # Chi-squared for proportions
+                        elif selected_metric_dynamic == "Win Rate (%)" and selected_chart_type_dynamic == "Bar Chart": 
                             st.markdown("##### Chi-squared Test (Difference in Win Rates across categories)")
                             contingency_table_data = []
                             valid_groups_for_chi2 = 0
@@ -886,7 +881,7 @@ def render_dynamic_category_visualizer(
                                 if not group_data.empty and win_col_actual in group_data.columns:
                                     wins = group_data[win_col_actual].sum()
                                     losses = len(group_data) - wins
-                                    if wins + losses >= 5 : # Min observations for Chi-squared cell
+                                    if wins + losses >= 5 : 
                                         contingency_table_data.append([wins, losses])
                                         valid_groups_for_chi2 +=1
                             if valid_groups_for_chi2 >= 2 and len(contingency_table_data) >=2 :
@@ -915,13 +910,11 @@ def show_categorical_analysis_page():
     plot_theme = st.session_state.get('current_theme', PLOTLY_THEME_DARK if st.session_state.get('theme', 'dark') == 'dark' else PLOTLY_THEME_LIGHT)
 
 
-    # Get actual column names once
     pnl_col_actual = get_column_name(PNL_KEY, df.columns)
-    win_col_actual = 'win' # This is an engineered column, assumed to be present after data processing
-    trade_result_col_actual = 'trade_result_processed' # Engineered column
+    win_col_actual = 'win' 
+    trade_result_col_actual = 'trade_result_processed' 
     date_col_actual = get_column_name(DATE_KEY, df.columns)
 
-    # Initial checks for data and essential columns
     if df.empty:
         display_custom_message("No data matches the current filters. Cannot perform categorical analysis.", "info")
         return
@@ -931,19 +924,15 @@ def show_categorical_analysis_page():
         return
     if win_col_actual not in df.columns:
         logger.warning(f"Engineered Win column ('{win_col_actual}') not found. Some analyses may be affected or default to PnL > 0.")
-        # Attempt to create it if pnl_col_actual exists and is numeric
         if pnl_col_actual and pd.api.types.is_numeric_dtype(df[pnl_col_actual]):
             df[win_col_actual] = df[pnl_col_actual] > 0
             logger.info(f"Created '{win_col_actual}' column based on '{pnl_col_actual}' > 0.")
         else:
             display_custom_message(f"Engineered Win column ('{win_col_actual}') not found and could not be created. Some analyses will be impacted.", "warning")
-            # Some functions might fail if they strictly expect this column and can't derive it.
-            # calculate_performance_summary_by_category handles this internally.
 
     if trade_result_col_actual not in df.columns:
         logger.warning(f"Engineered Trade Result column ('{trade_result_col_actual}') not found. Some analyses may be affected.")
-        # Create a fallback if pnl_col is available
-        if pnl_col_actual and win_col_actual in df.columns : # win_col_actual might have just been created
+        if pnl_col_actual and win_col_actual in df.columns : 
              df[trade_result_col_actual] = np.select(
                 [df[pnl_col_actual] > 0, df[pnl_col_actual] < 0],
                 ['WIN', 'LOSS'],
@@ -953,82 +942,36 @@ def show_categorical_analysis_page():
         else:
             display_custom_message(f"Engineered Trade Result column ('{trade_result_col_actual}') not found and could not be created. Some analyses will be impacted.", "warning")
 
-
     if not date_col_actual:
         logger.warning(f"Date column ('{EXPECTED_COLUMNS.get(DATE_KEY, DATE_KEY)}') not found. Some temporal analyses may be affected.")
 
-    # Define a dictionary of common arguments to pass to render functions
-    # This helps to avoid passing too many individual arguments
     common_render_args = {
         "pnl_col_actual": pnl_col_actual,
         "win_col_actual": win_col_actual,
         "trade_result_col_actual": trade_result_col_actual,
         "date_col_actual": date_col_actual,
         "plot_theme": plot_theme,
-        # Pass other shared resources if needed, e.g. COLORS, statistical_service
     }
 
-    # Render sections using helper functions
-    # Each function is responsible for its own expander and layout
-    # Pass a unique section_key_prefix to ensure widget keys are unique across sections.
-
-    # --- Section 1: Strategy Performance ---
     render_strategy_performance_insights(df, **common_render_args, section_key_prefix="s1")
-    
-    # --- Section 2: Temporal Analysis ---
     render_temporal_analysis(df, **common_render_args, section_key_prefix="s2")
-
-    # --- Section 3: Market Context Impact ---
     render_market_context_impact(df, **common_render_args, section_key_prefix="s3")
-
-    # --- Section 4: Behavioral Factors ---
     render_behavioral_factors(df, **common_render_args, section_key_prefix="s4")
-    
-    # --- Section 5: Capital & Risk Insights ---
     render_capital_risk_insights(df, **common_render_args, section_key_prefix="s5")
-
-    # --- Section 6: Exit & Directional Insights ---
     render_exit_directional_insights(df, **common_render_args, section_key_prefix="s6")
 
-    # --- Section 7: Performance Summary by Custom Category Table ---
-    if pnl_col_actual and win_col_actual: # Ensure essential cols for this table are present
+    if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
         render_performance_summary_table(df, pnl_col_actual, win_col_actual, section_key_prefix="s7")
     else:
         display_custom_message("Cannot render Performance Summary Table due to missing PnL or Win columns.", "warning")
 
-
-    # --- Section 8: Dynamic Category Visualizer ---
-    if pnl_col_actual and win_col_actual: # Ensure essential cols for dynamic viz are present
+    if pnl_col_actual and win_col_actual in df.columns : # Ensure win_col_actual exists before calling
          render_dynamic_category_visualizer(df, pnl_col_actual, win_col_actual, plot_theme, section_key_prefix="s8")
     else:
         display_custom_message("Cannot render Dynamic Category Visualizer due to missing PnL or Win columns.", "warning")
 
 
 if __name__ == "__main__":
-    # This page is intended to be run as part of a multi-page Streamlit app.
-    # For direct testing, you might need to mock st.session_state or ensure data is loaded.
-    if 'app_initialized' not in st.session_state: # A common check for multi-page apps
+    if 'app_initialized' not in st.session_state: 
         st.warning("This page is part of a multi-page app. Please run the main app.py script for full functionality.")
-        # Mock necessary session state for standalone testing if desired
-        # For example:
-        # if 'filtered_data' not in st.session_state:
-        #     try:
-        #         # Attempt to load some sample data for testing
-        #         st.session_state.filtered_data = pd.read_csv("path_to_sample_data.csv") # Replace with actual path
-        #         # Ensure necessary columns like 'win', 'trade_result_processed' are present or created
-        #         if 'pnl' in st.session_state.filtered_data.columns:
-        #             if 'win' not in st.session_state.filtered_data.columns:
-        #                 st.session_state.filtered_data['win'] = st.session_state.filtered_data['pnl'] > 0
-        #             if 'trade_result_processed' not in st.session_state.filtered_data.columns:
-        #                 st.session_state.filtered_data['trade_result_processed'] = np.select(
-        #                     [st.session_state.filtered_data['pnl'] > 0, st.session_state.filtered_data['pnl'] < 0],
-        #                     ['WIN', 'LOSS'], default='BREAKEVEN'
-        #                 )
-        #         st.session_state.current_theme = 'dark' # Default theme for testing
-        #         logger.info("Mock data loaded for standalone testing.")
-        #     except Exception as e:
-        #         st.error(f"Could not load sample data for testing: {e}")
-        #         st.stop()
-
-
     show_categorical_analysis_page()
