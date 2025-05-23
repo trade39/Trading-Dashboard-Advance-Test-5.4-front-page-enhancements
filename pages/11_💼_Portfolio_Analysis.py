@@ -249,7 +249,7 @@ def show_portfolio_analysis_page():
         return
 
     base_df = st.session_state.processed_data
-    plot_theme = st.session_state.get('current_theme', 'dark') # Default to dark as per preference
+    plot_theme = st.session_state.get('current_theme', 'dark') 
     risk_free_rate = st.session_state.get('risk_free_rate', RISK_FREE_RATE)
     global_initial_capital = st.session_state.get('initial_capital', 100000.0)
 
@@ -280,7 +280,7 @@ def show_portfolio_analysis_page():
     if len(unique_accounts_all) > 1:
         selected_accounts_for_portfolio = st.sidebar.multiselect(
             "Select accounts for portfolio view:", options=unique_accounts_all,
-            default=unique_accounts_all, key="portfolio_view_account_multiselect_v2" # incremented key
+            default=unique_accounts_all, key="portfolio_view_account_multiselect_v2" 
         )
     else:
         st.sidebar.info(f"Displaying portfolio view for the single account: {unique_accounts_all[0]}")
@@ -301,14 +301,12 @@ def show_portfolio_analysis_page():
     if portfolio_df.empty:
         display_custom_message("No valid data after cleaning for selected accounts.", "warning"); return
 
-    # --- Define Tabs ---
     tab_titles = [
         "📈 Overall Performance", "🔗 Inter-Connections", "📊 Account Breakdown",
         "⚖️ Portfolio Optimization", "↔️ Equity Comparison"
     ]
     tab_overall, tab_connections, tab_breakdown, tab_optimization, tab_comparison = st.tabs(tab_titles)
 
-    # --- Tab 1: Overall Performance ---
     with tab_overall:
         st.header(f"Overall Performance for Selected Portfolio ({', '.join(selected_accounts_for_portfolio)})")
         portfolio_daily_trades_df = pd.DataFrame()
@@ -355,7 +353,6 @@ def show_portfolio_analysis_page():
                 with st.expander("View Underlying Equity Curve Data"):
                     st.dataframe(portfolio_daily_trades_df)
 
-    # --- Tab 2: Inter-Connections ---
     with tab_connections:
         st.header(f"Inter-Connections (Selected Portfolio: {', '.join(selected_accounts_for_portfolio)})")
         st.subheader("🔀 Inter-Strategy P&L Correlation")
@@ -412,7 +409,6 @@ def show_portfolio_analysis_page():
             elif correlation_results_acc: display_custom_message(f"Inter-account correlation error: {correlation_results_acc.get('error')}", "error")
             else: display_custom_message("Inter-account correlation analysis failed.", "error")
 
-    # --- Tab 3: Account Performance Breakdown ---
     with tab_breakdown:
         st.header(f"Account Performance Breakdown (Portfolio: {', '.join(selected_accounts_for_portfolio)})")
         account_metrics_data = []
@@ -426,7 +422,7 @@ def show_portfolio_analysis_page():
         if account_metrics_data:
             summary_table_df = pd.DataFrame(account_metrics_data)
             if "Total PnL" in summary_table_df.columns:
-                summary_table_df["Total PnL Numeric"] = pd.to_numeric(summary_table_df["Total PnL"], errors='coerce') # Use a new column for numeric PNL
+                summary_table_df["Total PnL Numeric"] = pd.to_numeric(summary_table_df["Total PnL"], errors='coerce') 
                 pnl_for_chart_df = summary_table_df[
                     summary_table_df["Total PnL Numeric"].notna() & (summary_table_df["Total PnL Numeric"] != 0)
                 ][["Account", "Total PnL Numeric"]].copy()
@@ -443,7 +439,6 @@ def show_portfolio_analysis_page():
             valid_display_cols = [col for col in display_cols_summary if col in summary_table_df.columns]
             summary_table_df_display = summary_table_df[valid_display_cols].copy()
             
-            # Formatting for display
             for col, item_type in [("Total PnL", "currency"), ("Avg Trade PnL", "currency"), 
                                    ("Win Rate %", "percentage"), ("Max Drawdown %", "percentage"),
                                    ("Sharpe Ratio", "float")]:
@@ -456,16 +451,14 @@ def show_portfolio_analysis_page():
             st.dataframe(summary_table_df_display.set_index("Account"), use_container_width=True)
             if not summary_table_df.empty:
                 with st.expander("View Raw Account Performance Data (Pre-formatting)"):
-                    st.dataframe(summary_table_df.drop(columns=["Total PnL Numeric"], errors='ignore')) # Show original PnL if Total PnL Numeric was added
+                    st.dataframe(summary_table_df.drop(columns=["Total PnL Numeric"], errors='ignore'))
         else: display_custom_message("Could not calculate performance metrics for individual accounts.", "warning")
 
-    # --- Tab 4: Portfolio Optimization ---
     with tab_optimization:
         st.header("Portfolio Optimization")
-        # Form variables need to be initialized for each run if they are not in session_state and form is resubmitted
         selected_strategies_for_opt_form = []
-        optimization_objective_form_key = "" # Store the key like "maximize_sharpe_ratio"
-        optimization_objective_display_form = "" # Store the display string
+        optimization_objective_form_key = "" 
+        optimization_objective_display_form = "" 
         use_ledoit_wolf_covariance_form = True
         target_return_input_form = None
         lookback_days_opt_form = 252
@@ -481,7 +474,7 @@ def show_portfolio_analysis_page():
                 if not optimizable_strategies:
                      st.info("No strategies available in selected portfolio for optimization.")
                 else:
-                    with st.form("portfolio_optimization_form_v6"): # Incremented form key
+                    with st.form("portfolio_optimization_form_v6"): 
                         st.markdown("Select strategies, objective, and constraints for optimization.")
                         selected_strategies_for_opt_form = st.multiselect(
                             "Select Strategies:", options=optimizable_strategies,
@@ -586,7 +579,7 @@ def show_portfolio_analysis_page():
                             max_s_vol, max_s_ret, min_v_vol, min_v_ret = None, None, None, None
                             if optimization_objective_form_key == "maximize_sharpe_ratio":
                                 max_s_vol, max_s_ret = perf_data.get('annual_volatility'), perf_data.get('expected_annual_return')
-                            else: # For Min Vol, find Max Sharpe on frontier
+                            else: 
                                 temp_f_df = pd.DataFrame(frontier_data)
                                 if not temp_f_df.empty and 'volatility' in temp_f_df and temp_f_df['volatility'].gt(1e-9).any():
                                     temp_f_df['sharpe'] = (temp_f_df['return'] - risk_free_rate) / temp_f_df['volatility'].replace(0, np.nan)
@@ -594,7 +587,7 @@ def show_portfolio_analysis_page():
                                         idx = temp_f_df['sharpe'].idxmax()
                                         max_s_vol, max_s_ret = temp_f_df.loc[idx, 'volatility'], temp_f_df.loc[idx, 'return']
                             
-                            temp_f_df_min_vol = pd.DataFrame(frontier_data) # Min Vol point
+                            temp_f_df_min_vol = pd.DataFrame(frontier_data) 
                             if not temp_f_df_min_vol.empty and 'volatility' in temp_f_df_min_vol:
                                 idx = temp_f_df_min_vol['volatility'].idxmin()
                                 min_v_vol, min_v_ret = temp_f_df_min_vol.loc[idx, 'volatility'], temp_f_df_min_vol.loc[idx, 'return']
@@ -609,7 +602,6 @@ def show_portfolio_analysis_page():
                 elif opt_results: display_custom_message(f"Optimization Error: {opt_results.get('error')}", "error")
                 else: display_custom_message("Portfolio optimization failed.", "error")
 
-    # --- Tab 5: Compare Equity Curves ---
     with tab_comparison:
         st.header("Compare Equity Curves of Any Two Accounts")
         if len(unique_accounts_all) < 2:
@@ -629,7 +621,13 @@ def show_portfolio_analysis_page():
 
                 for df_raw, acc_name in [(df_acc1_raw, acc1_comp), (df_acc2_raw, acc2_comp)]:
                     if df_raw.empty: continue
-                    df_cleaned = _clean_data_for_analysis(df_raw, date_col_actual, pnl_col_actual, [pnl_col_actual])
+                    # Corrected call to _clean_data_for_analysis using keyword arguments
+                    df_cleaned = _clean_data_for_analysis(
+                        df_raw, 
+                        date_col=date_col_actual, 
+                        pnl_col=pnl_col_actual, 
+                        required_cols_to_check_na=[pnl_col_actual] # Pass list to the correct parameter
+                    )
                     if not df_cleaned.empty:
                         df_cleaned['cumulative_pnl'] = df_cleaned[pnl_col_actual].cumsum()
                         temp_df = df_cleaned[[date_col_actual, 'cumulative_pnl']].rename(columns={'cumulative_pnl': f'Equity_{acc_name}'})
@@ -640,7 +638,7 @@ def show_portfolio_analysis_page():
                     display_custom_message(f"One or both accounts lack valid P&L data for comparison.", "warning")
                 else:
                     combined_equity_comp_df.sort_values(by=date_col_actual, inplace=True)
-                    combined_equity_comp_df = combined_equity_comp_df.ffill().fillna(0)
+                    combined_equity_comp_df = combined_equity_comp_df.ffill().fillna(0) # Use ffill() directly
                     fig_comp = go.Figure()
                     if f'Equity_{acc1_comp}' in combined_equity_comp_df:
                         fig_comp.add_trace(go.Scatter(x=combined_equity_comp_df[date_col_actual], y=combined_equity_comp_df[f'Equity_{acc1_comp}'], name=f"{acc1_comp} Equity"))
@@ -653,17 +651,36 @@ def show_portfolio_analysis_page():
 
 if __name__ == "__main__":
     st.set_page_config(layout="wide", page_title="Portfolio Analysis", initial_sidebar_state="expanded")
-    # Mock session state for standalone testing if necessary
-    # Ensure APP_TITLE is defined if not running through main app.py
-    if 'APP_TITLE' not in globals(): APP_TITLE = "PortfolioApp" # Fallback for standalone
+    if 'APP_TITLE' not in globals(): APP_TITLE = "PortfolioApp_Standalone" 
     
-    if 'app_initialized' not in st.session_state: # Basic check
-        # st.session_state.processed_data = pd.DataFrame(...) # Example: Load sample data
+    # Minimal mock for EXPECTED_COLUMNS and RISK_FREE_RATE if running standalone
+    if 'EXPECTED_COLUMNS' not in globals():
+        EXPECTED_COLUMNS = {
+            'account_str': 'Account', # Example, adjust to your CSV
+            'pnl': 'PnL',             # Example, adjust to your CSV
+            'date': 'Date',           # Example, adjust to your CSV
+            'strategy': 'Strategy'    # Example, adjust to your CSV
+        }
+    if 'RISK_FREE_RATE' not in globals():
+        RISK_FREE_RATE = 0.01
+    if 'KPI_CONFIG' not in globals(): # KPI_CONFIG might be more complex
+        KPI_CONFIG = {}
+
+
+    if 'app_initialized' not in st.session_state: 
+        # For standalone testing, you might need to mock st.session_state.processed_data
+        # and other session variables like initial_capital, risk_free_rate, current_theme
+        # Example:
+        # sample_data = {
+        #     EXPECTED_COLUMNS['date']: pd.to_datetime(['2023-01-01', '2023-01-01', '2023-01-02', '2023-01-02']),
+        #     EXPECTED_COLUMNS['pnl']: [10, -5, 20, 10],
+        #     EXPECTED_COLUMNS['strategy']: ['StratA', 'StratB', 'StratA', 'StratB'],
+        #     EXPECTED_COLUMNS['account_str']: ['Acc1', 'Acc1', 'Acc2', 'Acc2']
+        # }
+        # st.session_state.processed_data = pd.DataFrame(sample_data)
         # st.session_state.initial_capital = 100000
-        # st.session_state.risk_free_rate = 0.01
+        # st.session_state.risk_free_rate = RISK_FREE_RATE
         # st.session_state.current_theme = 'dark'
-        # EXPECTED_COLUMNS = {'account_str': 'Account', 'pnl': 'PnL', 'date': 'Date', 'strategy': 'Strategy'} # Mock
-        # KPI_CONFIG = {} # Mock
-        # RISK_FREE_RATE = 0.01 # Mock
-        st.warning("Running page directly. Full app functionality may be limited. Ensure `config.py` is accessible or mock necessary variables.")
+        st.warning("Running page directly. Full app functionality may be limited. Ensure `config.py` variables are accessible or mocked, and `st.session_state.processed_data` is populated for testing.")
+    
     show_portfolio_analysis_page()
